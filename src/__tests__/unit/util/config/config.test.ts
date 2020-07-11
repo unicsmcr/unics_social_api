@@ -15,7 +15,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		port: 8000,
 		db: {
 			host: 'localhost',
-			user: 'root',
+			username: 'root',
 			port: 3306,
 			password: 'password',
 			database: 'unics_social'
@@ -37,7 +37,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		port: 25565,
 		db: {
 			host: 'db',
-			user: 'unics_social',
+			username: 'unics_social',
 			port: 5432,
 			password: 'password',
 			database: 'unics_social'
