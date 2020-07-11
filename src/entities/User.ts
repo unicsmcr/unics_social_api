@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 export enum AccountStatus {
-	UNVERIFIED = 0,
-	VERIFIED = 1,
-	RESTRICTED = 2
+	Unverified = 0,
+	Verified = 1,
+	Restricted = 2
 }
 
 export enum AccountType {
-	USER = 0,
-	ADMIN = 1
+	User = 0,
+	Admin = 1
 }
 
 @Entity()
