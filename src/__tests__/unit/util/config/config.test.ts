@@ -9,7 +9,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_PORT: '3306',
 		DB_USER: 'root',
 		DB_PASSWORD: 'password',
-		DB_DATABASE: 'applications'
+		DB_DATABASE: 'unics_social'
 	},
 	{
 		port: 8000,
@@ -18,7 +18,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			user: 'root',
 			port: 3306,
 			password: 'password',
-			database: 'applications'
+			database: 'unics_social'
 		}
 	}
 ];
@@ -26,21 +26,21 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 // Valid fixture
 const fixture2: [Record<string, string>, EnvConfig] = [
 	{
-		PORT: '8000',
-		DB_HOST: 'localhost',
-		DB_PORT: '3306',
-		DB_USER: 'root',
+		PORT: '25565',
+		DB_HOST: 'db',
+		DB_PORT: '5432',
+		DB_USER: 'unics_social',
 		DB_PASSWORD: 'password',
-		DB_DATABASE: 'applications'
+		DB_DATABASE: 'unics_social'
 	},
 	{
-		port: 8000,
+		port: 25565,
 		db: {
-			host: 'localhost',
-			user: 'root',
-			port: 3306,
+			host: 'db',
+			user: 'unics_social',
+			port: 5432,
 			password: 'password',
-			database: 'applications'
+			database: 'unics_social'
 		}
 	}
 ];
