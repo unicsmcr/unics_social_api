@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    # restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: unics_social
+      POSTGRES_PASSWORD: password123
+    networks:
+      - unics_social
+    volumes:
+      - data-volume:/var/lib/db
+  db_admin:
+    image: dpage/pgadmin4
+    depends_on: [db]
+    ports:
+      - "5050:80"
+    networks:
+      - unics_social
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: test
+    volumes:
+      - data-volume:/var/lib/db_admin
+networks:
+  unics_social:
+    name: unics_social
+volumes:
+  data-volume:
