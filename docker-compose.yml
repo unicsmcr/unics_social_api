@@ -4,10 +4,11 @@ services:
     image: postgres
     # restart: always
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     environment:
-      POSTGRES_USER: unics_social
-      POSTGRES_PASSWORD: password123
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
     networks:
       - unics_social
     volumes:

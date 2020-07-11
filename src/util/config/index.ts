@@ -10,7 +10,7 @@ export interface EnvConfig {
 	db: {
 		host: string;
 		port: number;
-		user: string;
+		username: string;
 		password: string;
 		database: string;
 	};
@@ -22,7 +22,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),
-			user: getEnv(source, 'DB_USER'),
+			username: getEnv(source, 'DB_USER'),
 			password: getEnv(source, 'DB_PASSWORD'),
 			database: getEnv(source, 'DB_DATABASE')
 		}

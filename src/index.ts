@@ -1,27 +1,31 @@
 import 'reflect-metadata';
-import { createConnection, getRepository } from 'typeorm';
+
+// Load variables from .env into process.env
+import { config as loadEnv } from 'dotenv';
+loadEnv();
+
+import { createConnection } from 'typeorm';
 import { User, AccountType, AccountStatus } from './entity/User';
+import { getConfig } from './util/config';
 
 createConnection({
 	type: 'postgres',
-	host: 'localhost',
-	port: 5432,
-	username: 'unics_social',
-	password: 'password123',
-	database: 'unics_social',
+	...getConfig().db, // username, password, host, port, database
 	entities: [
 		User
 	],
 	synchronize: true,
 	logging: false
 }).then(async connection => {
+	console.log('connected!');
 	const repo = await connection.getRepository(User);
 	const user = new User();
-	user.forename = 'Amish';
-	user.surname = 'Shah';
-	user.accountType = AccountType.ADMIN;
+	user.forename = 'John';
+	user.surname = 'Doe';
+	user.password = 'Test';
+	user.accountType = AccountType.USER;
 	user.accountStatus = AccountStatus.VERIFIED;
-	user.email = 'amishshah.2k@gmail.com';
+	user.email = 'tes1t@email.com';
 	await repo.save(user);
+	console.log('saved!');
 }).catch(console.log);
-
