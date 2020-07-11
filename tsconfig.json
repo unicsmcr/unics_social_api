@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "es2019",
+		"module": "commonjs",
+		"lib": [
+			"es2019"
+		],
+		"rootDir": "src",
+		"outDir": "dist",
+		"strict": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true
+	},
+	"exclude": [
+		"node_modules",
+		"dist",
+		"coverage",
+		"src/__tests__",
+		"src/**/*.test.ts",
+		"src/**/*.spec.ts",
+		"src/**/*.test.js",
+		"src/**/*.spec.js"
+	]
+}
