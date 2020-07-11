@@ -11,7 +11,7 @@ services:
     networks:
       - unics_social
     volumes:
-      - data-volume:/var/lib/db
+      - db-vol:/var/lib/postgresql/data
   db_admin:
     image: dpage/pgadmin4
     depends_on: [db]
@@ -23,9 +23,10 @@ services:
       PGADMIN_DEFAULT_EMAIL: test@gmail.com
       PGADMIN_DEFAULT_PASSWORD: test
     volumes:
-      - data-volume:/var/lib/db_admin
+      - db-admin-vol:/var/lib/pgadmin
 networks:
   unics_social:
     name: unics_social
 volumes:
-  data-volume:
+  db-vol:
+  db-admin-vol:
