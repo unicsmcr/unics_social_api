@@ -4,15 +4,35 @@ import 'reflect-metadata';
 import { config as loadEnv } from 'dotenv';
 loadEnv();
 
-import express from 'express';
+import express, { Router, Response, Request, NextFunction } from 'express';
 
 import { createConnection } from 'typeorm';
 import { getConfig } from './util/config';
 import { User } from './entities/User';
+import { UserRoutes } from './routes/UserRoutes';
 
 export function createExpress() {
 	const app = express();
-	// to-do register routes
+	app.use(express.json());
+
+	const router = Router();
+	app.use('/api/v1', router);
+
+	new UserRoutes().routes(router);
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+		/*
+			to-do:
+			- refactor this to not use console.error, use pino
+			- don't send error message to enduser in production
+		*/
+		console.error(err.stack);
+		res.status(500).send({
+			message: err?.message ?? err
+		});
+	});
+
 	return app;
 }
 
