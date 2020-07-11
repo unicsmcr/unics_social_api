@@ -1,6 +1,7 @@
 import { UserController } from '../controllers/UserController';
 import { Router } from 'express';
 import { AccountStatus, AccountType } from '../entities/User';
+import { hashPassword } from '../util/password';
 
 export class UserRoutes {
 	private readonly userController: UserController;
@@ -15,7 +16,8 @@ export class UserRoutes {
 				const user = await this.userController.create({
 					...req.body,
 					accountStatus: AccountStatus.Unverified,
-					accountType: AccountType.User
+					accountType: AccountType.User,
+					password: await hashPassword(req.body?.password)
 				});
 				return res.json({
 					user
