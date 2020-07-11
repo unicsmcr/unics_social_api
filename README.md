@@ -6,6 +6,41 @@
 
 An API Server for UniCS's networking platform for Computer Science students at the University of Manchester.
 
+## Getting Started
+
+- Install [Node.js v12 or v14](https://nodejs.org/)
+- Install Docker:
+	- **Linux**: first install [the engine](https://docs.docker.com/engine/install/#server), then install [docker-compose](https://docs.docker.com/compose/install/)
+	- **Windows**: install [Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/install/)
+	- **Mac** - install [Docker Desktop on Mac](https://docs.docker.com/docker-for-mac/install/)
+- Verify that the installations have succeeded. You should be able to run these commands and get similar output:
+	```
+	$ node --version
+	v14.5.0
+
+	$ npm --version
+	6.14.5
+
+	$ docker --version
+	Docker version 19.03.12, build 48a66213fe
+
+	$ docker-compose --version
+	docker-compose version 1.25.5, build 8a1c60f6
+	```
+- You now need to create an `.env` file - this is a configuration file for the project. You can just copy the included `.env.example` to create yours. I would not recommend changing it unless the existing values cause problems.
+- Launch the PostgreSQL database and its admin tool:
+	```
+	$ docker-compose up -d
+	```
+
+	> The `-d` flag means detached, and allows the services to run in the background and not block your terminal.
+	>
+	> To access the admin tool, head to `http://localhost:5050` in your web browser, and use `admin@admin.com` and `password` as your login details. This allows you to interact with your local instance of the database with a friendly GUI.
+- Now you can run the actual UniCS Social Server! Whenever you make changes, you will need to re-run this command.
+	```
+	$ npm run build && node dist/app
+	```
+
 ## License
 
 > Copyright 2020 UniCS

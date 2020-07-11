@@ -21,8 +21,8 @@ services:
     networks:
       - unics_social
     environment:
-      PGADMIN_DEFAULT_EMAIL: test@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: test
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password
     volumes:
       - db-admin-vol:/var/lib/pgadmin
 networks:
