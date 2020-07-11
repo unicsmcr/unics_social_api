@@ -5,7 +5,7 @@ import { config as loadEnv } from 'dotenv';
 loadEnv();
 
 import { createConnection } from 'typeorm';
-import { User, AccountType, AccountStatus } from './entity/User';
+import { User, AccountType, AccountStatus } from './entities/User';
 import { getConfig } from './util/config';
 
 createConnection({
