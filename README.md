@@ -4,7 +4,7 @@
 ![Lint](https://github.com/unicsmcr/unics_social_api/workflows/Lint/badge.svg)
 [![codecov](https://codecov.io/gh/unicsmcr/unics_social_api/branch/main/graph/badge.svg)](https://codecov.io/gh/unicsmcr/unics_social_api)
 
-Description pending! 🙈
+An API Server for UniCS's networking platform for Computer Science students at the University of Manchester.
 
 ## License
 
