@@ -1,7 +1,5 @@
 import { UserController } from '../controllers/UserController';
 import { Router } from 'express';
-import { AccountStatus, AccountType } from '../entities/User';
-import { hashPassword } from '../util/password';
 
 export class UserRoutes {
 	private readonly userController: UserController;
@@ -13,14 +11,9 @@ export class UserRoutes {
 	public routes(router: Router): void {
 		router.post('/register', async (req, res, next) => {
 			try {
-				const user = await this.userController.create({
-					...req.body,
-					accountStatus: AccountStatus.Unverified,
-					accountType: AccountType.User,
-					password: await hashPassword(req.body?.password)
-				});
+				await this.userController.registerUser(req.body);
 				return res.json({
-					user
+					user: null
 				});
 			} catch (error) {
 				next(error);

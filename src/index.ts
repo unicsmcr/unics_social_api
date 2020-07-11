@@ -10,6 +10,7 @@ import { createConnection } from 'typeorm';
 import { getConfig } from './util/config';
 import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
+import { EmailConfirmation } from './entities/EmailConfirmation';
 
 export function createExpress() {
 	const app = express();
@@ -41,7 +42,7 @@ export function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User
+			User, EmailConfirmation
 		],
 		synchronize: true,
 		logging: false
