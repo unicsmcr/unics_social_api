@@ -27,6 +27,15 @@ An API Server for UniCS's networking platform for Computer Science students at t
 	$ docker-compose --version
 	docker-compose version 1.25.5, build 8a1c60f6
 	```
+- Clone the repo, and install the Node.js dependencies of this project:
+	```bash
+	$ git clone git@github.com:unicsmcr/unics_social_api.git
+	# or you can clone with HTTPS
+
+	$ cd unics_social_api
+
+	$ npm install
+	```
 - You now need to create an `.env` file - this is a configuration file for the project. You can just copy the included `.env.example` to create yours. I would not recommend changing it unless the existing values cause problems.
 - Launch the PostgreSQL database and its admin tool:
 	```
