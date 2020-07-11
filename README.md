@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/unicsmcr/unics_social_api/workflows/Tests/badge.svg)
 ![Lint](https://github.com/unicsmcr/unics_social_api/workflows/Lint/badge.svg)
-[![codecov](https://codecov.io/gh/unicsmcr/hs_auunics_social_apith_client/branch/main/graph/badge.svg)](https://codecov.io/gh/unicsmcr/unics_social_api)
+[![codecov](https://codecov.io/gh/unicsmcr/unics_social_api/branch/main/graph/badge.svg)](https://codecov.io/gh/unicsmcr/unics_social_api)
 
 Description pending! 🙈
 
