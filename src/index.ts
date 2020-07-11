@@ -4,12 +4,20 @@ import 'reflect-metadata';
 import { config as loadEnv } from 'dotenv';
 loadEnv();
 
+import express from 'express';
+
 import { createConnection } from 'typeorm';
 import { getConfig } from './util/config';
 import { User } from './entities/User';
 
-export async function createApp() {
-	await createConnection({
+export function createExpress() {
+	const app = express();
+	// to-do register routes
+	return app;
+}
+
+export function createDBConnection() {
+	return createConnection({
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
@@ -18,4 +26,10 @@ export async function createApp() {
 		synchronize: true,
 		logging: false
 	});
+}
+
+export async function createApp() {
+	const app = createExpress();
+	await createDBConnection();
+	return app;
 }
