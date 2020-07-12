@@ -11,6 +11,7 @@ import { getConfig } from './util/config';
 import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
 import { EmailConfirmation } from './entities/EmailConfirmation';
+import { container } from 'tsyringe';
 
 export function createExpress() {
 	const app = express();
@@ -19,7 +20,7 @@ export function createExpress() {
 	const router = Router();
 	app.use('/api/v1', router);
 
-	new UserRoutes().routes(router);
+	container.resolve(UserRoutes).routes(router);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	app.use((err: any, req: Request, res: Response, next: NextFunction) => {

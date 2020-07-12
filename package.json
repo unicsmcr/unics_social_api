@@ -52,7 +52,7 @@
   "preset": "ts-jest",
   "testEnvironment": "node",
   "testPathIgnorePatterns": [
-    "<rootDir>/tests/fixtures"
+   "<rootDir>/tests/fixtures"
   ],
   "globals": {
    "ts-jest": {
@@ -60,10 +60,10 @@
    }
   },
   "collectCoverageFrom": [
-    "src/**/*.ts"
+   "src/**/*.ts"
   ],
   "coveragePathIgnorePatterns": [
-    "src/app.ts"
+   "src/app.ts"
   ]
  },
  "dependencies": {
@@ -72,6 +72,7 @@
   "express": "^4.17.1",
   "pg": "^8.3.0",
   "reflect-metadata": "^0.1.13",
+  "tsyringe": "^4.3.0",
   "typeorm": "^0.2.25"
  }
 }

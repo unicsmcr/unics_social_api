@@ -2,8 +2,9 @@ import { User, AccountStatus, AccountType } from '../entities/User';
 import { getConnection } from 'typeorm';
 import { hashPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
+import { singleton } from 'tsyringe';
 
-type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
+export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
 
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
@@ -15,17 +16,12 @@ enum EmailVerifyError {
 	improve error handling, use more enums, do not expose raw errors to enduser
 */
 
+@singleton()
 export class UserService {
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
-			/*
-				to-do:
-				- user properties should be validated before committing to database
-				- email a manchester student account?
-				- password long enough?
-				- names are "real"?
-			*/
+
 			Object.assign(user, {
 				...data,
 				accountStatus: AccountStatus.Unverified,
