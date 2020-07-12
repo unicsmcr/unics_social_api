@@ -31,12 +31,15 @@
  "devDependencies": {
   "@types/jest": "^26.0.4",
   "@types/node": "^14.0.22",
+  "@types/supertest": "^2.0.10",
   "@typescript-eslint/eslint-plugin": "^3.6.0",
   "@typescript-eslint/parser": "^3.6.0",
   "@unicsmcr/eslint-config": "0.0.2",
   "eslint": "^7.4.0",
   "jest": "^26.1.0",
+  "supertest": "^4.0.2",
   "ts-jest": "^26.1.1",
+  "ts-mockito": "^2.6.1",
   "typescript": "^3.9.6"
  },
  "eslintConfig": {
@@ -52,7 +55,7 @@
   "preset": "ts-jest",
   "testEnvironment": "node",
   "testPathIgnorePatterns": [
-    "<rootDir>/tests/fixtures"
+   "<rootDir>/tests/fixtures"
   ],
   "globals": {
    "ts-jest": {
@@ -60,10 +63,10 @@
    }
   },
   "collectCoverageFrom": [
-    "src/**/*.ts"
+   "src/**/*.ts"
   ],
   "coveragePathIgnorePatterns": [
-    "src/app.ts"
+   "src/app.ts"
   ]
  },
  "dependencies": {
@@ -72,6 +75,7 @@
   "express": "^4.17.1",
   "pg": "^8.3.0",
   "reflect-metadata": "^0.1.13",
+  "tsyringe": "^4.3.0",
   "typeorm": "^0.2.25"
  }
 }

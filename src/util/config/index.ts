@@ -1,4 +1,4 @@
-import { getEnv, intoNumber } from './util';
+import { getEnv, intoNumber, intoBoolean } from './util';
 
 export enum Environment {
 	Dev = 'dev',
@@ -7,6 +7,7 @@ export enum Environment {
 
 export interface EnvConfig {
 	port: number;
+	logErrors: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -19,6 +20,7 @@ export interface EnvConfig {
 export function load(source: Record<string, string | undefined> = process.env): EnvConfig {
 	return {
 		port: intoNumber(getEnv(source, 'PORT')),
+		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),
