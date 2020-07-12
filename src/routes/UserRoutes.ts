@@ -12,9 +12,16 @@ export class UserRoutes {
 		router.post('/register', async (req, res, next) => {
 			try {
 				await this.userController.registerUser(req.body);
-				return res.json({
-					user: null
-				});
+				return res.status(204).end();
+			} catch (error) {
+				next(error);
+			}
+		});
+
+		router.get('/verify', async (req, res, next) => {
+			try {
+				await this.userController.verifyUser(req.query.confirmationId as string);
+				return res.status(204).end();
 			} catch (error) {
 				next(error);
 			}

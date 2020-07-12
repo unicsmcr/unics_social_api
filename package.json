@@ -58,7 +58,10 @@
    "ts-jest": {
     "tsConfig": "tsconfig.jest.json"
    }
-  }
+  },
+  "collectCoverageFrom": [
+    "src/**/*.ts"
+  ]
  },
  "dependencies": {
   "@types/express": "^4.17.7",
