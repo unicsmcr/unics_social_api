@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
-import { inject, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
-@singleton()
+@injectable()
 export class UserRoutes {
 	private readonly userController: UserController;
 

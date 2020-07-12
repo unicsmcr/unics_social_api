@@ -1,6 +1,6 @@
 import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
-import { inject, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -10,7 +10,7 @@ enum VerifyError {
 	ConfirmationIdNotString = 'confirmationId is invalid'
 }
 
-@singleton()
+@injectable()
 export class UserController {
 	private readonly userService: UserService;
 
