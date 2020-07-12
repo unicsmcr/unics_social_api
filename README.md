@@ -61,6 +61,17 @@ An API Server for UniCS's networking platform for its members at the University 
 	```
 	$ docker-compose down
 	```
+
+## Tech Stack
+
+If you're looking to get started with this project, here's a list of significant technologies we use that you should take a look at before diving in!
+
+- [TypeScript](https://www.typescriptlang.org/)
+- [TypeORM](https://github.com/typeorm/typeorm) (for easily working with databases)
+- [Express](https://github.com/expressjs/express) (for creating a HTTP server to serve the API on)
+- [Jest](https://github.com/facebook/jest) (a testing framework)
+- [Docker](https://www.docker.com/) (to create reproducible environments and make database setup easier)
+
 ## License
 
 > Copyright 2020 UniCS
