@@ -11,6 +11,11 @@ enum EmailVerifyError {
 	AccountNotUnverified = 'Your account has already been verified'
 }
 
+/*
+	to-do:
+	improve error handling, use more enums, do not expose raw errors to enduser
+*/
+
 export class UserController {
 	public async create(data: UserDataToCreate): Promise<User> {
 		const user = new User();
