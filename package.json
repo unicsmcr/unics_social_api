@@ -52,7 +52,7 @@
   "preset": "ts-jest",
   "testEnvironment": "node",
   "testPathIgnorePatterns": [
-   "<rootDir>/tests/fixtures"
+    "<rootDir>/tests/fixtures"
   ],
   "globals": {
    "ts-jest": {
@@ -61,6 +61,9 @@
   },
   "collectCoverageFrom": [
     "src/**/*.ts"
+  ],
+  "coveragePathIgnorePatterns": [
+    "src/app.ts"
   ]
  },
  "dependencies": {

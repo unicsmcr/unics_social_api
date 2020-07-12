@@ -1,14 +1,10 @@
 import { UserController } from '../../../src/controllers/UserController';
 import { createDBConnection } from '../../../src';
-import { getConnection } from 'typeorm';
 import { AccountStatus, AccountType } from '../../../src/entities/User';
+import '../../util/dbTeardown';
 
 beforeAll(async () => {
 	await createDBConnection();
-});
-
-afterAll(async () => {
-	await getConnection().close();
 });
 
 const userController = new UserController();

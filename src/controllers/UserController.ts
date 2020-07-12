@@ -1,5 +1,5 @@
 import { User, AccountStatus, AccountType } from '../entities/User';
-import { getRepository, getConnection } from 'typeorm';
+import { getConnection } from 'typeorm';
 import { hashPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 
