@@ -3,7 +3,7 @@ import { getRepository, getConnection } from 'typeorm';
 import { hashPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 
-type UserDataToCreate = Omit<User, 'id'>;
+type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
 type UserDataOnlyIdReq = Partial<User> & Required<Pick<User, 'id'>>;
 
 enum EmailVerifyError {
@@ -54,7 +54,7 @@ export class UserController {
 		});
 	}
 
-	public async verifyUser(confirmationId: string): Promise<void> {
+	public async verifyUser(confirmationId: string): Promise<User> {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {
@@ -76,6 +76,7 @@ export class UserController {
 			confirmation.user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(confirmation.user);
 			await entityManager.remove(confirmation);
+			return confirmation.user;
 		});
 	}
 }
