@@ -11,7 +11,7 @@ An API Server for UniCS's networking platform for its members at the University 
 - Install [Node.js v12 or v14](https://nodejs.org/)
 - Install Docker:
 	- **Linux**: first install [the engine](https://docs.docker.com/engine/install/#server), then install [docker-compose](https://docs.docker.com/compose/install/)
-	- **Windows**: install [Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/install/)
+	- **Windows**: install [Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/install/) and [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 	- **Mac** - install [Docker Desktop on Mac](https://docs.docker.com/docker-for-mac/install/)
 - Verify that the installations have succeeded. You should be able to run these commands and get similar output:
 	```
@@ -20,6 +20,10 @@ An API Server for UniCS's networking platform for its members at the University 
 
 	$ npm --version
 	6.14.5
+
+	$ make --version
+	GNU Make 4.1
+	...
 
 	$ docker --version
 	Docker version 19.03.12, build 48a66213fe
