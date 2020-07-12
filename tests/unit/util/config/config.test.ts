@@ -5,6 +5,7 @@ import { load, EnvConfig, getConfig } from '../../../../src/util/config';
 const fixture1: [Record<string, string>, EnvConfig] = [
 	{
 		PORT: '8000',
+		LOG_ERRORS: 'true',
 		DB_HOST: 'localhost',
 		DB_PORT: '3306',
 		DB_USER: 'root',
@@ -13,6 +14,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 	},
 	{
 		port: 8000,
+		logErrors: true,
 		db: {
 			host: 'localhost',
 			username: 'root',
@@ -27,6 +29,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 const fixture2: [Record<string, string>, EnvConfig] = [
 	{
 		PORT: '25565',
+		LOG_ERRORS: 'false',
 		DB_HOST: 'db',
 		DB_PORT: '5432',
 		DB_USER: 'unics_social',
@@ -35,6 +38,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 	},
 	{
 		port: 25565,
+		logErrors: false,
 		db: {
 			host: 'db',
 			username: 'unics_social',

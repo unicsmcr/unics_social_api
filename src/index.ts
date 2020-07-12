@@ -29,7 +29,9 @@ export function createExpress() {
 			- refactor this to not use console.error, use pino
 			- don't send error message to enduser in production
 		*/
-		console.error(err.stack);
+		if (getConfig().logErrors) {
+			console.error(err.stack);
+		}
 		res.status(500).send({
 			message: err?.message ?? err
 		});
