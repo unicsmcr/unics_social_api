@@ -4,7 +4,7 @@ services:
     image: postgres
     # restart: always
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "${DB_PORT}:5432"
     environment:
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
@@ -13,6 +13,12 @@ services:
       - unics_social
     volumes:
       - db-vol:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   db_admin:
     image: dpage/pgadmin4
     depends_on: [db]
