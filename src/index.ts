@@ -37,7 +37,7 @@ export function createExpress() {
 	return app;
 }
 
-export function createDBConnection() {
+export async function createDBConnection() {
 	return createConnection({
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
