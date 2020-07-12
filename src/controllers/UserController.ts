@@ -1,5 +1,5 @@
 import { User, AccountStatus, AccountType } from '../entities/User';
-import { getRepository, getConnection } from 'typeorm';
+import { getConnection } from 'typeorm';
 import { hashPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 
@@ -17,19 +17,6 @@ enum EmailVerifyError {
 */
 
 export class UserController {
-	public async create(data: UserDataToCreate): Promise<User> {
-		const user = new User();
-		Object.assign(user, data);
-		return getRepository(User).save(user);
-	}
-
-	public async update(data: UserDataOnlyIdReq) {
-		const userRepo = getRepository(User);
-		const user = await userRepo.findOneOrFail(data.id);
-		Object.assign(user, data);
-		return userRepo.save(user);
-	}
-
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
