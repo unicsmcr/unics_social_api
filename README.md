@@ -4,7 +4,7 @@
 ![Lint](https://github.com/unicsmcr/unics_social_api/workflows/Lint/badge.svg)
 [![codecov](https://codecov.io/gh/unicsmcr/unics_social_api/branch/main/graph/badge.svg)](https://codecov.io/gh/unicsmcr/unics_social_api)
 
-An API Server for UniCS's networking platform for Computer Science students at the University of Manchester.
+An API Server for UniCS's networking platform for its members at the University of Manchester.
 
 ## Getting Started
 
@@ -49,7 +49,14 @@ An API Server for UniCS's networking platform for Computer Science students at t
 	```
 	$ npm run build && node dist/app
 	```
-
+- After you've made changes, you can run tests to ensure that nothing broke and the coverage is still high!
+	```
+	$ npm test
+	```
+- You can shutdown the database and its admin tool once you're done:
+	```
+	$ docker-compose down
+	```
 ## License
 
 > Copyright 2020 UniCS
