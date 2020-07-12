@@ -1,17 +1,17 @@
-import { UserController } from '../controllers/UserController';
+import { UserService } from '../services/UserService';
 import { Router } from 'express';
 
 export class UserRoutes {
-	private readonly userController: UserController;
+	private readonly userService: UserService;
 
 	public constructor() {
-		this.userController = new UserController();
+		this.userService = new UserService();
 	}
 
 	public routes(router: Router): void {
 		router.post('/register', async (req, res, next) => {
 			try {
-				await this.userController.registerUser(req.body);
+				await this.userService.registerUser(req.body);
 				return res.status(204).end();
 			} catch (error) {
 				next(error);
@@ -20,7 +20,7 @@ export class UserRoutes {
 
 		router.get('/verify', async (req, res, next) => {
 			try {
-				await this.userController.verifyUser(req.query.confirmationId as string);
+				await this.userService.verifyUser(req.query.confirmationId as string);
 				return res.status(204).end();
 			} catch (error) {
 				next(error);

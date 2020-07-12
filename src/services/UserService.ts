@@ -4,7 +4,6 @@ import { hashPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 
 type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
-type UserDataOnlyIdReq = Partial<User> & Required<Pick<User, 'id'>>;
 
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
@@ -16,7 +15,7 @@ enum EmailVerifyError {
 	improve error handling, use more enums, do not expose raw errors to enduser
 */
 
-export class UserController {
+export class UserService {
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
