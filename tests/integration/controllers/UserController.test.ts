@@ -11,10 +11,11 @@ afterAll(async () => {
 	await getConnection().close();
 });
 
+const userController = new UserController();
+
 describe('UserController', () => {
 	test('Registers valid user and validates email', async () => {
 		// Scenario 1
-		const userController = new UserController();
 
 		const fixture = {
 			email: 'test@student.manchester.ac.uk',
@@ -48,5 +49,9 @@ describe('UserController', () => {
 
 		// A second validation attempt should fail
 		await expect(userController.verifyUser(confirmation.id)).rejects.toThrow();
+	});
+
+	test('Validate user does not allow empty confirmationId', async () => {
+		await expect(userController.verifyUser('')).rejects.toThrow();
 	});
 });
