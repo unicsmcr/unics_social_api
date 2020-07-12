@@ -4,14 +4,14 @@
 ![Lint](https://github.com/unicsmcr/unics_social_api/workflows/Lint/badge.svg)
 [![codecov](https://codecov.io/gh/unicsmcr/unics_social_api/branch/main/graph/badge.svg)](https://codecov.io/gh/unicsmcr/unics_social_api)
 
-An API Server for UniCS's networking platform for Computer Science students at the University of Manchester.
+An API Server for UniCS's networking platform for its members at the University of Manchester.
 
 ## Getting Started
 
 - Install [Node.js v12 or v14](https://nodejs.org/)
 - Install Docker:
 	- **Linux**: first install [the engine](https://docs.docker.com/engine/install/#server), then install [docker-compose](https://docs.docker.com/compose/install/)
-	- **Windows**: install [Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/install/)
+	- **Windows**: install [Docker Desktop on Windows](https://docs.docker.com/docker-for-windows/install/) and [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 	- **Mac** - install [Docker Desktop on Mac](https://docs.docker.com/docker-for-mac/install/)
 - Verify that the installations have succeeded. You should be able to run these commands and get similar output:
 	```
@@ -20,6 +20,10 @@ An API Server for UniCS's networking platform for Computer Science students at t
 
 	$ npm --version
 	6.14.5
+
+	$ make --version
+	GNU Make 4.1
+	...
 
 	$ docker --version
 	Docker version 19.03.12, build 48a66213fe
@@ -49,6 +53,24 @@ An API Server for UniCS's networking platform for Computer Science students at t
 	```
 	$ npm run build && node dist/app
 	```
+- After you've made changes, you can run tests to ensure that nothing broke and the coverage is still high!
+	```
+	$ npm test
+	```
+- You can shutdown the database and its admin tool once you're done:
+	```
+	$ docker-compose down
+	```
+
+## Tech Stack
+
+If you're looking to get started with this project, here's a list of significant technologies we use that you should take a look at before diving in!
+
+- [TypeScript](https://www.typescriptlang.org/)
+- [TypeORM](https://github.com/typeorm/typeorm) (for easily working with databases)
+- [Express](https://github.com/expressjs/express) (for creating a HTTP server to serve the API on)
+- [Jest](https://github.com/facebook/jest) (a testing framework)
+- [Docker](https://www.docker.com/) (to create reproducible environments and make database setup easier)
 
 ## License
 
