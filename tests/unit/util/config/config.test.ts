@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
-import { load, EnvConfig, getConfig } from '../../../../util/config';
+import { load, EnvConfig, getConfig } from '../../../../src/util/config';
 
 // Valid fixture
 const fixture1: [Record<string, string>, EnvConfig] = [

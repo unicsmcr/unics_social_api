@@ -1,4 +1,4 @@
-import { hashPassword, verifyPassword } from '../../../util/password';
+import { hashPassword, verifyPassword } from '../../../src/util/password';
 
 describe('password', () => {
 	test('produces expected output', async () => {

@@ -1,4 +1,4 @@
-import { getEnvOptional, getEnvOrDefault, getEnv, intoNumber, intoBoolean } from '../../../../util/config/util';
+import { getEnvOptional, getEnvOrDefault, getEnv, intoNumber, intoBoolean } from '../../../../src/util/config/util';
 
 describe('getEnvOptional', () => {
 	test('Defined inputs for getEnvOptional', () => {
