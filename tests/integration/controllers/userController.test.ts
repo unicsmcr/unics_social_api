@@ -100,26 +100,26 @@ describe('UserController', () => {
 		});
 	});
 
-	describe('verifyUser', () => {
+	describe('verifyUserEmail', () => {
 		test('Gives 204 for valid request', async () => {
-			when(mockedUserService.verifyUser('3')).thenResolve();
+			when(mockedUserService.verifyUserEmail('3')).thenResolve();
 			const res = await supertest(app).get('/api/v1/verify?confirmationId=3');
-			verify(mockedUserService.verifyUser('3')).called();
+			verify(mockedUserService.verifyUserEmail('3')).called();
 			expect(res.status).toEqual(204);
 			expect(res.body).toEqual({});
 		});
 
 		test('Gives error for invalid request', async () => {
-			when(mockedUserService.verifyUser(anything())).thenReject();
+			when(mockedUserService.verifyUserEmail(anything())).thenReject();
 			const res = await supertest(app).get('/api/v1/verify?confirmationId=3');
-			verify(mockedUserService.verifyUser('3')).called();
+			verify(mockedUserService.verifyUserEmail('3')).called();
 			expect(res.status).toBeGreaterThanOrEqual(400);
 		});
 
 		test('Gives error when confirmation id not provided', async () => {
-			when(mockedUserService.verifyUser(anything())).thenResolve();
+			when(mockedUserService.verifyUserEmail(anything())).thenResolve();
 			const res = await supertest(app).get('/api/v1/verify');
-			verify(mockedUserService.verifyUser(anything())).never();
+			verify(mockedUserService.verifyUserEmail(anything())).never();
 			expect(res.status).toBeGreaterThanOrEqual(400);
 		});
 	});

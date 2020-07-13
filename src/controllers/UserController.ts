@@ -36,10 +36,10 @@ export class UserController {
 		}
 	}
 
-	public async verifyUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			if (typeof req.query.confirmationId !== 'string') throw new Error(VerifyError.ConfirmationIdNotString);
-			await this.userService.verifyUser(req.query.confirmationId);
+			await this.userService.verifyUserEmail(req.query.confirmationId);
 			res.status(204).end();
 		} catch (error) {
 			next(error);

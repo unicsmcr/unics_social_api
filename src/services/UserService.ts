@@ -35,7 +35,7 @@ export class UserService {
 		});
 	}
 
-	public async verifyUser(confirmationId: string): Promise<User> {
+	public async verifyUserEmail(confirmationId: string): Promise<User> {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {

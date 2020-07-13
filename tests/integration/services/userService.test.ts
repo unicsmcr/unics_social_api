@@ -32,22 +32,22 @@ describe('UserService', () => {
 		});
 
 		// Attempt 2 invalid validations
-		await expect(userService.verifyUser(confirmation.id.substring(0, confirmation.id.length - 1))).rejects.toThrow();
-		await expect(userService.verifyUser(`${confirmation.id} `)).rejects.toThrow();
+		await expect(userService.verifyUserEmail(confirmation.id.substring(0, confirmation.id.length - 1))).rejects.toThrow();
+		await expect(userService.verifyUserEmail(`${confirmation.id} `)).rejects.toThrow();
 
 		// Validate their account
 		const oldUser = { ...confirmation.user };
-		const user = await userService.verifyUser(confirmation.id);
+		const user = await userService.verifyUserEmail(confirmation.id);
 		expect(user).toMatchObject({
 			...oldUser,
 			accountStatus: AccountStatus.Verified
 		});
 
 		// A second validation attempt should fail
-		await expect(userService.verifyUser(confirmation.id)).rejects.toThrow();
+		await expect(userService.verifyUserEmail(confirmation.id)).rejects.toThrow();
 	});
 
 	test('Validate user does not allow empty confirmationId', async () => {
-		await expect(userService.verifyUser('')).rejects.toThrow();
+		await expect(userService.verifyUserEmail('')).rejects.toThrow();
 	});
 });
