@@ -10,7 +10,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_PORT: '3306',
 		DB_USER: 'root',
 		DB_PASSWORD: 'password',
-		DB_DATABASE: 'unics_social'
+		DB_DATABASE: 'unics_social',
+		SENDGRID_TOKEN: 'abc123'
 	},
 	{
 		port: 8000,
@@ -21,7 +22,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			port: 3306,
 			password: 'password',
 			database: 'unics_social'
-		}
+		},
+		sendgridToken: 'abc123'
 	}
 ];
 
@@ -34,7 +36,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_PORT: '5432',
 		DB_USER: 'unics_social',
 		DB_PASSWORD: 'password',
-		DB_DATABASE: 'unics_social'
+		DB_DATABASE: 'unics_social',
+		SENDGRID_TOKEN: 'token!!!'
 	},
 	{
 		port: 25565,
@@ -45,7 +48,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			port: 5432,
 			password: 'password',
 			database: 'unics_social'
-		}
+		},
+		sendgridToken: 'token!!!'
 	}
 ];
 
