@@ -35,19 +35,35 @@ describe('UserService', () => {
 		await expect(userService.verifyUserEmail(confirmation.id.substring(0, confirmation.id.length - 1))).rejects.toThrow();
 		await expect(userService.verifyUserEmail(`${confirmation.id} `)).rejects.toThrow();
 
-		// Validate their account
+		// Verify their email
 		const oldUser = { ...confirmation.user };
-		const user = await userService.verifyUserEmail(confirmation.id);
-		expect(user).toMatchObject({
+		const newExpected = {
 			...oldUser,
 			accountStatus: AccountStatus.Verified
-		});
+		};
+		const user = await userService.verifyUserEmail(confirmation.id);
+		expect(user).toMatchObject(newExpected);
 
 		// A second validation attempt should fail
 		await expect(userService.verifyUserEmail(confirmation.id)).rejects.toThrow();
+
+		// Attempt 2 invalid authenticates
+		await expect(userService.authenticate(fixture.email, 'incorrect')).rejects.toThrow();
+		await expect(userService.authenticate(fixture.email, `${fixture.password} `)).rejects.toThrow();
+
+		// Attempt a valid authenticate
+		await expect(userService.authenticate(fixture.email, fixture.password)).resolves.toMatchObject(newExpected);
 	});
 
 	test('Validate user does not allow empty confirmationId', async () => {
 		await expect(userService.verifyUserEmail('')).rejects.toThrow();
+	});
+
+	test('Authenticate user does not allow empty confirmationId', async () => {
+		await expect(userService.authenticate('', '')).rejects.toThrow();
+	});
+
+	test('Authenticate user throws when user not found', async () => {
+		await expect(userService.authenticate('fake@email.com', '')).rejects.toThrow();
 	});
 });
