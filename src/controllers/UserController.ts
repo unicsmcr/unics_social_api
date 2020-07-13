@@ -1,6 +1,8 @@
 import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
+import EmailService from '../services/EmailService';
+import { VerifyEmailTemplate } from '../util/emails';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -13,14 +15,21 @@ enum VerifyError {
 @injectable()
 export class UserController {
 	private readonly userService: UserService;
+	private readonly emailService: EmailService;
 
-	public constructor(@inject(UserService) _userService: UserService) {
+	public constructor(@inject(UserService) _userService: UserService, @inject(EmailService) _emailService: EmailService) {
 		this.userService = _userService;
+		this.emailService = _emailService;
 	}
 
 	public async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			await this.userService.registerUser(req.body);
+			const confirmation = await this.userService.registerUser(req.body);
+			await this.emailService.sendEmail({
+				to: confirmation.user.email,
+				subject: 'Verify your UniCS KB email',
+				html: VerifyEmailTemplate(confirmation.user.forename, confirmation.id)
+			});
 			res.status(204).end();
 		} catch (error) {
 			next(error);

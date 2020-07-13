@@ -7,8 +7,7 @@ import { singleton } from 'tsyringe';
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
 
 enum EmailVerifyError {
-	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
-	AccountNotUnverified = 'Your account has already been verified'
+	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
 }
 
 /*
@@ -49,10 +48,6 @@ export class UserService {
 
 			if (!confirmation) {
 				throw new Error(EmailVerifyError.ConfirmationNotFound);
-			}
-
-			if (confirmation.user.accountStatus !== AccountStatus.Unverified) {
-				throw new Error(EmailVerifyError.AccountNotUnverified);
 			}
 
 			confirmation.user.accountStatus = AccountStatus.Verified;
