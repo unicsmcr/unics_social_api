@@ -9,6 +9,7 @@ export interface EnvConfig {
 	port: number;
 	logErrors: boolean;
 	sendgridToken: string;
+	jwtSecret: string;
 	db: {
 		host: string;
 		port: number;
@@ -23,6 +24,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		port: intoNumber(getEnv(source, 'PORT')),
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
 		sendgridToken: getEnv(source, 'SENDGRID_TOKEN'),
+		jwtSecret: getEnv(source, 'JWT_SECRET'),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),

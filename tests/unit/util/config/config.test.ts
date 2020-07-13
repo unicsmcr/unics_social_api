@@ -11,7 +11,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_USER: 'root',
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
-		SENDGRID_TOKEN: 'abc123'
+		SENDGRID_TOKEN: 'abc123',
+		JWT_SECRET: 'test123test'
 	},
 	{
 		port: 8000,
@@ -23,7 +24,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgridToken: 'abc123'
+		sendgridToken: 'abc123',
+		jwtSecret: 'test123test'
 	}
 ];
 
@@ -37,7 +39,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_USER: 'unics_social',
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
-		SENDGRID_TOKEN: 'token!!!'
+		SENDGRID_TOKEN: 'token!!!',
+		JWT_SECRET: 'asecret'
 	},
 	{
 		port: 25565,
@@ -49,7 +52,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgridToken: 'token!!!'
+		sendgridToken: 'token!!!',
+		jwtSecret: 'asecret'
 	}
 ];
 
