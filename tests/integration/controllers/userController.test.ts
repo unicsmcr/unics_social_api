@@ -4,6 +4,7 @@ import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
 import { container } from 'tsyringe';
 import supertest from 'supertest';
+import { verifyJWT } from '../../../src/util/auth';
 import '../../util/dbTeardown';
 import { AccountStatus, AccountType } from '../../../src/entities/User';
 
@@ -26,7 +27,7 @@ beforeEach(() => {
 	reset(mockedEmailService);
 });
 
-const registeredUserFixture1 = {
+const confirmationFixture1 = {
 	id: 'confirmation1',
 	user: {
 		accountStatus: AccountStatus.Unverified,
@@ -39,7 +40,7 @@ const registeredUserFixture1 = {
 	}
 };
 
-const registeredUserFixture2 = {
+const confirmationFixture2 = {
 	id: 'confirmation2',
 	user: {
 		accountStatus: AccountStatus.Unverified,
@@ -63,7 +64,7 @@ describe('UserController', () => {
 			};
 
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
-			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(registeredUserFixture1);
+			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(confirmationFixture1);
 
 			const res = await supertest(app).post('/api/v1/register').send(registrationUser);
 			verify(mockedUserService.registerUser(objectContaining(registrationUser))).called();
@@ -91,7 +92,7 @@ describe('UserController', () => {
 			};
 
 			when(mockedEmailService.sendEmail(anything())).thenReject();
-			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(registeredUserFixture2);
+			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(confirmationFixture2);
 
 			const res = await supertest(app).post('/api/v1/register').send(registrationUser);
 			verify(mockedUserService.registerUser(objectContaining(registrationUser))).called();
@@ -121,6 +122,34 @@ describe('UserController', () => {
 			const res = await supertest(app).get('/api/v1/verify');
 			verify(mockedUserService.verifyUserEmail(anything())).never();
 			expect(res.status).toBeGreaterThanOrEqual(400);
+		});
+	});
+
+	describe('authenticate', () => {
+		test('Gives valid token on successful authentication', async () => {
+			const fixture = confirmationFixture1.user;
+			when(mockedUserService.authenticate(fixture.email, 'password')).thenResolve(fixture);
+
+			const res = await supertest(app).post('/api/v1/authenticate').send({
+				email: fixture.email,
+				password: 'password'
+			});
+
+			const payload = await verifyJWT(res.body.token);
+			expect(payload.id).toEqual(confirmationFixture1.user.id);
+			expect(Object.keys(payload)).toEqual(['id', 'iat', 'exp']);
+		});
+
+		test('Rejects on unsuccessful authentication', async () => {
+			const fixture = confirmationFixture2.user;
+			when(mockedUserService.authenticate(fixture.email, 'password')).thenResolve(fixture);
+
+			const res = await supertest(app).post('/api/v1/authenticate').send({
+				email: fixture.email,
+				password: 'incorrect password'
+			});
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.token).toBeUndefined();
 		});
 	});
 });
