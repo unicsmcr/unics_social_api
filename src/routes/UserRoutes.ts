@@ -14,5 +14,7 @@ export class UserRoutes {
 		router.post('/register', this.userController.registerUser.bind(this.userController));
 
 		router.get('/verify', this.userController.verifyUserEmail.bind(this.userController));
+
+		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 	}
 }
