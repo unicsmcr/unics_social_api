@@ -8,6 +8,7 @@ export enum Environment {
 export interface EnvConfig {
 	port: number;
 	logErrors: boolean;
+	sendgridToken: string;
 	db: {
 		host: string;
 		port: number;
@@ -21,6 +22,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 	return {
 		port: intoNumber(getEnv(source, 'PORT')),
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
+		sendgridToken: getEnv(source, 'SENDGRID_TOKEN'),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),
