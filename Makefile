@@ -6,6 +6,7 @@ test: export DB_USER=unics_social
 test: export DB_PASSWORD=password123
 test: export DB_DATABASE=unics_social
 test: export SENDGRID_TOKEN=SG.abc123
+test: export JWT_SECRET=thisisasecret
 test:
 	docker-compose -f tests/docker-compose.yml up -d db
 	@node scripts/waitForPort $(DB_PORT)

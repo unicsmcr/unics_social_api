@@ -1,6 +1,6 @@
 import { User, AccountStatus, AccountType } from '../entities/User';
-import { getConnection } from 'typeorm';
-import { hashPassword } from '../util/password';
+import { getConnection, getRepository } from 'typeorm';
+import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 
@@ -8,6 +8,11 @@ export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'
 
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
+}
+
+enum AuthenticateError {
+	AccountNotFound = 'Account not found.',
+	PasswordIncorrect = 'Password incorrect.'
 }
 
 /*
@@ -35,7 +40,7 @@ export class UserService {
 		});
 	}
 
-	public async verifyUser(confirmationId: string): Promise<User> {
+	public async verifyUserEmail(confirmationId: string): Promise<User> {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {
@@ -55,5 +60,22 @@ export class UserService {
 			await entityManager.remove(confirmation);
 			return confirmation.user;
 		});
+	}
+
+	public async authenticate(email: string, password: string): Promise<User> {
+		if (!email) {
+			throw new Error(AuthenticateError.AccountNotFound);
+		}
+
+		const user = await getRepository(User).findOne({ email });
+		if (!user) {
+			throw new Error(AuthenticateError.AccountNotFound);
+		}
+
+		if (!verifyPassword(password, user.password)) {
+			throw new Error(AuthenticateError.PasswordIncorrect);
+		}
+
+		return user;
 	}
 }

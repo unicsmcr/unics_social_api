@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
+import { generateJWT } from '../util/auth';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -36,11 +37,21 @@ export class UserController {
 		}
 	}
 
-	public async verifyUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			if (typeof req.query.confirmationId !== 'string') throw new Error(VerifyError.ConfirmationIdNotString);
-			await this.userService.verifyUser(req.query.confirmationId);
+			await this.userService.verifyUserEmail(req.query.confirmationId);
 			res.status(204).end();
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const user = await this.userService.authenticate(req.body.email, req.body.password);
+			const token = await generateJWT(user);
+			res.json({ token });
 		} catch (error) {
 			next(error);
 		}
