@@ -10,7 +10,7 @@ beforeAll(async () => {
 const userService = new UserService();
 
 describe('UserService', () => {
-	test('Registers valid user and validates email', async () => {
+	test('Extensive user flow through service', async () => {
 		// Scenario 1
 
 		const fixture = {
