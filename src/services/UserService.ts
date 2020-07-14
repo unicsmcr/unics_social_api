@@ -47,9 +47,7 @@ export class UserService {
 				throw new Error(EmailVerifyError.ConfirmationNotFound);
 			}
 
-			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId, {
-				relations: ['user']
-			});
+			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId);
 
 			if (!confirmation) {
 				throw new Error(EmailVerifyError.ConfirmationNotFound);

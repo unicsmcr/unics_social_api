@@ -7,6 +7,6 @@ export class EmailConfirmation {
 	public id!: string;
 
 	@JoinColumn()
-	@OneToOne(() => User)
+	@OneToOne(() => User, { eager: true })
 	public user!: User;
 }
