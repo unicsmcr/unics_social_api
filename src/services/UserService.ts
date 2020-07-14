@@ -1,5 +1,5 @@
 import { User, AccountStatus, AccountType } from '../entities/User';
-import { getConnection, getRepository } from 'typeorm';
+import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
@@ -27,6 +27,14 @@ enum PutProfileError {
 
 @singleton()
 export class UserService {
+	public async findOne(findConditions: FindConditions<User>, options?: FindOneOptions) {
+		return getRepository(User).findOne(findConditions, options);
+	}
+
+	public async findOneOrFail(findConditions: FindConditions<User>, options?: FindOneOptions) {
+		return getRepository(User).findOneOrFail(findConditions, options);
+	}
+
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
