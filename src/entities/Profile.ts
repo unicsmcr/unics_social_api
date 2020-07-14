@@ -3,20 +3,20 @@ import { User } from './User';
 
 @Entity()
 export default class Profile {
-	@PrimaryGeneratedColumn({ type: 'uuid' })
+	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@OneToOne(() => User)
+	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
 	@Column()
 	public course!: string;
 
-	@Column()
+	@Column({ type: 'integer' })
 	public yearOfStudy!: number;
 
-	@Column()
-	public profilePicture!: string;
+	@Column({ nullable: true })
+	public profilePicture?: string;
 
 	@Column({ nullable: true })
 	public instagram?: string;

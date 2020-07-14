@@ -35,7 +35,7 @@ export class User {
 	@Column()
 	public accountType!: AccountType;
 
-	@OneToOne(() => Profile, { nullable: true })
+	@OneToOne(() => Profile, profile => profile.user, { nullable: true, eager: true, cascade: true })
 	@JoinColumn()
 	public profile?: Profile;
 }

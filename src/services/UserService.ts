@@ -3,6 +3,7 @@ import { getConnection, getRepository } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
+import Profile from '../entities/Profile';
 
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
 
@@ -13,6 +14,10 @@ enum EmailVerifyError {
 enum AuthenticateError {
 	AccountNotFound = 'Account not found.',
 	PasswordIncorrect = 'Password incorrect.'
+}
+
+enum PutProfileError {
+	AccountNotFound = 'Account not found.'
 }
 
 /*
@@ -75,5 +80,21 @@ export class UserService {
 		}
 
 		return user;
+	}
+
+	public async putProfileForUser(id: string, options: Omit<Profile, 'id' | 'user'>) {
+		return getConnection().transaction(async entityManager => {
+			if (!id) throw new Error(PutProfileError.AccountNotFound);
+			const user = await entityManager.findOne(User, { id });
+			if (!user) throw new Error(PutProfileError.AccountNotFound);
+
+			// If a profile doesn't exist, create it
+			const profile = user.profile ?? new Profile();
+			const { twitter, profilePicture, instagram, yearOfStudy, course, facebook } = options;
+			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
+			profile.user = user;
+			user.profile = profile;
+			return entityManager.save(user);
+		});
 	}
 }
