@@ -12,6 +12,7 @@ import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
 import { EmailConfirmation } from './entities/EmailConfirmation';
 import { container } from 'tsyringe';
+import Profile from './entities/Profile';
 
 export function createExpress() {
 	const app = express();
@@ -45,7 +46,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation
+			User, EmailConfirmation, Profile
 		],
 		synchronize: true,
 		logging: false

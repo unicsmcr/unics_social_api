@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
+import Profile from './Profile';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -33,4 +34,8 @@ export class User {
 
 	@Column()
 	public accountType!: AccountType;
+
+	@OneToOne(() => Profile, { nullable: true })
+	@JoinColumn()
+	public profile?: Profile;
 }
