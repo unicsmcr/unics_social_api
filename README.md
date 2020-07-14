@@ -41,9 +41,9 @@ An API Server for UniCS's networking platform for its members at the University 
 	$ npm install
 	```
 - You now need to create an `.env` file - this is a configuration file for the project. You can just copy the included `.env.example` to create yours. I would not recommend changing most values unless they cause problems.
-	> To get the email service working, you'll need to [create a SendGrid API key](https://sendgrid.com/) and go through [Single Sender Verification](https://sendgrid.com/docs/ui/sending-email/sender-verification/) to an email you have access to. You then need to set this email address and the SendGrid token in the `.env` file (`SENDGRID_FROM_EMAIL` and `SENDGRID_TOKEN` respectively).
+	> To get the email service working, you'll need to [create a SendGrid API key](https://sendgrid.com/) and go through [Single Sender Verification](https://sendgrid.com/docs/ui/sending-email/sender-verification/) to an email you have access to. You then need to set this email address and the SendGrid token in the `.env` file (`SENDGRID_FROM_EMAIL` and `SENDGRID_TOKEN` respectively.)
 	> 
-	> This is due to security reasons on SendGrid's side which disallow you from using `noreply@unicsmcr.com` as you cannot prove you have access to that email, so the service is unable to send email as if it is from that address. This is why you have to use a personal email address you have access to.
+	> This is due to security reasons on SendGrid's side which disallow you from using `noreply@unicsmcr.com` as you cannot prove you have access to that email, so the service is unable to send email as if it is from that address. This is why you have to use a personal email address that you have access to.
 - Launch the PostgreSQL database and its admin tool:
 	```
 	$ docker-compose up -d
