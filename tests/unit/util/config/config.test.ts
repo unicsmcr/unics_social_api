@@ -12,6 +12,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
 		SENDGRID_TOKEN: 'abc123',
+		SENDGRID_FROM_EMAIL: 'noreply@unicsmcr.com',
 		JWT_SECRET: 'test123test'
 	},
 	{
@@ -24,7 +25,10 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgridToken: 'abc123',
+		sendgrid: {
+			token: 'abc123',
+			fromEmail: 'noreply@unicsmcr.com'
+		},
 		jwtSecret: 'test123test'
 	}
 ];
@@ -40,6 +44,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
 		SENDGRID_TOKEN: 'token!!!',
+		SENDGRID_FROM_EMAIL: 'test@gmail.com',
 		JWT_SECRET: 'asecret'
 	},
 	{
@@ -52,7 +57,10 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgridToken: 'token!!!',
+		sendgrid: {
+			token: 'token!!!',
+			fromEmail: 'test@gmail.com'
+		},
 		jwtSecret: 'asecret'
 	}
 ];
