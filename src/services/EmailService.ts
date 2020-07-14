@@ -5,13 +5,13 @@ import { getConfig } from '../util/config';
 @injectable()
 export default class EmailService {
 	public constructor() {
-		setApiKey(getConfig().sendgridToken);
+		setApiKey(getConfig().sendgrid.token);
 	}
 
 	public sendEmail(data: { to: string; html: string; subject: string }) {
-		setApiKey(getConfig().sendgridToken);
+		setApiKey(getConfig().sendgrid.token);
 		return send({
-			from: 'noreply@unicsmcr.com',
+			from: getConfig().sendgrid.fromEmail,
 			...data
 		});
 	}

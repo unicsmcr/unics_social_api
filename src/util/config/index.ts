@@ -8,7 +8,6 @@ export enum Environment {
 export interface EnvConfig {
 	port: number;
 	logErrors: boolean;
-	sendgridToken: string;
 	jwtSecret: string;
 	db: {
 		host: string;
@@ -17,13 +16,16 @@ export interface EnvConfig {
 		password: string;
 		database: string;
 	};
+	sendgrid: {
+		fromEmail: string;
+		token: string;
+	};
 }
 
 export function load(source: Record<string, string | undefined> = process.env): EnvConfig {
 	return {
 		port: intoNumber(getEnv(source, 'PORT')),
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
-		sendgridToken: getEnv(source, 'SENDGRID_TOKEN'),
 		jwtSecret: getEnv(source, 'JWT_SECRET'),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
@@ -31,6 +33,10 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			username: getEnv(source, 'DB_USER'),
 			password: getEnv(source, 'DB_PASSWORD'),
 			database: getEnv(source, 'DB_DATABASE')
+		},
+		sendgrid: {
+			fromEmail: getEnv(source, 'SENDGRID_FROM_EMAIL'),
+			token: getEnv(source, 'SENDGRID_TOKEN')
 		}
 	};
 }
@@ -45,4 +51,3 @@ export function getConfig(source?: Record<string, string | undefined>, refresh =
 	}
 	return globalConfig;
 }
-

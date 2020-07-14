@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import sendgrid from '@sendgrid/mail';
 import EmailService from '../../../src/services/EmailService';
+import { getConfig } from '../../../src/util/config';
 
 const mockedSend = jest.spyOn(sendgrid, 'send');
 
@@ -21,7 +22,7 @@ describe('EmailService', () => {
 
 		const emailService = new EmailService();
 		await emailService.sendEmail(fixture);
-		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: 'noreply@unicsmcr.com' });
+		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: getConfig().sendgrid.fromEmail });
 	});
 
 	test('Fails when send fails', async () => {
@@ -35,6 +36,6 @@ describe('EmailService', () => {
 
 		const emailService = new EmailService();
 		await expect(emailService.sendEmail(fixture)).rejects.toThrow();
-		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: 'noreply@unicsmcr.com' });
+		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: getConfig().sendgrid.fromEmail });
 	});
 });
