@@ -10,7 +10,7 @@ enum GetUserError {
 	UserNotFound = 'User not found'
 }
 
-export type AuthenticatedResponse = Response & { locals: { user: User } };
+export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User } };
 
 export default async function getUser(req: Request, res: Response, next: NextFunction) {
 	const userService = container.resolve(UserService);

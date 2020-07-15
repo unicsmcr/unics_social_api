@@ -90,7 +90,7 @@ export class UserService {
 		return user;
 	}
 
-	public async putProfileForUser(id: string, options: Omit<Profile, 'id' | 'user'>) {
+	public async putUserProfile(id: string, options: Omit<Profile, 'id' | 'user'>) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new Error(PutProfileError.AccountNotFound);
 			const user = await entityManager.findOne(User, { id });

@@ -26,4 +26,17 @@ export default class Profile {
 
 	@Column({ nullable: true })
 	public twitter?: string;
+
+	public toJSON() {
+		const { id, course, yearOfStudy, profilePicture, instagram, facebook, twitter } = this;
+		return {
+			id,
+			course,
+			yearOfStudy,
+			profilePicture,
+			instagram,
+			facebook,
+			twitter
+		};
+	}
 }

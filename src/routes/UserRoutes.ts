@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
+import getUser from './middleware/getUser';
+import isVerified from './middleware/isVerified';
 
 @injectable()
 export class UserRoutes {
@@ -16,5 +18,7 @@ export class UserRoutes {
 		router.get('/verify', this.userController.verifyUserEmail.bind(this.userController));
 
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
+
+		router.put('/users/@me/profile', getUser, isVerified, this.userController.putUserProfile.bind(this.userController));
 	}
 }

@@ -38,4 +38,9 @@ export class User {
 	@OneToOne(() => Profile, profile => profile.user, { nullable: true, eager: true, cascade: true })
 	@JoinColumn()
 	public profile?: Profile;
+
+	public toJSON() {
+		const { id, forename, surname, email, accountStatus, accountType, profile } = this;
+		return { id, forename, surname, email, accountStatus, accountType, profile };
+	}
 }
