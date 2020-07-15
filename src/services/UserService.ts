@@ -5,7 +5,8 @@ import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 
-export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
+export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON'>;
+export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
@@ -90,7 +91,7 @@ export class UserService {
 		return user;
 	}
 
-	public async putUserProfile(id: string, options: Omit<Profile, 'id' | 'user'>) {
+	public async putUserProfile(id: string, options: ProfileDataToCreate) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new Error(PutProfileError.AccountNotFound);
 			const user = await entityManager.findOne(User, { id });
