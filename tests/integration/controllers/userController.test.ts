@@ -6,7 +6,8 @@ import { container } from 'tsyringe';
 import supertest from 'supertest';
 import { verifyJWT } from '../../../src/util/auth';
 import '../../util/dbTeardown';
-import { AccountStatus, AccountType } from '../../../src/entities/User';
+import { AccountStatus, AccountType, User } from '../../../src/entities/User';
+import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
 
 let app: Express.Application;
 let mockedUserService: UserService;
@@ -27,31 +28,37 @@ beforeEach(() => {
 	reset(mockedEmailService);
 });
 
-const confirmationFixture1 = {
+const confirmationFixture1 = new EmailConfirmation();
+const userFixture1 = new User();
+Object.assign(userFixture1, {
+	accountStatus: AccountStatus.Unverified,
+	accountType: AccountType.User,
+	email: 'test@gmail.com',
+	forename: 'Test',
+	surname: 'User',
+	id: 'user1',
+	password: 'passwordhash salt'
+});
+Object.assign(confirmationFixture1, {
 	id: 'confirmation1',
-	user: {
-		accountStatus: AccountStatus.Unverified,
-		accountType: AccountType.User,
-		email: 'test@gmail.com',
-		forename: 'Test',
-		surname: 'User',
-		id: 'user1',
-		password: 'passwordhash salt'
-	}
-};
+	user: userFixture1
+});
 
-const confirmationFixture2 = {
+const confirmationFixture2 = new EmailConfirmation();
+const userFixture2 = new User();
+Object.assign(userFixture1, {
+	accountStatus: AccountStatus.Unverified,
+	accountType: AccountType.User,
+	email: 'hello@test.com',
+	forename: 'John',
+	surname: 'Doe',
+	id: 'user2',
+	password: 'passwordhash salt'
+});
+Object.assign(confirmationFixture2, {
 	id: 'confirmation2',
-	user: {
-		accountStatus: AccountStatus.Unverified,
-		accountType: AccountType.User,
-		email: 'hello@test.com',
-		forename: 'John',
-		surname: 'Doe',
-		id: 'user2',
-		password: 'passwordhash salt'
-	}
-};
+	user: userFixture2
+});
 
 describe('UserController', () => {
 	describe('registerUser', () => {
