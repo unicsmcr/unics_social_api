@@ -32,10 +32,6 @@ export class UserService {
 		return getRepository(User).findOne(findConditions, options);
 	}
 
-	public async findOneOrFail(findConditions: FindConditions<User>, options?: FindOneOptions) {
-		return getRepository(User).findOneOrFail(findConditions, options);
-	}
-
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
