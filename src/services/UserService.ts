@@ -5,7 +5,7 @@ import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 
-export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON'>;
+export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
 enum EmailVerifyError {
