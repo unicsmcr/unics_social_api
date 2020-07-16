@@ -4,10 +4,11 @@ import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
 import { container } from 'tsyringe';
 import supertest from 'supertest';
-import { verifyJWT } from '../../../src/util/auth';
+import { verifyJWT, generateJWT } from '../../../src/util/auth';
 import '../../util/dbTeardown';
 import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
+import Profile from '../../../src/entities/Profile';
 
 let app: Express.Application;
 let mockedUserService: UserService;
@@ -46,8 +47,8 @@ Object.assign(confirmationFixture1, {
 
 const confirmationFixture2 = new EmailConfirmation();
 const userFixture2 = new User();
-Object.assign(userFixture1, {
-	accountStatus: AccountStatus.Unverified,
+Object.assign(userFixture2, {
+	accountStatus: AccountStatus.Verified,
 	accountType: AccountType.User,
 	email: 'hello@test.com',
 	forename: 'John',
@@ -157,6 +158,175 @@ describe('UserController', () => {
 			});
 			expect(res.status).toBeGreaterThanOrEqual(400);
 			expect(res.body.token).toBeUndefined();
+		});
+	});
+
+	describe('putUserProfile', () => {
+		test('Gives 200 for valid request', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+			const profileData = { yearOfStudy: 2, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = fixture;
+
+			when(mockedUserService.findOne(anything())).thenResolve(fixture);
+			when(mockedUserService.putUserProfile(anything(), anything())).thenResolve(Object.assign(fixture, { profile }));
+
+			const res = await supertest(app).put('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(fixture))
+				.send(profileData);
+
+			expect(res.status).toEqual(200);
+			expect(res.body.user).toBeTruthy();
+			expect(res.body.user.password).toBeUndefined();
+			expect(res.body.user.profile.yearOfStudy).toStrictEqual(profile.yearOfStudy);
+			expect(res.body.user.profile.course).toStrictEqual(profile.course);
+		});
+
+		test('Rejects when invalid data passed', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+			const profileData = { yearOfStudy: 2.5, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = fixture;
+
+			when(mockedUserService.findOne(anything())).thenResolve(fixture);
+			when(mockedUserService.putUserProfile(anything(), anything())).thenReject();
+
+			const res = await supertest(app).put('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(fixture))
+				.send(profileData);
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
+		});
+
+		test('Rejects when user not found', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+			const profileData = { yearOfStudy: 2, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = fixture;
+
+			const res = await supertest(app).put('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(fixture))
+				.send(profileData);
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
+		});
+
+		test('Rejects when authorization invalid', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+			const profileData = { yearOfStudy: 2, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = fixture;
+
+			when(mockedUserService.findOne(anything())).thenResolve(fixture);
+			when(mockedUserService.putUserProfile(anything(), anything())).thenResolve(Object.assign(fixture, { profile }));
+
+			const res = await supertest(app).put('/api/v1/users/@me/profile').send(profileData);
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
+		});
+	});
+
+	describe('getUserProfile', () => {
+		test('Resolves for @me when user has profile', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+			const profileData = { yearOfStudy: 2, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = fixture;
+			fixture.profile = profile;
+
+			when(mockedUserService.findOne(anything())).thenResolve(fixture);
+
+			const res = await supertest(app).get('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(fixture));
+
+			expect(res.status).toEqual(200);
+			expect(res.body.user).toBeTruthy();
+		});
+
+		test('Resolves for another user when user has profile', async () => {
+			const otherUser = new User();
+			Object.assign(otherUser, userFixture2);
+			const profileData = { yearOfStudy: 2, course: 'International Management' };
+			const profile = new Profile();
+			Object.assign(profile, profileData);
+			profile.id = '123';
+			profile.user = otherUser;
+			otherUser.profile = profile;
+
+			const user = new User();
+			Object.assign(user, userFixture2);
+			Object.assign(user, { id: '12348920134089' });
+
+			when(mockedUserService.findOne(objectContaining({ id: otherUser.id }))).thenResolve(otherUser);
+			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
+
+			const res = await supertest(app).get(`/api/v1/users/${otherUser.id}/profile`)
+				.set('Authorization', await generateJWT(user));
+
+			expect(res.status).toEqual(200);
+			expect(res.body.user).toBeTruthy();
+		});
+
+		test('Rejects for @me when user doesn\'t have profile', async () => {
+			const fixture = new User();
+			Object.assign(fixture, userFixture2);
+
+			when(mockedUserService.findOne(anything())).thenResolve(fixture);
+
+			const res = await supertest(app).get('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(fixture));
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
+		});
+
+		test('Rejects for another user when user doesn\'t have profile', async () => {
+			const otherUser = userFixture2;
+
+			const user = new User();
+			Object.assign(user, userFixture2);
+			Object.assign(user, { id: '12348920134089' });
+
+			when(mockedUserService.findOne(objectContaining({ id: otherUser.id }))).thenResolve(otherUser);
+			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
+
+			const res = await supertest(app).get('/api/v1/users/@me/profile')
+				.set('Authorization', await generateJWT(user));
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
+		});
+
+		test('Rejects for non-existent user', async () => {
+			const user = new User();
+			Object.assign(user, userFixture2);
+			Object.assign(user, { id: '12348920134089' });
+
+			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
+
+			const res = await supertest(app).get('/api/v1/users/profile')
+				.set('Authorization', await generateJWT(user));
+
+			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.body.user).toBeUndefined();
 		});
 	});
 });
