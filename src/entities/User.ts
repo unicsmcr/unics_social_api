@@ -43,4 +43,9 @@ export class User {
 		const { id, forename, surname, email, accountStatus, accountType, profile } = this;
 		return { id, forename, surname, email, accountStatus, accountType, profile };
 	}
+
+	public toLimitedJSON() {
+		const { id, forename, surname, accountStatus, accountType, profile } = this;
+		return { id, forename, surname, accountStatus, accountType, profile };
+	}
 }

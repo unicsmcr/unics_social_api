@@ -14,6 +14,10 @@ enum VerifyError {
 	ConfirmationIdNotString = 'confirmationId is invalid'
 }
 
+enum GetUserProfileError {
+	ProfileNotFound = 'Profile not found',
+}
+
 @injectable()
 export class UserController {
 	private readonly userService: UserService;
@@ -53,6 +57,20 @@ export class UserController {
 			const user = await this.userService.authenticate(req.body.email, req.body.password);
 			const token = await generateJWT(user);
 			res.json({ token });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async getUserProfile(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			if (!req.params.id) throw new Error(GetUserProfileError.ProfileNotFound);
+			if (req.params.id === '@me') req.params.id = res.locals.user.id;
+			const user = await this.userService.findOne({ id: req.params.id });
+			if (!user || !user.profile) throw new Error(GetUserProfileError.ProfileNotFound);
+			res.json({
+				user: user.toLimitedJSON()
+			});
 		} catch (error) {
 			next(error);
 		}

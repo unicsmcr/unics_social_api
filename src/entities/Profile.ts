@@ -28,9 +28,8 @@ export default class Profile {
 	public twitter?: string;
 
 	public toJSON() {
-		const { id, course, yearOfStudy, profilePicture, instagram, facebook, twitter } = this;
+		const { course, yearOfStudy, profilePicture, instagram, facebook, twitter } = this;
 		return {
-			id,
 			course,
 			yearOfStudy,
 			profilePicture,

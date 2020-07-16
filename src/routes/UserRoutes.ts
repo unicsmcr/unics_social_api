@@ -19,6 +19,8 @@ export class UserRoutes {
 
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 
+		router.get('/users/:id/profile', getUser, isVerified, this.userController.getUserProfile.bind(this.userController));
+
 		router.put('/users/@me/profile', getUser, isVerified, this.userController.putUserProfile.bind(this.userController));
 	}
 }
