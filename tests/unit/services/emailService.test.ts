@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import sendgrid from '@sendgrid/mail';
-import EmailService from '../../../src/services/EmailService';
+import EmailService from '../../../src/services/email/EmailService';
 import { getConfig } from '../../../src/util/config';
 
 const mockedSend = jest.spyOn(sendgrid, 'send');

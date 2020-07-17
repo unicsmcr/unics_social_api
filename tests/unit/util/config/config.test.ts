@@ -13,6 +13,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_DATABASE: 'unics_social',
 		SENDGRID_TOKEN: 'abc123',
 		SENDGRID_FROM_EMAIL: 'noreply@unicsmcr.com',
+		MOCK_EMAIL_SERVICE: 'false',
 		JWT_SECRET: 'test123test'
 	},
 	{
@@ -27,7 +28,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		},
 		sendgrid: {
 			token: 'abc123',
-			fromEmail: 'noreply@unicsmcr.com'
+			fromEmail: 'noreply@unicsmcr.com',
+			mock: false
 		},
 		jwtSecret: 'test123test'
 	}
@@ -45,6 +47,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_DATABASE: 'unics_social',
 		SENDGRID_TOKEN: 'token!!!',
 		SENDGRID_FROM_EMAIL: 'test@gmail.com',
+		MOCK_EMAIL_SERVICE: 'true',
 		JWT_SECRET: 'asecret'
 	},
 	{
@@ -59,7 +62,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		},
 		sendgrid: {
 			token: 'token!!!',
-			fromEmail: 'test@gmail.com'
+			fromEmail: 'test@gmail.com',
+			mock: true
 		},
 		jwtSecret: 'asecret'
 	}
