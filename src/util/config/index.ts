@@ -19,6 +19,7 @@ export interface EnvConfig {
 	sendgrid: {
 		fromEmail: string;
 		token: string;
+		mock: boolean;
 	};
 }
 
@@ -36,7 +37,8 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		},
 		sendgrid: {
 			fromEmail: getEnv(source, 'SENDGRID_FROM_EMAIL'),
-			token: getEnv(source, 'SENDGRID_TOKEN')
+			token: getEnv(source, 'SENDGRID_TOKEN'),
+			mock: intoBoolean(getEnv(source, 'MOCK_EMAIL_SERVICE'))
 		}
 	};
 }

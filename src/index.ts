@@ -12,6 +12,8 @@ import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
 import { EmailConfirmation } from './entities/EmailConfirmation';
 import { container } from 'tsyringe';
+import EmailService from './services/email/EmailService';
+import MockEmailService from './services/email/MockEmailService';
 
 export function createExpress() {
 	const app = express();
@@ -19,6 +21,13 @@ export function createExpress() {
 
 	const router = Router();
 	app.use('/api/v1', router);
+
+	// Use the right email service
+	if (!container.isRegistered(EmailService)) {
+		container.register<EmailService>(EmailService, {
+			useClass: getConfig().sendgrid.mock ? MockEmailService : EmailService
+		});
+	}
 
 	container.resolve(UserRoutes).routes(router);
 

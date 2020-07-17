@@ -1,6 +1,6 @@
 import { send, setApiKey } from '@sendgrid/mail';
 import { injectable } from 'tsyringe';
-import { getConfig } from '../util/config';
+import { getConfig } from '../../util/config';
 
 @injectable()
 export default class EmailService {
@@ -8,9 +8,9 @@ export default class EmailService {
 		setApiKey(getConfig().sendgrid.token);
 	}
 
-	public sendEmail(data: { to: string; html: string; subject: string }) {
+	public async sendEmail(data: { to: string; html: string; subject: string }) {
 		setApiKey(getConfig().sendgrid.token);
-		return send({
+		await send({
 			from: getConfig().sendgrid.fromEmail,
 			...data
 		});
