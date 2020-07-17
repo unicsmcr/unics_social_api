@@ -1,7 +1,7 @@
 import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import EmailService from '../services/EmailService';
+import EmailService from '../services/email/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
 import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';

@@ -1,5 +1,5 @@
 import { UserService } from '../../../src/services/UserService';
-import EmailService from '../../../src/services/EmailService';
+import EmailService from '../../../src/services/email/EmailService';
 import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
 import { container } from 'tsyringe';
