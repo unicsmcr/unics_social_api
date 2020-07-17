@@ -12,7 +12,8 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true
+		"experimentalDecorators": true,
+		"sourceMap": true
 	},
 	"exclude": [
 		"node_modules",

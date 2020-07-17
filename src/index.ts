@@ -12,6 +12,7 @@ import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
 import { EmailConfirmation } from './entities/EmailConfirmation';
 import { container } from 'tsyringe';
+import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
 
@@ -55,7 +56,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation
+			User, EmailConfirmation, Profile
 		],
 		synchronize: true,
 		logging: false

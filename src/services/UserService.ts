@@ -1,10 +1,12 @@
 import { User, AccountStatus, AccountType } from '../entities/User';
-import { getConnection, getRepository } from 'typeorm';
+import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
+import Profile from '../entities/Profile';
 
-export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType'>;
+export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
+export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
@@ -15,6 +17,10 @@ enum AuthenticateError {
 	PasswordIncorrect = 'Password incorrect.'
 }
 
+enum PutProfileError {
+	AccountNotFound = 'Account not found.'
+}
+
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -22,6 +28,10 @@ enum AuthenticateError {
 
 @singleton()
 export class UserService {
+	public async findOne(findConditions: FindConditions<User>, options?: FindOneOptions) {
+		return getRepository(User).findOne(findConditions, options);
+	}
+
 	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
@@ -47,9 +57,7 @@ export class UserService {
 				throw new Error(EmailVerifyError.ConfirmationNotFound);
 			}
 
-			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId, {
-				relations: ['user']
-			});
+			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId);
 
 			if (!confirmation) {
 				throw new Error(EmailVerifyError.ConfirmationNotFound);
@@ -77,5 +85,21 @@ export class UserService {
 		}
 
 		return user;
+	}
+
+	public async putUserProfile(id: string, options: ProfileDataToCreate) {
+		return getConnection().transaction(async entityManager => {
+			if (!id) throw new Error(PutProfileError.AccountNotFound);
+			const user = await entityManager.findOne(User, { id });
+			if (!user) throw new Error(PutProfileError.AccountNotFound);
+
+			// If a profile doesn't exist, create it
+			const profile = user.profile ?? new Profile();
+			const { twitter, profilePicture, instagram, yearOfStudy, course, facebook } = options;
+			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
+			profile.user = user;
+			user.profile = profile;
+			return entityManager.save(user);
+		});
 	}
 }

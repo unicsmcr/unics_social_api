@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
+import Profile from './Profile';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -33,4 +34,18 @@ export class User {
 
 	@Column()
 	public accountType!: AccountType;
+
+	@OneToOne(() => Profile, profile => profile.user, { nullable: true, eager: true, cascade: true })
+	@JoinColumn()
+	public profile?: Profile;
+
+	public toJSON() {
+		const { id, forename, surname, email, accountStatus, accountType, profile } = this;
+		return { id, forename, surname, email, accountStatus, accountType, profile };
+	}
+
+	public toLimitedJSON() {
+		const { id, forename, surname, accountStatus, accountType, profile } = this;
+		return { id, forename, surname, accountStatus, accountType, profile };
+	}
 }
