@@ -23,6 +23,7 @@ export function createExpress() {
 	app.use('/api/v1', router);
 
 	// Use the right email service
+	// The only time the EmailService is already registered is during tests, so we shouldn't interfere in that case.
 	if (!container.isRegistered(EmailService)) {
 		container.register<EmailService>(EmailService, {
 			useClass: getConfig().sendgrid.mock ? MockEmailService : EmailService
