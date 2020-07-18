@@ -29,7 +29,6 @@ export class User {
 	public surname!: string;
 
 	@Column()
-	@MinLength(12, { message: 'Password must be at least 12 characters long' })
 	public password!: string;
 
 	@Column({ unique: true })
