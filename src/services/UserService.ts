@@ -9,6 +9,11 @@ import { APIError } from '../util/errors';
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
+enum RegistrationError {
+	EmailAlreadyExists = 'Email address already registered.',
+	MissingInfo = 'Registration data incomplete'
+}
+
 enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
 }
@@ -45,7 +50,19 @@ export class UserService {
 			});
 
 			const emailConfirmation = new EmailConfirmation();
-			emailConfirmation.user = await entityManager.save(user);
+			try {
+				emailConfirmation.user = await entityManager.save(user);
+			} catch (error) {
+				const code = String(error.code);
+				if (code === '23505') {
+					// 23505 is unique_violation
+					throw new APIError(403, RegistrationError.EmailAlreadyExists);
+				} else if (code === '23502') {
+					// 23502 is not_null_violation
+					throw new APIError(400, RegistrationError.MissingInfo);
+				}
+				throw error;
+			}
 
 			return entityManager.save(emailConfirmation);
 		});
