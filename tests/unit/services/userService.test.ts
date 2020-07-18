@@ -15,7 +15,7 @@ describe('UserService', () => {
 
 		const fixture = {
 			email: 'test@student.manchester.ac.uk',
-			password: 'test',
+			password: 'test test test test',
 			forename: 'Bob',
 			surname: 'Builder'
 		};
