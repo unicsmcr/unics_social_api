@@ -43,7 +43,7 @@ export class UserService {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
 
-			if (data.password && data.password.length < 10) {
+			if (typeof data.password !== 'string' || data.password.length < 10) {
 				throw new APIError(400, 'Password must be at least 10 characters long');
 			}
 
