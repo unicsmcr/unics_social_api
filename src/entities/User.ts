@@ -20,7 +20,7 @@ export class User {
 
 	@Column()
 	@MinLength(1, { message: 'Forename must be between 1 to 16 characters long' })
-	@MaxLength(12, { message: 'Forename must be between 1 to 16 characterslong' })
+	@MaxLength(12, { message: 'Forename must be between 1 to 16 characters long' })
 	public forename!: string;
 
 	@Column()
