@@ -4,7 +4,8 @@ import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
-import { APIError } from '../util/errors';
+import { APIError, formatValidationErrors } from '../util/errors';
+import { validateOrReject } from 'class-validator';
 
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
@@ -48,6 +49,8 @@ export class UserService {
 				accountType: AccountType.User,
 				password: await hashPassword(data.password)
 			});
+
+			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
 
 			const emailConfirmation = new EmailConfirmation();
 			try {
