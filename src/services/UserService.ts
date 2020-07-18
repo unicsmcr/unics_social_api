@@ -4,6 +4,7 @@ import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
+import { APIError } from '../util/errors';
 
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
@@ -54,13 +55,13 @@ export class UserService {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {
-				throw new Error(EmailVerifyError.ConfirmationNotFound);
+				throw new APIError(400, EmailVerifyError.ConfirmationNotFound);
 			}
 
 			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId);
 
 			if (!confirmation) {
-				throw new Error(EmailVerifyError.ConfirmationNotFound);
+				throw new APIError(404, EmailVerifyError.ConfirmationNotFound);
 			}
 
 			confirmation.user.accountStatus = AccountStatus.Verified;
@@ -72,16 +73,16 @@ export class UserService {
 
 	public async authenticate(email: string, password: string): Promise<User> {
 		if (!email) {
-			throw new Error(AuthenticateError.AccountNotFound);
+			throw new APIError(400, AuthenticateError.AccountNotFound);
 		}
 
 		const user = await getRepository(User).findOne({ email });
 		if (!user) {
-			throw new Error(AuthenticateError.AccountNotFound);
+			throw new APIError(404, AuthenticateError.AccountNotFound);
 		}
 
 		if (!verifyPassword(password, user.password)) {
-			throw new Error(AuthenticateError.PasswordIncorrect);
+			throw new APIError(403, AuthenticateError.PasswordIncorrect);
 		}
 
 		return user;
@@ -89,9 +90,9 @@ export class UserService {
 
 	public async putUserProfile(id: string, options: ProfileDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!id) throw new Error(PutProfileError.AccountNotFound);
+			if (!id) throw new APIError(404, PutProfileError.AccountNotFound);
 			const user = await entityManager.findOne(User, { id });
-			if (!user) throw new Error(PutProfileError.AccountNotFound);
+			if (!user) throw new APIError(404, PutProfileError.AccountNotFound);
 
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();

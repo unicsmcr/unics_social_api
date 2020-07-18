@@ -3,6 +3,7 @@ import { container } from 'tsyringe';
 import { UserService } from '../../services/UserService';
 import { User } from '../../entities/User';
 import { verifyJWT } from '../../util/auth';
+import { APIError } from '../../util/errors';
 
 enum GetUserError {
 	AuthorizationMissing = 'Missing authorization header',
@@ -15,16 +16,16 @@ export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user:
 export default async function getUser(req: Request, res: Response, next: NextFunction) {
 	const userService = container.resolve(UserService);
 	const jwt = req.headers.authorization;
-	if (!jwt) return next(new Error(GetUserError.AuthorizationMissing));
+	if (!jwt) return next(new APIError(401, GetUserError.AuthorizationMissing));
 	let id: string;
 	try {
 		id = (await verifyJWT(jwt)).id;
 	} catch (error) {
-		return next(new Error(GetUserError.InvalidToken));
+		return next(new APIError(401, GetUserError.InvalidToken));
 	}
-	if (!id) return next(new Error(GetUserError.InvalidToken));
+	if (!id) return next(new APIError(401, GetUserError.InvalidToken));
 	const user = await userService.findOne({ id });
-	if (!user) return next(new Error(GetUserError.UserNotFound));
+	if (!user) return next(new APIError(401, GetUserError.UserNotFound));
 	(res as AuthenticatedResponse).locals.user = user;
 	next();
 }
