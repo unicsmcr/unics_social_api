@@ -124,13 +124,6 @@ describe('UserController', () => {
 			verify(mockedUserService.verifyUserEmail('3')).called();
 			expect(res.status).toBeGreaterThanOrEqual(400);
 		});
-
-		test('Gives error when confirmation id not provided', async () => {
-			when(mockedUserService.verifyUserEmail(anything())).thenResolve();
-			const res = await supertest(app).get('/api/v1/verify');
-			verify(mockedUserService.verifyUserEmail(anything())).never();
-			expect(res.status).toBeGreaterThanOrEqual(400);
-		});
 	});
 
 	describe('authenticate', () => {

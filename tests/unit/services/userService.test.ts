@@ -91,7 +91,7 @@ describe('UserService', () => {
 		expect(user.profile).toMatchObject({ ...profileFixture2, id: oldId });
 	});
 
-	test('Validate user does not allow empty confirmationId', async () => {
+	test('verifyUserEmail does not allow empty confirmationId', async () => {
 		await expect(userService.verifyUserEmail('')).rejects.toThrow();
 	});
 
