@@ -6,6 +6,7 @@ import users from '../../fixtures/users';
 import { verifyPassword } from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
+import Profile from '../../../src/entities/Profile';
 
 beforeAll(async () => {
 	await createDBConnection();
@@ -117,32 +118,52 @@ describe('UserService', () => {
 			await expect(userService.authenticate(user.email, 'thunderbolt ')).rejects.toThrow();
 		});
 	});
-});
 
-describe('UserService', () => {
-	test('verifyUserEmail does not allow empty confirmationId', async () => {
-		await expect(userService.verifyUserEmail('')).rejects.toThrow();
-	});
+	describe('putUserProfile', () => {
+		const userWithoutProfile = users.find(user => !user.profile)!;
+		const userWithProfile = users.find(user => user.profile)!;
+		beforeEach(async () => {
+			await getRepository(User).save([userWithProfile, userWithoutProfile]);
+		});
 
-	test('Authenticate user does not allow empty confirmationId', async () => {
-		await expect(userService.authenticate('', '')).rejects.toThrow();
-	});
+		test('User profile registered for valid request (new profile)', async () => {
+			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
+				course: 'Computer Science',
+				yearOfStudy: 1
+			});
+			expect(savedUser).toMatchObject(userWithoutProfile);
+			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof Profile]);
+			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy', 'user']));
+			expect(savedUser.profile!.course).toStrictEqual('Computer Science');
+			expect(savedUser.profile!.yearOfStudy).toStrictEqual(1);
+		});
 
-	test('Authenticate user throws when user not found', async () => {
-		await expect(userService.authenticate('fake@email.com', '')).rejects.toThrow();
-	});
+		test('User profile registered for valid request (existing profile)', async () => {
+			const initialProfile = userWithProfile.profile;
+			const savedUser = await userService.putUserProfile(userWithProfile.id, {
+				course: 'Software Engineering',
+				yearOfStudy: 2
+			});
+			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
+			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof Profile]);
+			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy', 'user']));
+			expect(initialProfile).not.toMatchObject(savedUser.profile!);
+			expect(savedUser.profile!.course).toStrictEqual('Software Engineering');
+			expect(savedUser.profile!.yearOfStudy).toStrictEqual(2);
+		});
 
-	test('User profile update throws when user not found', async () => {
-		await expect(userService.putUserProfile('e0377f70-9c59-46a1-a5f2-fc8468ffb5a0', {
-			course: 'Computer Science',
-			yearOfStudy: 1
-		})).rejects.toThrow();
-	});
+		test('Fails to create user profile for non-existent user', async () => {
+			const details = { course: 'Computer Science', yearOfStudy: 1 };
+			await expect(userService.putUserProfile('', details)).rejects.toThrow();
+			await expect(userService.putUserProfile(`${userWithProfile.id}1`, details)).rejects.toThrow();
+			await expect(userService.putUserProfile(`${userWithoutProfile.id}a`, details)).rejects.toThrow();
+		});
 
-	test('User profile update does not allow empty userId', async () => {
-		await expect(userService.putUserProfile('', {
-			course: 'History',
-			yearOfStudy: 2
-		})).rejects.toThrow();
+		test('Fails to create user profile with invalid details', async () => {
+			await expect(userService.putUserProfile(userWithoutProfile.id, {} as any)).rejects.toThrow();
+			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'History' } as any)).rejects.toThrow();
+			await expect(userService.putUserProfile(userWithoutProfile.id, { yearOfStudy: 2 } as any)).rejects.toThrow();
+			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'Computer Science', yearOfStudy: 2.5 } as any)).rejects.toThrow();
+		});
 	});
 });
