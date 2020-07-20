@@ -34,6 +34,8 @@ describe('UserService', () => {
 				accountStatus: AccountStatus.Unverified
 			});
 			expect(await verifyPassword('thunderbolt', confirmation.user.password)).toStrictEqual(true);
+			// 2nd registration should fail
+			await expect(userService.registerUser(details)).rejects.toThrow();
 		});
 
 		test('Fails with invalid email', async () => {
