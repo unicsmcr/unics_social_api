@@ -5,14 +5,11 @@ import EmailService from '../services/email/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
 import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
+import { APIError } from '../util/errors';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
 */
-
-enum VerifyError {
-	ConfirmationIdNotString = 'confirmationId is invalid'
-}
 
 enum GetUserProfileError {
 	ProfileNotFound = 'Profile not found',
@@ -42,9 +39,8 @@ export class UserController {
 		}
 	}
 
-	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async verifyUserEmail(req: Request & { query: { confirmationId: string } }, res: Response, next: NextFunction): Promise<void> {
 		try {
-			if (typeof req.query.confirmationId !== 'string') throw new Error(VerifyError.ConfirmationIdNotString);
 			await this.userService.verifyUserEmail(req.query.confirmationId);
 			res.status(204).end();
 		} catch (error) {
@@ -64,10 +60,10 @@ export class UserController {
 
 	public async getUserProfile(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			if (!req.params.id) throw new Error(GetUserProfileError.ProfileNotFound);
+			if (!req.params.id) throw new APIError(404, GetUserProfileError.ProfileNotFound);
 			if (req.params.id === '@me') req.params.id = res.locals.user.id;
 			const user = await this.userService.findOne({ id: req.params.id });
-			if (!user || !user.profile) throw new Error(GetUserProfileError.ProfileNotFound);
+			if (!user || !user.profile) throw new APIError(404, GetUserProfileError.ProfileNotFound);
 			res.json({
 				user: user.toLimitedJSON()
 			});

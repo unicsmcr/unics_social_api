@@ -15,6 +15,7 @@ import { container } from 'tsyringe';
 import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
+import { APIError } from './util/errors';
 
 export function createExpress() {
 	const app = express();
@@ -40,12 +41,14 @@ export function createExpress() {
 			- refactor this to not use console.error, use pino
 			- don't send error message to enduser in production
 		*/
-		if (getConfig().logErrors) {
-			console.error(err.stack);
+		if (err instanceof APIError) {
+			res.status(err.httpCode).send({ error: err.message });
+		} else {
+			if (getConfig().logErrors) {
+				console.error(err.stack);
+			}
+			res.status(500).send({ error: 'Something went wrong!' });
 		}
-		res.status(500).send({
-			message: err?.message ?? err
-		});
 	});
 
 	return app;

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
+import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile from './Profile';
 
 export enum AccountStatus {
@@ -18,15 +19,23 @@ export class User {
 	public id!: string;
 
 	@Column()
+	@IsString()
+	@MinLength(1, { message: 'Forename must be between 1 to 16 characters long' })
+	@MaxLength(12, { message: 'Forename must be between 1 to 16 characters long' })
 	public forename!: string;
 
 	@Column()
+	@IsString()
+	@MinLength(1, { message: 'Surname must be between 1 to 16 characters long' })
+	@MaxLength(16, { message: 'Surname must be between 1 to 16 characters long' })
 	public surname!: string;
 
 	@Column()
 	public password!: string;
 
 	@Column({ unique: true })
+	@IsEmail(undefined, { message: 'A University of Manchester student email account is required' })
+	@Matches(/(@student\.manchester\.ac\.uk)$/, { message: 'A University of Manchester student email account is required' })
 	public email!: string;
 
 	@Column()
