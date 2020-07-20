@@ -1,96 +1,125 @@
 import { UserService } from '../../../src/services/UserService';
 import { createDBConnection } from '../../../src';
-import { AccountStatus, AccountType } from '../../../src/entities/User';
+import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import '../../util/dbTeardown';
+import users from '../../fixtures/users';
+import { verifyPassword } from '../../../src/util/password';
+import { getConnection, getRepository } from 'typeorm';
+import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
 
 beforeAll(async () => {
 	await createDBConnection();
 });
 
+afterEach(async () => {
+	await getConnection().dropDatabase();
+	await getConnection().synchronize();
+});
+
 const userService = new UserService();
 
 describe('UserService', () => {
-	test('Extensive user flow through service', async () => {
-		// Scenario 1
-
-		const fixture = {
-			email: 'test@student.manchester.ac.uk',
-			password: 'test test test test',
-			forename: 'Bob',
-			surname: 'Builder'
-		};
-
-		// Register a user
-		const confirmation = await userService.registerUser(fixture);
-		expect(confirmation.id).toBeTruthy();
-		expect(confirmation.user).toMatchObject({
-			forename: fixture.forename,
-			surname: fixture.surname,
-			email: fixture.email,
-			accountType: AccountType.User,
-			accountStatus: AccountStatus.Unverified
+	describe('registerUser', () => {
+		test('Registers a user with valid details', async () => {
+			const { email, forename, surname } = users[0];
+			const details = { email, forename, surname, password: 'thunderbolt' };
+			const confirmation = await userService.registerUser(details);
+			expect(confirmation.id).toBeTruthy();
+			expect(confirmation.user).toMatchObject({
+				email,
+				forename,
+				surname,
+				accountType: AccountType.User,
+				accountStatus: AccountStatus.Unverified
+			});
+			expect(await verifyPassword('thunderbolt', confirmation.user.password)).toStrictEqual(true);
 		});
 
-		// Attempt 2 invalid validations
-		await expect(userService.verifyUserEmail(confirmation.id.substring(0, confirmation.id.length - 1))).rejects.toThrow();
-		await expect(userService.verifyUserEmail(`${confirmation.id} `)).rejects.toThrow();
+		test('Fails with invalid email', async () => {
+			const { forename, surname } = users[0];
+			const details = { email: 'not-a-student@gmail.com', forename, surname, password: 'thunderbolt' };
+			await expect(userService.registerUser(details)).rejects.toThrow();
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+		});
 
-		// Verify their email
-		const oldUser = { ...confirmation.user };
-		const newExpected = {
-			...oldUser,
-			accountStatus: AccountStatus.Verified
-		};
-		let user = await userService.verifyUserEmail(confirmation.id);
-		expect(user).toMatchObject(newExpected);
-		expect(user.profile).toBeNull();
+		test('Fails with missing password', async () => {
+			const { email, forename, surname } = users[0];
+			const details = { email, forename, surname, password: '' };
+			await expect(userService.registerUser(details)).rejects.toThrow();
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+		});
 
-		// A second validation attempt should fail
-		await expect(userService.verifyUserEmail(confirmation.id)).rejects.toThrow();
+		test('Fails with short password (6 characters)', async () => {
+			const { email, forename, surname } = users[0];
+			const details = { email, forename, surname, password: '123456' };
+			await expect(userService.registerUser(details)).rejects.toThrow();
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+		});
 
-		// Attempt 2 invalid authenticates
-		await expect(userService.authenticate(fixture.email, 'incorrect')).rejects.toThrow();
-		await expect(userService.authenticate(fixture.email, `${fixture.password} `)).rejects.toThrow();
-
-		// Attempt a valid authenticate
-		await expect(userService.authenticate(fixture.email, fixture.password)).resolves.toMatchObject(newExpected);
-
-		// Attempt 2 invalid profile puts
-		await expect(userService.putUserProfile(user.id, {} as any)).rejects.toThrow();
-		await expect(userService.putUserProfile(user.id, { yearOfStudy: 1.5, course: 'Computer Science', profilePicture: 'asdf' })).rejects.toThrow();
-
-		// Set valid profile
-		const profileFixture = {
-			yearOfStudy: 1,
-			course: 'Computer Science',
-			facebook: 'student324'
-		};
-		user = await userService.putUserProfile(user.id, profileFixture);
-		expect(user.profile).toBeTruthy();
-		expect(user.profile).toMatchObject(profileFixture);
-
-		// Update profile again
-		const profileFixture2 = {
-			...profileFixture,
-			twitter: 'testacct',
-			profilePicture: '5327d0cc39d3047b1d3079fbb02bf11c'
-		};
-		user = await userService.putUserProfile(user.id, profileFixture2);
-		expect(user.profile).toBeTruthy();
-		expect(user.profile).toMatchObject({ ...profileFixture2, id: user.profile!.id });
-
-		// Update profile again, but this time try to change the id
-		// The service should ignore the id field
-		const oldId = user.profile!.id;
-		const profileFixture3 = {
-			...profileFixture2,
-			id: '0a0841a4-6f74-4e3b-85ac-1207727be375'
-		};
-		user = await userService.putUserProfile(user.id, profileFixture3);
-		expect(user.profile).toBeTruthy();
-		expect(user.profile).toMatchObject({ ...profileFixture2, id: oldId });
+		test('Fails with very long forename/surname (50 chars)', async () => {
+			const { email, forename, surname } = users[0];
+			await expect(userService.registerUser({ email, forename: 'f'.repeat(50), surname, password: 'thunderbolt' })).rejects.toThrow();
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+			await expect(userService.registerUser({ email, forename, surname: 'h'.repeat(50), password: 'thunderbolt' })).rejects.toThrow();
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+		});
 	});
 
+	describe('verifyUserEmail', () => {
+		let confirmation: EmailConfirmation;
+		const user = users[0];
+		beforeEach(async () => {
+			confirmation = new EmailConfirmation();
+			confirmation.id = '86e194ae-31c8-462b-894e-c1cca689837a';
+			confirmation.user = user;
+			await getRepository(User).save(user);
+			await getRepository(EmailConfirmation).save(confirmation);
+		});
+
+		test('Successfully verifies a user email with a valid confirmation', async () => {
+			const user = await userService.verifyUserEmail(confirmation.id);
+			expect(user).toMatchObject({
+				...user,
+				accountStatus: AccountStatus.Verified
+			});
+
+			// Second validation should fail
+			await expect(userService.verifyUserEmail(confirmation.id)).rejects.toThrow();
+		});
+
+		test('Fails with invalid confirmation id', async () => {
+			await expect(userService.verifyUserEmail('')).rejects.toThrow();
+			await expect(userService.verifyUserEmail(user.id)).rejects.toThrow();
+			await expect(userService.verifyUserEmail(`${confirmation.id} `)).rejects.toThrow();
+		});
+	});
+
+	describe('authenticate', () => {
+		const user = users[0];
+
+		beforeEach(async () => {
+			await getRepository(User).save(user);
+		});
+
+		test('Authenticates a user with the correct password', async () => {
+			const resolvedUser = await userService.authenticate(user.email, 'thunderbolt');
+			expect(resolvedUser).toMatchObject(user);
+		});
+
+		test('Authenticate fails with empty/invalid email', async () => {
+			await expect(userService.authenticate('', 'thunderbolt')).rejects.toThrow();
+			await expect(userService.authenticate('random@student.manchester.ac.uk', 'thunderbolt')).rejects.toThrow();
+		});
+
+		test('Authenticate fails with invalid password', async () => {
+			await expect(userService.authenticate(user.email, '')).rejects.toThrow();
+			await expect(userService.authenticate(user.email, 'password')).rejects.toThrow();
+			await expect(userService.authenticate(user.email, 'thunderbolt ')).rejects.toThrow();
+		});
+	});
+});
+
+describe('UserService', () => {
 	test('verifyUserEmail does not allow empty confirmationId', async () => {
 		await expect(userService.verifyUserEmail('')).rejects.toThrow();
 	});
