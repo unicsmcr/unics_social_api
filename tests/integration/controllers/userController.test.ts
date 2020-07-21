@@ -46,6 +46,12 @@ function clean(obj: Record<string, any>) {
 }
 
 describe('UserController', () => {
+	const spiedGetUser = jest.spyOn(middleware, 'default');
+
+	afterEach(() => {
+		spiedGetUser.mockReset();
+	});
+
 	describe('registerUser', () => {
 		test('204 for valid request', async () => {
 			const data = randomObject();
@@ -159,12 +165,6 @@ describe('UserController', () => {
 	});
 
 	describe('getUserProfile', () => {
-		const spiedGetUser = jest.spyOn(middleware, 'default');
-
-		afterEach(() => {
-			spiedGetUser.mockReset();
-		});
-
 		test('200 for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
 			const authorization = randomString();
@@ -226,6 +226,46 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}/profile`).set('Authorization', authorization);
 			expect(res.status).toEqual(404);
+		});
+	});
+
+	describe('putUserProfile', () => {
+		test('200 for valid request', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			const [randomInput, randomOutput] = [randomObject(), randomObject()];
+			spiedGetUser.mockImplementation((req, res, next) => {
+				if (req.headers.authorization === authorization) res.locals.user = user;
+				next();
+				return Promise.resolve();
+			});
+
+			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenResolve(randomOutput);
+			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
+				.set('Authorization', authorization)
+				.send(randomInput);
+			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
+			expect(res.status).toEqual(200);
+			expect(res.body).toEqual({ user: randomOutput });
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			const randomInput = randomObject();
+			spiedGetUser.mockImplementation((req, res, next) => {
+				if (req.headers.authorization === authorization) res.locals.user = user;
+				next();
+				return Promise.resolve();
+			});
+
+			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenReject(testError400);
+			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
+				.set('Authorization', authorization)
+				.send(randomInput);
+			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 });
