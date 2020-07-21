@@ -10,7 +10,7 @@ import emailConfirmations from '../../fixtures/emailConfirmations';
 import users from '../../fixtures/users';
 import { APIError } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
-import { AccountStatus } from '../../../src/entities/User';
+import { AccountStatus, User } from '../../../src/entities/User';
 
 let app: Express.Application;
 let mockedUserService: UserService;
@@ -47,6 +47,14 @@ function clean(obj: Record<string, any>) {
 
 describe('UserController', () => {
 	const spiedGetUser = jest.spyOn(middleware, 'default');
+
+	function setGetUserAllowed(authorization: string, user: User) {
+		spiedGetUser.mockImplementation((req, res, next) => {
+			if (req.headers.authorization === authorization) res.locals.user = user;
+			next();
+			return Promise.resolve();
+		});
+	}
 
 	afterEach(() => {
 		spiedGetUser.mockReset();
@@ -168,11 +176,7 @@ describe('UserController', () => {
 		test('200 for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
 			const authorization = randomString();
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = user;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
 			const res = await supertest(app).get(`/api/v1/users/@me/profile`).set('Authorization', authorization);
@@ -183,11 +187,7 @@ describe('UserController', () => {
 		test('200 for valid request (other user)', async () => {
 			const [userMe, userOther] = users.filter(user => user.profile);
 			const authorization = randomString();
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = userMe;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, userMe);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
@@ -199,11 +199,7 @@ describe('UserController', () => {
 		test('Forwards errors from UserService', async () => {
 			const [userMe, userOther] = users.filter(user => user.profile);
 			const authorization = randomString();
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = userMe;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, userMe);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenReject(testError400);
@@ -216,11 +212,7 @@ describe('UserController', () => {
 			const userMe = users.find(user => user.profile);
 			const userOther = users.find(user => !user.profile);
 			const authorization = randomString();
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = userMe;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, userMe!);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
@@ -234,11 +226,7 @@ describe('UserController', () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
 			const authorization = randomString();
 			const [randomInput, randomOutput] = [randomObject(), randomObject()];
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = user;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenResolve(randomOutput);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
@@ -253,11 +241,7 @@ describe('UserController', () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
 			const authorization = randomString();
 			const randomInput = randomObject();
-			spiedGetUser.mockImplementation((req, res, next) => {
-				if (req.headers.authorization === authorization) res.locals.user = user;
-				next();
-				return Promise.resolve();
-			});
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenReject(testError400);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
