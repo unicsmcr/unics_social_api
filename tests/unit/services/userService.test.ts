@@ -38,9 +38,9 @@ describe('UserService', () => {
 				accountStatus: AccountStatus.Unverified
 			});
 			expect(confirmation.user.password).toStrictEqual('passwordhash');
-			spy.mockReset();
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: 400 });
+			spy.mockReset();
 		});
 
 		test('Fails with invalid email', async () => {

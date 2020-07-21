@@ -64,7 +64,7 @@ export class UserService {
 				const code = String(error.code);
 				if (code === '23505') {
 					// 23505 is unique_violation
-					throw new APIError(403, RegistrationError.EmailAlreadyExists);
+					throw new APIError(400, RegistrationError.EmailAlreadyExists);
 				} else if (code === '23502') {
 					// 23502 is not_null_violation
 					throw new APIError(400, RegistrationError.MissingInfo);
