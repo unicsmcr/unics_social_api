@@ -3,7 +3,7 @@ import { createDBConnection } from '../../../src';
 import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import '../../util/dbTeardown';
 import users from '../../fixtures/users';
-import { verifyPassword } from '../../../src/util/password';
+import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
 import Profile from '../../../src/entities/Profile';
@@ -22,6 +22,10 @@ const userService = new UserService();
 describe('UserService', () => {
 	describe('registerUser', () => {
 		test('Registers a user with valid details', async () => {
+			// Mock
+			const spy = jest.spyOn(passwordUtils, 'hashPassword');
+			spy.mockImplementation(() => Promise.resolve('passwordhash'));
+
 			const { email, forename, surname } = users[0];
 			const details = { email, forename, surname, password: 'thunderbolt' };
 			const confirmation = await userService.registerUser(details);
@@ -33,7 +37,8 @@ describe('UserService', () => {
 				accountType: AccountType.User,
 				accountStatus: AccountStatus.Unverified
 			});
-			expect(await verifyPassword('thunderbolt', confirmation.user.password)).toStrictEqual(true);
+			expect(confirmation.user.password).toStrictEqual('passwordhash');
+			spy.mockReset();
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toThrow();
 		});
