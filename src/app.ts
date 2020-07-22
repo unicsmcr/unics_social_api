@@ -1,4 +1,4 @@
-import { createApp } from '.';
+import { createApp, createGateway } from '.';
 import { getConfig } from './util/config';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
@@ -9,9 +9,7 @@ createApp()
 		const server = createServer(app);
 
 		const wss = new WebSocketServer({ server, path: '/api/v1/gateway' });
-		wss.on('connection', ws => {
-			ws.send(JSON.stringify({ message: 'hi' }));
-		});
+		createGateway(wss);
 
 		server.listen(port, () => {
 			console.log(`Listening on port ${port}`);
