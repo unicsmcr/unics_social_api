@@ -11,7 +11,11 @@ export default class GatewayService {
 		if (typeof data !== 'string') {
 			throw new GatewayError('Invalid incoming message type');
 		}
-		return JSON.parse(data);
+		try {
+			return JSON.parse(data);
+		} catch (error) {
+			throw new GatewayError('Invalid packet');
+		}
 	}
 
 	private sendData(client: WebSocket, data: string): Promise<void> {

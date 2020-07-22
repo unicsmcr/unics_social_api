@@ -58,6 +58,7 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 	public CLOSED = WebSocket.CLOSED;
 	public mirror!: MockWebSocket;
 	public messages: string[];
+	private _nextMessagePromise?: [(data: string) => void, (error: Error) => void];
 	public onopen!: (event: WebSocket.OpenEvent) => void;
 	public onerror!: (event: WebSocket.ErrorEvent) => void;
 	public onclose!: (event: WebSocket.CloseEvent) => void;
@@ -73,39 +74,56 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 		this.messages = [];
 		this.on('message', data => {
 			this.messages.push(data);
+			if (this._nextMessagePromise) {
+				this._nextMessagePromise[0](this.messages.shift()!);
+				this._nextMessagePromise = undefined;
+			}
+		});
+		this.on('close', () => {
+			if (this._nextMessagePromise) {
+				this._nextMessagePromise[1](new Error('WebSocket closed.'));
+			}
 		});
 		this.readyState = this.OPEN;
 	}
 
-	public close(code?: number, reason?: string): void {
-		this.mirror.emit('close', code, reason);
+	public get nextMessage(): Promise<string> {
+		if (this.messages.length > 0) {
+			return Promise.resolve(this.messages.shift()!);
+		}
+		return new Promise((resolve, reject) => {
+			this._nextMessagePromise = [resolve, reject];
+		});
+	}
+
+	public close(code?: number, reason?: string): Promise<void> {
+		if (this.readyState === this.CLOSED) return Promise.resolve();
+		setImmediate(() => this.mirror.emit('close', code, reason));
 		this.readyState = this.CLOSED;
 		this.mirror.readyState = this.CLOSED;
+		return Promise.resolve();
 	}
 
 	public ping(data?: any, mask?: boolean, cb?: (err: any) => void): Promise<void> {
-		this.mirror.emit('ping', data);
+		setImmediate(() => this.mirror.emit('ping', data));
 		if (cb) cb(undefined);
 		return Promise.resolve();
 	}
 
 	public pong(data?: any, mask?: boolean, cb?: (err: any) => void): Promise<void> {
-		this.mirror.emit('pong', data);
+		setImmediate(() => this.mirror.emit('pong', data));
 		if (cb) cb(undefined);
 		return Promise.resolve();
 	}
 
 	public send(data: any, options?: any, cb?: (err: any) => void): Promise<void> {
-		this.mirror.emit('message', data);
+		setImmediate(() => this.mirror.emit('message', data));
 		if (cb) cb(undefined);
 		return Promise.resolve();
 	}
 
 	public terminate(): Promise<void> {
-		this.mirror.emit('close');
-		this.readyState = this.CLOSED;
-		this.mirror.readyState = this.CLOSED;
-		return Promise.resolve();
+		return this.close();
 	}
 
 	public addEventListener() {

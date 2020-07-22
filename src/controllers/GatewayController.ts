@@ -37,8 +37,12 @@ export default class GatewayController {
 	}
 
 	private onMessage(ws: WebSocket, data: Data) {
-		const packet = this.gatewayService.parseIncoming(data);
-		return this.onPacket(ws, packet);
+		try {
+			const packet = this.gatewayService.parseIncoming(data);
+			return this.onPacket(ws, packet);
+		} catch (error) {
+			return Promise.reject(error);
+		}
 	}
 
 	private async onPacket(ws: WebSocket, packet: GatewayPacket) {
@@ -55,7 +59,7 @@ export default class GatewayController {
 		let user = this.authenticatedClients.get(ws);
 		if (user) throw new GatewayError('Already authenticated!');
 		const { token } = packet.d;
-		const { id } = await verifyJWT(token);
+		const { id } = await verifyJWT(token).catch(() => Promise.reject(new GatewayError('Invalid token')));
 		user = await this.userService.findOne({ id });
 		if (!user) throw new GatewayError('User not found');
 		this.authenticatedClients.set(ws, user);
