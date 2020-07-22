@@ -7,9 +7,10 @@ export default class GatewayService {
 	public parseIncoming(data: Data): GatewayPacket {
 		if (Buffer.isBuffer(data)) {
 			data = data.toString();
-		}
-		if (typeof data !== 'string') {
-			throw new GatewayError('Invalid incoming message type');
+		} else if (Array.isArray(data)) {
+			data = Buffer.concat(data).toString();
+		} else if (data instanceof ArrayBuffer) {
+			throw new Error('ArrayBuffer not accepted!');
 		}
 		try {
 			return JSON.parse(data);
