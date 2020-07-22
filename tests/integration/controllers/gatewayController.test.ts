@@ -49,8 +49,13 @@ function wait() {
 
 describe('GatewayController', () => {
 	describe('general', () => {
-		test('Closes for unknown packet', async () => {
+		test('Closes for unknown JSON', async () => {
 			await ws.send(JSON.stringify({ z: 2 }));
+			await expect(ws.nextMessage).rejects.toThrow();
+		});
+
+		test('Closes for unknown packet', async () => {
+			await ws.send(JSON.stringify({ t: -1 }));
 			await expect(ws.nextMessage).rejects.toThrow();
 		});
 

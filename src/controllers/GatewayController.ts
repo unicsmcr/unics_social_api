@@ -48,8 +48,7 @@ export default class GatewayController {
 	private async onPacket(ws: WebSocket, packet: GatewayPacket) {
 		switch (packet.t) {
 			case GatewayPacketType.Identify:
-				await this.onAuthenticate(ws, packet as IdentifyGatewayPacket);
-				break;
+				return this.onAuthenticate(ws, packet as IdentifyGatewayPacket);
 			default:
 				throw new GatewayError(`Received invalid packet type ${packet.t}`);
 		}
@@ -66,6 +65,5 @@ export default class GatewayController {
 		await this.gatewayService.send([ws], {
 			t: GatewayPacketType.Hello
 		} as HelloGatewayPacket);
-		return user;
 	}
 }
