@@ -1,29 +1,6 @@
 import { injectable } from 'tsyringe';
 import WebSocket, { Data } from 'ws';
-
-export enum GatewayPacketType {
-	Authenticate,
-	Hello
-}
-
-export interface GatewayPacket {
-	t: GatewayPacketType;
-}
-
-export interface AuthenticateGatewayPacket extends GatewayPacket {
-	t: GatewayPacketType.Authenticate;
-	d: {
-		token: string;
-	};
-}
-
-export interface HelloGatewayPacket extends GatewayPacket {
-	t: GatewayPacketType.Hello;
-	d: {
-		time: string;
-	};
-}
-
+import { GatewayPacket, GatewayError } from '../util/gateway';
 
 @injectable()
 export default class GatewayService {
@@ -32,7 +9,7 @@ export default class GatewayService {
 			data = data.toString();
 		}
 		if (typeof data !== 'string') {
-			throw new Error('Invalid incoming message type');
+			throw new GatewayError('Invalid incoming message type');
 		}
 		return JSON.parse(data);
 	}
