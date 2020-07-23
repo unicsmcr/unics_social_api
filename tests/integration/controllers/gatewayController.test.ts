@@ -33,11 +33,12 @@ beforeEach(async () => {
 	reset(spiedVerifyJWT);
 	spiedVerifyJWT = spy(auth);
 	reset(mockedUserService);
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (ws) {
-		void ws.close();
-	}
 	ws = await createWebSocket();
+	await wait();
+});
+
+afterEach(async () => {
+	await ws.close();
 	await wait();
 });
 

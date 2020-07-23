@@ -10,16 +10,15 @@ export class MockWebSocketServer extends EventEmitter implements Server {
 	public constructor() {
 		super();
 		this.clients = new Set();
-		this.emit('listening');
+		setImmediate(() => this.emit('listening'));
 	}
 
 	public addClient(client: MockWebSocket) {
 		const serverSideClient = new MockWebSocket();
 		serverSideClient.mirror = client;
-		if (!this.clients.has(client)) {
-			this.clients.add(client);
-			setImmediate(() => this.emit('connection', serverSideClient, {}));
-		}
+		this.clients.add(serverSideClient);
+		setImmediate(() => this.emit('connection', serverSideClient, {}));
+		serverSideClient.on('close', () => this.clients.delete(serverSideClient));
 		return serverSideClient;
 	}
 
@@ -99,6 +98,7 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 	public close(code?: number, reason?: string): Promise<void> {
 		if (this.readyState === this.CLOSED) return Promise.resolve();
 		setImmediate(() => this.mirror.emit('close', code, reason));
+		this.emit('close', code, reason);
 		this.readyState = this.CLOSED;
 		this.mirror.readyState = this.CLOSED;
 		return Promise.resolve();
