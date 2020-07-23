@@ -56,7 +56,7 @@ describe('GatewayController', () => {
 		});
 
 		test('Closes for unknown packet', async () => {
-			await ws.send(JSON.stringify({ t: -1 }));
+			await ws.send(JSON.stringify({ type: -1 }));
 			await expect(ws.nextMessage).rejects.toThrow();
 		});
 
@@ -69,8 +69,8 @@ describe('GatewayController', () => {
 	describe('identify', () => {
 		test('Successful flow for valid authorization', async () => {
 			const payload: IdentifyGatewayPacket = {
-				t: GatewayPacketType.Identify,
-				d: {
+				type: GatewayPacketType.Identify,
+				data: {
 					token: '123'
 				}
 			};
@@ -78,15 +78,15 @@ describe('GatewayController', () => {
 			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456' });
 			when(mockedUserService.findOne(objectContaining({ id: '456' }))).thenResolve({} as any);
 			await ws.send(JSON.stringify(payload));
-			expect(JSON.parse(await ws.nextMessage)).toMatchObject({ t: GatewayPacketType.Hello });
+			expect(JSON.parse(await ws.nextMessage)).toMatchObject({ type: GatewayPacketType.Hello });
 			verify(spiedVerifyJWT.verifyJWT('123')).once();
 			verify(mockedUserService.findOne(objectContaining({ id: '456' }))).once();
 		});
 
 		test('Closes for invalid authorization', async () => {
 			const payload: IdentifyGatewayPacket = {
-				t: GatewayPacketType.Identify,
-				d: {
+				type: GatewayPacketType.Identify,
+				data: {
 					token: '123'
 				}
 			};
@@ -100,8 +100,8 @@ describe('GatewayController', () => {
 
 		test('Closes for unknown user', async () => {
 			const payload: IdentifyGatewayPacket = {
-				t: GatewayPacketType.Identify,
-				d: {
+				type: GatewayPacketType.Identify,
+				data: {
 					token: '123'
 				}
 			};

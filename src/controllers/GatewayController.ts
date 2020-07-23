@@ -46,24 +46,24 @@ export default class GatewayController {
 	}
 
 	private async onPacket(ws: WebSocket, packet: GatewayPacket) {
-		switch (packet.t) {
+		switch (packet.type) {
 			case GatewayPacketType.Identify:
 				return this.onAuthenticate(ws, packet as IdentifyGatewayPacket);
 			default:
-				throw new GatewayError(`Received invalid packet type ${packet.t}`);
+				throw new GatewayError(`Received invalid packet type ${packet.type}`);
 		}
 	}
 
 	public async onAuthenticate(ws: WebSocket, packet: IdentifyGatewayPacket) {
 		let user = this.authenticatedClients.get(ws);
 		if (user) throw new GatewayError('Already authenticated!');
-		const { token } = packet.d;
+		const { token } = packet.data;
 		const { id } = await verifyJWT(token).catch(() => Promise.reject(new GatewayError('Invalid token')));
 		user = await this.userService.findOne({ id });
 		if (!user) throw new GatewayError('User not found');
 		this.authenticatedClients.set(ws, user);
 		await this.gatewayService.send([ws], {
-			t: GatewayPacketType.Hello
+			type: GatewayPacketType.Hello
 		} as HelloGatewayPacket);
 	}
 }

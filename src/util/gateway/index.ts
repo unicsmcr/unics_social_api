@@ -6,16 +6,16 @@ export enum GatewayPacketType {
 }
 
 export interface GatewayPacket {
-	t: GatewayPacketType;
+	type: GatewayPacketType;
 }
 
 export interface IdentifyGatewayPacket extends GatewayPacket {
-	t: GatewayPacketType.Identify;
-	d: {
+	type: GatewayPacketType.Identify;
+	data: {
 		token: string;
 	};
 }
 
 export interface HelloGatewayPacket extends GatewayPacket {
-	t: GatewayPacketType.Hello;
+	type: GatewayPacketType.Hello;
 }
