@@ -7,7 +7,7 @@ import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 
-export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON'>;
+export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON' | 'profile'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
 enum RegistrationError {
@@ -25,7 +25,8 @@ enum AuthenticateError {
 }
 
 enum PutProfileError {
-	AccountNotFound = 'Account not found.'
+	AccountNotFound = 'Account not found.',
+	InvalidEntryDetails = 'Invalid profile details.'
 }
 
 /*
@@ -63,7 +64,7 @@ export class UserService {
 				const code = String(error.code);
 				if (code === '23505') {
 					// 23505 is unique_violation
-					throw new APIError(403, RegistrationError.EmailAlreadyExists);
+					throw new APIError(400, RegistrationError.EmailAlreadyExists);
 				} else if (code === '23502') {
 					// 23502 is not_null_violation
 					throw new APIError(400, RegistrationError.MissingInfo);
@@ -82,11 +83,8 @@ export class UserService {
 				throw new APIError(400, EmailVerifyError.ConfirmationNotFound);
 			}
 
-			const confirmation = await entityManager.findOne(EmailConfirmation, confirmationId);
-
-			if (!confirmation) {
-				throw new APIError(404, EmailVerifyError.ConfirmationNotFound);
-			}
+			const confirmation = await entityManager.findOneOrFail(EmailConfirmation, confirmationId)
+				.catch(() => Promise.reject(new APIError(400, EmailVerifyError.ConfirmationNotFound)));
 
 			confirmation.user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(confirmation.user);
@@ -102,7 +100,7 @@ export class UserService {
 
 		const user = await getRepository(User).findOne({ email });
 		if (!user) {
-			throw new APIError(404, AuthenticateError.AccountNotFound);
+			throw new APIError(400, AuthenticateError.AccountNotFound);
 		}
 
 		if (!verifyPassword(password, user.password)) {
@@ -114,9 +112,9 @@ export class UserService {
 
 	public async putUserProfile(id: string, options: ProfileDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!id) throw new APIError(404, PutProfileError.AccountNotFound);
-			const user = await entityManager.findOne(User, { id });
-			if (!user) throw new APIError(404, PutProfileError.AccountNotFound);
+			if (!id) throw new APIError(400, PutProfileError.AccountNotFound);
+			const user = await entityManager.findOneOrFail(User, { id })
+				.catch(() => Promise.reject(new APIError(400, PutProfileError.AccountNotFound)));
 
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
@@ -124,7 +122,7 @@ export class UserService {
 			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
 			profile.user = user;
 			user.profile = profile;
-			return entityManager.save(user);
+			return entityManager.save(user).catch(() => Promise.reject(new APIError(400, PutProfileError.InvalidEntryDetails)));
 		});
 	}
 }

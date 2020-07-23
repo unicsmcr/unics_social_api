@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
-import getUser from './middleware/getUser';
-import isVerified from './middleware/isVerified';
+import { getUser, isVerified } from './middleware';
 
 @injectable()
 export class UserRoutes {
