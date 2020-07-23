@@ -6,7 +6,7 @@ Great! You want to contribute to this project. Make sure you've [checked the set
 
 - We are following the [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) guidelines.
 - Try your best to follow this in your own branches, but don't worry if you forget for some commits.
-- You can also use the types from Angular's commit guidelines:
+- You can also use the following types (adapted from Angular's commit guidelines):
 
 	- **build**: Changes that affect the build system or external dependencies (example scopes: npm, tsc, eslint)
 	- **ci**: Changes to our CI configuration files and scripts
@@ -17,6 +17,7 @@ Great! You want to contribute to this project. Make sure you've [checked the set
 	- **refactor**: A code change that neither fixes a bug nor adds a feature
 	- **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
 	- **test**: Adding missing tests or correcting existing tests
+	- **chore**: Any other change
 
 ## Pull Request Guidelines
 
