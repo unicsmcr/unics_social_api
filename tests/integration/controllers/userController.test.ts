@@ -172,14 +172,14 @@ describe('UserController', () => {
 		});
 	});
 
-	describe('getUserProfile', () => {
+	describe('getUser', () => {
 		test('200 for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
-			const res = await supertest(app).get(`/api/v1/users/@me/profile`).set('Authorization', authorization);
+			const res = await supertest(app).get(`/api/v1/users/@me`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: user!.toLimitedJSON() }));
 			expect(res.status).toEqual(200);
 		});
@@ -191,7 +191,7 @@ describe('UserController', () => {
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
-			const res = await supertest(app).get(`/api/v1/users/${userOther.id}/profile`).set('Authorization', authorization);
+			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: userOther.toLimitedJSON() }));
 			expect(res.status).toEqual(200);
 		});
@@ -203,12 +203,12 @@ describe('UserController', () => {
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenReject(testError400);
-			const res = await supertest(app).get(`/api/v1/users/${userOther.id}/profile`).set('Authorization', authorization);
+			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
 			expect(res.body).toEqual({ error: testError400.message });
 			expect(res.status).toEqual(400);
 		});
 
-		test('404 when user has no profile', async () => {
+		test('200 when user has no profile', async () => {
 			const userMe = users.find(user => user.profile);
 			const userOther = users.find(user => !user.profile);
 			const authorization = randomString();
@@ -216,7 +216,20 @@ describe('UserController', () => {
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
-			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}/profile`).set('Authorization', authorization);
+			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}`).set('Authorization', authorization);
+			expect(res.status).toEqual(200);
+			expect(clean(res.body)).toEqual(clean({ user: userOther!.toLimitedJSON() }));
+		});
+
+		test('404 when user does not exist', async () => {
+			const userMe = users.find(user => user.profile);
+			const authorization = randomString();
+			const userOther = randomString();
+			setGetUserAllowed(authorization, userMe!);
+
+			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
+			when(mockedUserService.findOne(objectContaining({ id: randomString() }))).thenResolve(undefined);
+			const res = await supertest(app).get(`/api/v1/users/${userOther}`).set('Authorization', authorization);
 			expect(res.status).toEqual(404);
 		});
 	});
