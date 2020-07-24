@@ -10,10 +10,10 @@ export class Event {
 	@MaxLength(50, { message: 'An event title must be 50 characters at most' })
 	public title!: string;
 
-	@Column('date')
+	@Column('timestamp')
 	public startTime!: Date;
 
-	@Column('date')
+	@Column('timestamp')
 	public endTime!: Date;
 
 	@Column()

@@ -10,7 +10,8 @@ type EventCreationData = Omit<Event, 'id'>;
 export default class EventService {
 	public async createEvent(data: EventCreationData): Promise<Event> {
 		const event = new Event();
-		Object.assign(event, data);
+		const { title, description, startTime, endTime, external } = data;
+		Object.assign(event, { title, description, startTime, endTime, external });
 		await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
 		return getRepository(Event).save(event);
 	}
