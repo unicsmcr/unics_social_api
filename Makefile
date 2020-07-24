@@ -12,4 +12,4 @@ test: export JWT_SECRET=thisisasecret
 test:
 	docker-compose -f tests/docker-compose.yml up -d db
 	@node scripts/waitForPort $(DB_PORT)
-	npx jest tests --coverage --runInBand && (docker-compose -f tests/docker-compose.yml down; exit) || (docker-compose -f tests/docker-compose.yml down; exit 1)
+	npx jest tests --coverage --runInBand && (docker-compose -f tests/docker-compose.yml down -v; exit) || (docker-compose -f tests/docker-compose.yml down -v; exit 1)
