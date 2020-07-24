@@ -30,13 +30,13 @@ describe('EventService', () => {
 
 		test('Throws when title too long', async () => {
 			const payload = { ...basePayload, title: 'b'.repeat(100) };
-			await expect(eventService.createEvent(payload)).rejects.toThrow();
+			await expect(eventService.createEvent(payload)).rejects.toMatchObject({ httpCode: 400 });
 			await expect(getRepository(Event).findOneOrFail()).rejects.toThrow();
 		});
 
 		test('Throws when description too long', async () => {
-			const payload = { ...basePayload, title: 'b'.repeat(4000) };
-			await expect(eventService.createEvent(payload)).rejects.toThrow();
+			const payload = { ...basePayload, description: 'b'.repeat(4000) };
+			await expect(eventService.createEvent(payload)).rejects.toMatchObject({ httpCode: 400 });
 			await expect(getRepository(Event).findOneOrFail()).rejects.toThrow();
 		});
 	});
@@ -95,13 +95,16 @@ describe('EventService', () => {
 		});
 
 		test('Fails on invalid id/event not found', async () => {
-			await expect(eventService.patchEvent({ id: '', title: 'Test123' })).rejects.toThrow();
-			await expect(eventService.patchEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123' })).rejects.toThrow();
+			await expect(eventService.patchEvent({ id: '', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.findAll()).resolves.toEqual([]);
+			await expect(eventService.patchEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.findAll()).resolves.toEqual([]);
 		});
 
 		test('Fails for invalid data (title too long)', async () => {
 			const event = await getRepository(Event).save(events[0]);
-			await expect(eventService.patchEvent({ id: event.id, title: 'Test123'.repeat(50) })).rejects.toThrow();
+			await expect(eventService.patchEvent({ id: event.id, title: 'Test123'.repeat(50) })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.findAll()).resolves.toEqual([event]);
 		});
 	});
 });
