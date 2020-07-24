@@ -4,11 +4,13 @@ import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
 import { container } from 'tsyringe';
 import supertest from 'supertest';
-import { verifyJWT, generateJWT } from '../../../src/util/auth';
+import * as authUtils from '../../../src/util/auth';
 import '../../util/dbTeardown';
-import { AccountStatus, AccountType, User } from '../../../src/entities/User';
-import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
-import Profile from '../../../src/entities/Profile';
+import emailConfirmations from '../../fixtures/emailConfirmations';
+import users from '../../fixtures/users';
+import { APIError } from '../../../src/util/errors';
+import * as middleware from '../../../src/routes/middleware/getUser';
+import { AccountStatus, User } from '../../../src/entities/User';
 
 let app: Express.Application;
 let mockedUserService: UserService;
@@ -29,297 +31,225 @@ beforeEach(() => {
 	reset(mockedEmailService);
 });
 
-const confirmationFixture1 = new EmailConfirmation();
-const userFixture1 = new User();
-Object.assign(userFixture1, {
-	accountStatus: AccountStatus.Unverified,
-	accountType: AccountType.User,
-	email: 'test@gmail.com',
-	forename: 'Test',
-	surname: 'User',
-	id: 'user1',
-	password: 'passwordhash salt'
-});
-Object.assign(confirmationFixture1, {
-	id: 'confirmation1',
-	user: userFixture1
-});
+const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
+const randomString = () => String(randomNumber());
+const randomObject = () => ({ tag: randomString() }) as any;
+const testError400 = new APIError(400, 'UserController test error');
 
-const confirmationFixture2 = new EmailConfirmation();
-const userFixture2 = new User();
-Object.assign(userFixture2, {
-	accountStatus: AccountStatus.Verified,
-	accountType: AccountType.User,
-	email: 'hello@test.com',
-	forename: 'John',
-	surname: 'Doe',
-	id: 'user2',
-	password: 'passwordhash salt'
-});
-Object.assign(confirmationFixture2, {
-	id: 'confirmation2',
-	user: userFixture2
-});
+function clean(obj: Record<string, any>) {
+	const output: Record<string, any> = {};
+	for (const [key, value] of Object.entries(obj)) {
+		if (typeof value === 'object') output[key] = clean(value);
+		else if (typeof value !== 'undefined') output[key] = value;
+	}
+	return output;
+}
 
 describe('UserController', () => {
+	const spiedGetUser = jest.spyOn(middleware, 'default');
+
+	function setGetUserAllowed(authorization: string, user: User) {
+		spiedGetUser.mockImplementation((req, res, next) => {
+			if (req.headers.authorization === authorization) res.locals.user = user;
+			next();
+			return Promise.resolve();
+		});
+	}
+
+	afterEach(() => {
+		spiedGetUser.mockReset();
+	});
+
 	describe('registerUser', () => {
-		test('Gives 204 for valid request', async () => {
-			const registrationUser = {
-				forename: 'Test',
-				surname: 'User',
-				password: 'password',
-				email: 'test@gmail.com'
-			};
+		test('204 for valid request', async () => {
+			const data = randomObject();
 
+			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
-			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(confirmationFixture1);
 
-			const res = await supertest(app).post('/api/v1/register').send(registrationUser);
-			verify(mockedUserService.registerUser(objectContaining(registrationUser))).called();
+			const res = await supertest(app).post('/api/v1/register').send(data);
+			verify(mockedUserService.registerUser(objectContaining(data))).called();
 			verify(mockedEmailService.sendEmail(anything())).called();
 			expect(res.status).toEqual(204);
 			expect(res.body).toEqual({});
 		});
 
-		test('Gives error for invalid request', async () => {
-			when(mockedEmailService.sendEmail(anything())).thenResolve();
-			when(mockedUserService.registerUser(anything())).thenReject();
+		test('Forwards errors from UserService', async () => {
+			const data = randomObject();
 
-			const res = await supertest(app).post('/api/v1/register');
-			verify(mockedUserService.registerUser(anything())).called();
+			when(mockedUserService.registerUser(anything())).thenReject(testError400);
+			when(mockedEmailService.sendEmail(anything())).thenResolve();
+
+			const res = await supertest(app).post('/api/v1/register').send(data);
+			verify(mockedUserService.registerUser(objectContaining(data))).called();
 			verify(mockedEmailService.sendEmail(anything())).never();
-			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 
-		test('Gives error when email fails', async () => {
-			const registrationUser = {
-				forename: 'John',
-				surname: 'Doe',
-				password: 'password',
-				email: 'hello@test.com'
-			};
+		test('Forwards errors from EmailService', async () => {
+			const data = randomObject();
 
-			when(mockedEmailService.sendEmail(anything())).thenReject();
-			when(mockedUserService.registerUser(objectContaining(registrationUser))).thenResolve(confirmationFixture2);
+			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
+			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
 
-			const res = await supertest(app).post('/api/v1/register').send(registrationUser);
-			verify(mockedUserService.registerUser(objectContaining(registrationUser))).called();
+			const res = await supertest(app).post('/api/v1/register').send(data);
+			verify(mockedUserService.registerUser(objectContaining(data))).called();
 			verify(mockedEmailService.sendEmail(anything())).called();
-			expect(res.status).toBeGreaterThanOrEqual(400);
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 
 	describe('verifyUserEmail', () => {
-		test('Gives 204 for valid request', async () => {
-			when(mockedUserService.verifyUserEmail('3')).thenResolve();
-			const res = await supertest(app).get('/api/v1/verify?confirmationId=3');
-			verify(mockedUserService.verifyUserEmail('3')).called();
+		test('204 for valid request', async () => {
+			const confirmationId = randomString();
+
+			when(mockedUserService.verifyUserEmail(confirmationId)).thenResolve(users[1]);
+
+			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
+			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
 			expect(res.status).toEqual(204);
 			expect(res.body).toEqual({});
 		});
 
-		test('Gives error for invalid request', async () => {
-			when(mockedUserService.verifyUserEmail(anything())).thenReject();
-			const res = await supertest(app).get('/api/v1/verify?confirmationId=3');
-			verify(mockedUserService.verifyUserEmail('3')).called();
-			expect(res.status).toBeGreaterThanOrEqual(400);
+		test('Forwards errors from UserService', async () => {
+			const confirmationId = randomString();
+
+			when(mockedUserService.verifyUserEmail(confirmationId)).thenReject(testError400);
+
+			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
+			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 
 	describe('authenticate', () => {
-		test('Gives valid token on successful authentication', async () => {
-			const fixture = confirmationFixture1.user;
-			when(mockedUserService.authenticate(fixture.email, 'password')).thenResolve(fixture);
+		test('204 for valid request', async () => {
+			const [email, password, token] = [randomString(), randomString(), randomString()];
 
-			const res = await supertest(app).post('/api/v1/authenticate').send({
-				email: fixture.email,
-				password: 'password'
-			});
+			when(mockedUserService.authenticate(email, password)).thenResolve(users[1]);
+			const spy = jest.spyOn(authUtils, 'generateJWT');
+			spy.mockImplementation(() => Promise.resolve(token));
 
-			const payload = await verifyJWT(res.body.token);
-			expect(payload.id).toEqual(confirmationFixture1.user.id);
-			expect(Object.keys(payload)).toEqual(['id', 'iat', 'exp']);
-		});
-
-		test('Rejects on unsuccessful authentication', async () => {
-			const fixture = confirmationFixture2.user;
-			when(mockedUserService.authenticate(fixture.email, 'password')).thenResolve(fixture);
-
-			const res = await supertest(app).post('/api/v1/authenticate').send({
-				email: fixture.email,
-				password: 'incorrect password'
-			});
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.token).toBeUndefined();
-		});
-	});
-
-	describe('putUserProfile', () => {
-		test('Gives 200 for valid request', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
-			const profileData = { yearOfStudy: 2, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = fixture;
-
-			when(mockedUserService.findOne(anything())).thenResolve(fixture);
-			when(mockedUserService.putUserProfile(anything(), anything())).thenResolve(Object.assign(fixture, { profile }));
-
-			const res = await supertest(app).put('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(fixture))
-				.send(profileData);
-
+			const res = await supertest(app).post(`/api/v1/authenticate`).send({ email, password });
+			verify(mockedUserService.authenticate(email, password)).called();
+			expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: users[1].id }));
 			expect(res.status).toEqual(200);
-			expect(res.body.user).toBeTruthy();
-			expect(res.body.user.password).toBeUndefined();
-			expect(res.body.user.profile.yearOfStudy).toStrictEqual(profile.yearOfStudy);
-			expect(res.body.user.profile.course).toStrictEqual(profile.course);
+			expect(res.body).toEqual({ token });
+			spy.mockReset();
 		});
 
-		test('Rejects when invalid data passed', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
-			const profileData = { yearOfStudy: 2.5, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = fixture;
+		test('Forwards errors from UserService', async () => {
+			const [email, password, token] = [randomString(), randomString(), randomString()];
 
-			when(mockedUserService.findOne(anything())).thenResolve(fixture);
-			when(mockedUserService.putUserProfile(anything(), anything())).thenReject();
+			when(mockedUserService.authenticate(email, password)).thenReject(testError400);
+			const spy = jest.spyOn(authUtils, 'generateJWT');
+			spy.mockImplementation(() => Promise.resolve(token));
 
-			const res = await supertest(app).put('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(fixture))
-				.send(profileData);
-
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
+			const res = await supertest(app).post(`/api/v1/authenticate`).send({ email, password });
+			verify(mockedUserService.authenticate(email, password)).called();
+			expect(spy).not.toHaveBeenCalled();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+			spy.mockReset();
 		});
 
-		test('Rejects when user not found', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
-			const profileData = { yearOfStudy: 2, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = fixture;
+		test('Forwards errors from generateJWT', async () => {
+			const [email, password] = [randomString(), randomString()];
 
-			const res = await supertest(app).put('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(fixture))
-				.send(profileData);
+			when(mockedUserService.authenticate(email, password)).thenResolve(users[1]);
+			const spy = jest.spyOn(authUtils, 'generateJWT');
+			spy.mockImplementation(() => Promise.reject(testError400));
 
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
-		});
-
-		test('Rejects when authorization invalid', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
-			const profileData = { yearOfStudy: 2, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = fixture;
-
-			when(mockedUserService.findOne(anything())).thenResolve(fixture);
-			when(mockedUserService.putUserProfile(anything(), anything())).thenResolve(Object.assign(fixture, { profile }));
-
-			const res = await supertest(app).put('/api/v1/users/@me/profile').send(profileData);
-
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
+			const res = await supertest(app).post(`/api/v1/authenticate`).send({ email, password });
+			verify(mockedUserService.authenticate(email, password)).called();
+			expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: users[1].id }));
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+			spy.mockReset();
 		});
 	});
 
 	describe('getUserProfile', () => {
-		test('Resolves for @me when user has profile', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
-			const profileData = { yearOfStudy: 2, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = fixture;
-			fixture.profile = profile;
+		test('200 for valid request (@me)', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user!);
 
-			when(mockedUserService.findOne(anything())).thenResolve(fixture);
-
-			const res = await supertest(app).get('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(fixture));
-
+			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
+			const res = await supertest(app).get(`/api/v1/users/@me/profile`).set('Authorization', authorization);
+			expect(clean(res.body)).toEqual(clean({ user: user!.toLimitedJSON() }));
 			expect(res.status).toEqual(200);
-			expect(res.body.user).toBeTruthy();
 		});
 
-		test('Resolves for another user when user has profile', async () => {
-			const otherUser = new User();
-			Object.assign(otherUser, userFixture2);
-			const profileData = { yearOfStudy: 2, course: 'International Management' };
-			const profile = new Profile();
-			Object.assign(profile, profileData);
-			profile.id = '123';
-			profile.user = otherUser;
-			otherUser.profile = profile;
+		test('200 for valid request (other user)', async () => {
+			const [userMe, userOther] = users.filter(user => user.profile);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, userMe);
 
-			const user = new User();
-			Object.assign(user, userFixture2);
-			Object.assign(user, { id: '12348920134089' });
-
-			when(mockedUserService.findOne(objectContaining({ id: otherUser.id }))).thenResolve(otherUser);
-			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
-
-			const res = await supertest(app).get(`/api/v1/users/${otherUser.id}/profile`)
-				.set('Authorization', await generateJWT(user));
-
+			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
+			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
+			const res = await supertest(app).get(`/api/v1/users/${userOther.id}/profile`).set('Authorization', authorization);
+			expect(clean(res.body)).toEqual(clean({ user: userOther.toLimitedJSON() }));
 			expect(res.status).toEqual(200);
-			expect(res.body.user).toBeTruthy();
 		});
 
-		test('Rejects for @me when user doesn\'t have profile', async () => {
-			const fixture = new User();
-			Object.assign(fixture, userFixture2);
+		test('Forwards errors from UserService', async () => {
+			const [userMe, userOther] = users.filter(user => user.profile);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, userMe);
 
-			when(mockedUserService.findOne(anything())).thenResolve(fixture);
-
-			const res = await supertest(app).get('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(fixture));
-
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
+			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
+			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenReject(testError400);
+			const res = await supertest(app).get(`/api/v1/users/${userOther.id}/profile`).set('Authorization', authorization);
+			expect(res.body).toEqual({ error: testError400.message });
+			expect(res.status).toEqual(400);
 		});
 
-		test('Rejects for another user when user doesn\'t have profile', async () => {
-			const otherUser = userFixture2;
+		test('404 when user has no profile', async () => {
+			const userMe = users.find(user => user.profile);
+			const userOther = users.find(user => !user.profile);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, userMe!);
 
-			const user = new User();
-			Object.assign(user, userFixture2);
-			Object.assign(user, { id: '12348920134089' });
+			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
+			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
+			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}/profile`).set('Authorization', authorization);
+			expect(res.status).toEqual(404);
+		});
+	});
 
-			when(mockedUserService.findOne(objectContaining({ id: otherUser.id }))).thenResolve(otherUser);
-			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
+	describe('putUserProfile', () => {
+		test('200 for valid request', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			const [randomInput, randomOutput] = [randomObject(), randomObject()];
+			setGetUserAllowed(authorization, user!);
 
-			const res = await supertest(app).get('/api/v1/users/@me/profile')
-				.set('Authorization', await generateJWT(user));
-
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
+			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenResolve(randomOutput);
+			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
+				.set('Authorization', authorization)
+				.send(randomInput);
+			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
+			expect(res.status).toEqual(200);
+			expect(res.body).toEqual({ user: randomOutput });
 		});
 
-		test('Rejects for non-existent user', async () => {
-			const user = new User();
-			Object.assign(user, userFixture2);
-			Object.assign(user, { id: '12348920134089' });
+		test('Forwards errors from UserService', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			const randomInput = randomObject();
+			setGetUserAllowed(authorization, user!);
 
-			when(mockedUserService.findOne(objectContaining({ id: user.id }))).thenResolve(user);
-
-			const res = await supertest(app).get('/api/v1/users/profile')
-				.set('Authorization', await generateJWT(user));
-
-			expect(res.status).toBeGreaterThanOrEqual(400);
-			expect(res.body.user).toBeUndefined();
+			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).thenReject(testError400);
+			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
+				.set('Authorization', authorization)
+				.send(randomInput);
+			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 });

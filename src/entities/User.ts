@@ -50,11 +50,11 @@ export class User {
 
 	public toJSON() {
 		const { id, forename, surname, email, accountStatus, accountType, profile } = this;
-		return { id, forename, surname, email, accountStatus, accountType, profile };
+		return { id, forename, surname, email, accountStatus, accountType, profile: profile?.toJSON() };
 	}
 
 	public toLimitedJSON() {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;
-		return { id, forename, surname, accountStatus, accountType, profile };
+		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON() };
 	}
 }
