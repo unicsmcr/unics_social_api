@@ -40,4 +40,32 @@ describe('EventService', () => {
 			await expect(getRepository(Event).findOneOrFail()).rejects.toThrow();
 		});
 	});
+
+	describe('findAll', () => {
+		test('Returns empty list when no events', async () => {
+			await (expect(eventService.findAll())).resolves.toEqual([]);
+		});
+
+		test('Returns singleton list for 1 event', async () => {
+			const savedEvents = [events[0]];
+			await getRepository(Event).save(savedEvents);
+			await (expect(eventService.findAll())).resolves.toEqual(savedEvents);
+		});
+
+		test('Returns 2 events when there are 2 events', async () => {
+			const savedEvents = [events[0], events[1]];
+			await getRepository(Event).save(savedEvents);
+			await (expect(eventService.findAll())).resolves.toEqual(savedEvents);
+		});
+
+		test('Updates whenever events list is updated', async () => {
+			await (expect(eventService.findAll())).resolves.toEqual([]);
+			await getRepository(Event).save(events[0]);
+			await (expect(eventService.findAll())).resolves.toEqual([events[0]]);
+			await getRepository(Event).save(events[1]);
+			await (expect(eventService.findAll())).resolves.toEqual([events[0], events[1]]);
+			await getRepository(Event).remove(events[0]);
+			await (expect(eventService.findAll())).resolves.toEqual([events[1]]);
+		});
+	});
 });
