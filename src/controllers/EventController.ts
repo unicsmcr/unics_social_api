@@ -1,4 +1,3 @@
-import { UserService } from '../services/UserService';
 import { NextFunction, Request } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
@@ -8,7 +7,7 @@ import EventService from '../services/EventService';
 export class EventController {
 	private readonly eventService: EventService;
 
-	public constructor(@inject(UserService) eventService: EventService) {
+	public constructor(@inject(EventService) eventService: EventService) {
 		this.eventService = eventService;
 	}
 
