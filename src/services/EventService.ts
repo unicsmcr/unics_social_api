@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import { Event } from '../entities/Event';
-import { getRepository, FindConditions, FindOneOptions, FindManyOptions } from 'typeorm';
+import { getRepository } from 'typeorm';
 import { validateOrReject } from 'class-validator';
 import { formatValidationErrors } from '../util/errors';
 
@@ -16,11 +16,7 @@ export default class EventService {
 		return getRepository(Event).save(event);
 	}
 
-	public find(options?: FindManyOptions<Event>): Promise<Event[]> {
-		return getRepository(Event).find(options);
-	}
-
-	public findOne(findConditions: FindConditions<Event>, options?: FindOneOptions) {
-		return getRepository(Event).findOne(findConditions, options);
+	public findAll(): Promise<Event[]> {
+		return getRepository(Event).find();
 	}
 }

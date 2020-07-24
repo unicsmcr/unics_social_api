@@ -19,4 +19,13 @@ export class EventController {
 			next(error);
 		}
 	}
+
+	public async getAllEvents(req: Request, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const events = await this.eventService.findAll();
+			res.json({ events });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
