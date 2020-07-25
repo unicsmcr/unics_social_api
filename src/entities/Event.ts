@@ -1,5 +1,5 @@
 import { PrimaryGeneratedColumn, Entity, Column } from 'typeorm';
-import { MaxLength } from 'class-validator';
+import { MaxLength, IsString } from 'class-validator';
 
 @Entity()
 export class Event {
@@ -7,6 +7,7 @@ export class Event {
 	public id!: string;
 
 	@Column()
+	@IsString()
 	@MaxLength(50, { message: 'An event title must be 50 characters at most' })
 	public title!: string;
 
@@ -17,9 +18,11 @@ export class Event {
 	public endTime!: Date;
 
 	@Column()
+	@IsString()
 	@MaxLength(2000, { message: 'An event description must be 2000 characters at most' })
 	public description!: string;
 
 	@Column()
+	@IsString()
 	public external!: string;
 }
