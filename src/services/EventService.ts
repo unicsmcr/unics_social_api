@@ -25,7 +25,7 @@ export default class EventService {
 		return getRepository(Event).find();
 	}
 
-	public async patchEvent(data: Pick<Event, 'id'> & Partial<Event>): Promise<Event> {
+	public async editEvent(data: Pick<Event, 'id'> & Partial<Event>): Promise<Event> {
 		return getConnection().transaction(async entityManager => {
 			if (!data.id) throw new APIError(400, PatchEventError.IdMissing);
 			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(400, PatchEventError.EventNotFound)));

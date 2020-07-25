@@ -31,7 +31,7 @@ export class EventController {
 
 	public async editEvent(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const event = await this.eventService.patchEvent({ ...req.body, id: req.params.id });
+			const event = await this.eventService.editEvent({ ...req.body, id: req.params.id });
 			res.json({ event });
 		} catch (error) {
 			next(error);

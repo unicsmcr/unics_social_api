@@ -108,11 +108,11 @@ describe('EventController', () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
-			when(mockedEventService.patchEvent(objectContaining(event))).thenResolve(event);
+			when(mockedEventService.editEvent(objectContaining(event))).thenResolve(event);
 
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
-			verify(mockedEventService.patchEvent(objectContaining(event))).called();
+			verify(mockedEventService.editEvent(objectContaining(event))).called();
 			expect(res.status).toEqual(200);
 			expect(res.body).toEqual({ event });
 		});
@@ -121,7 +121,7 @@ describe('EventController', () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
-			when(mockedEventService.patchEvent(objectContaining(event))).thenResolve(event);
+			when(mockedEventService.editEvent(objectContaining(event))).thenResolve(event);
 
 			let res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event);
 			expect(res.status).toEqual(401);
@@ -129,32 +129,32 @@ describe('EventController', () => {
 			res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', 'invalidauth');
 			expect(res.status).toEqual(401);
-			verify(mockedEventService.patchEvent(objectContaining(event))).never();
+			verify(mockedEventService.editEvent(objectContaining(event))).never();
 		});
 
 		test('403 for non-admin user', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, normalUser);
-			when(mockedEventService.patchEvent(objectContaining(event))).thenResolve(event);
+			when(mockedEventService.editEvent(objectContaining(event))).thenResolve(event);
 
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
 			expect(res.status).toEqual(403);
-			verify(mockedEventService.patchEvent(objectContaining(event))).never();
+			verify(mockedEventService.editEvent(objectContaining(event))).never();
 		});
 
 		test('Forwards errors from EventService', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
-			when(mockedEventService.patchEvent(anything())).thenReject(testError400);
+			when(mockedEventService.editEvent(anything())).thenReject(testError400);
 
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
 			expect(res.status).toEqual(400);
 			expect(res.body).toEqual({ error: testError400.message });
-			verify(mockedEventService.patchEvent(objectContaining(event))).once();
+			verify(mockedEventService.editEvent(objectContaining(event))).once();
 		});
 	});
 

@@ -69,10 +69,10 @@ describe('EventService', () => {
 		});
 	});
 
-	describe('patchEvent', () => {
+	describe('editEvent', () => {
 		test('Edits event with valid data', async () => {
 			const event = await getRepository(Event).save(events[0]);
-			await eventService.patchEvent({
+			await eventService.editEvent({
 				id: event.id,
 				title: 'Test123'
 			});
@@ -81,12 +81,12 @@ describe('EventService', () => {
 
 		test('Multiple edits are persisted', async () => {
 			const event = await getRepository(Event).save(events[0]);
-			await eventService.patchEvent({
+			await eventService.editEvent({
 				id: event.id,
 				title: 'Test123'
 			});
 			expect({ ...event, title: 'Test123' }).toEqual(await getRepository(Event).findOneOrFail(events[0].id));
-			await eventService.patchEvent({
+			await eventService.editEvent({
 				id: event.id,
 				title: 'Testing title',
 				description: 'New description!'
@@ -95,15 +95,15 @@ describe('EventService', () => {
 		});
 
 		test('Fails on invalid id/event not found', async () => {
-			await expect(eventService.patchEvent({ id: '', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.editEvent({ id: '', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
 			await expect(eventService.findAll()).resolves.toEqual([]);
-			await expect(eventService.patchEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.editEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123' })).rejects.toMatchObject({ httpCode: 400 });
 			await expect(eventService.findAll()).resolves.toEqual([]);
 		});
 
 		test('Fails for invalid data (title too long)', async () => {
 			const event = await getRepository(Event).save(events[0]);
-			await expect(eventService.patchEvent({ id: event.id, title: 'Test123'.repeat(50) })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(eventService.editEvent({ id: event.id, title: 'Test123'.repeat(50) })).rejects.toMatchObject({ httpCode: 400 });
 			await expect(eventService.findAll()).resolves.toEqual([event]);
 		});
 	});
