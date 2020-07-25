@@ -6,7 +6,7 @@ import '../../util/dbTeardown';
 import users from '../../fixtures/users';
 import { APIError } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
-import { User, AccountType } from '../../../src/entities/User';
+import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import EventService from '../../../src/services/EventService';
 
 let app: Express.Application;
@@ -33,6 +33,7 @@ describe('EventController', () => {
 	const spiedGetUser = jest.spyOn(middleware, 'default');
 	const adminUser = users.find(user => user.accountType === AccountType.Admin)!;
 	const normalUser = users.find(user => user.accountType === AccountType.User)!;
+	const verifiedUser = users.find(user => user.accountType === AccountType.User && user.accountStatus === AccountStatus.Verified)!;
 
 	function setGetUserAllowed(authorization: string, user: User) {
 		spiedGetUser.mockImplementation((req, res, next) => {
@@ -154,6 +155,29 @@ describe('EventController', () => {
 			expect(res.status).toEqual(400);
 			expect(res.body).toEqual({ error: testError400.message });
 			verify(mockedEventService.patchEvent(objectContaining(event))).once();
+		});
+	});
+
+	describe('getAllEvents', () => {
+		test('200 for valid request', async () => {
+			const events = [randomObject()];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedEventService.findAll()).thenResolve(events);
+			const res = await supertest(app).get('/api/v1/events').set('Authorization', authorization);
+			verify(mockedEventService.findAll()).called();
+			expect(res.status).toEqual(200);
+			expect(res.body).toEqual({ events });
+		});
+
+		test('Forwards errors from EventService', async () => {
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedEventService.findAll()).thenReject(testError400);
+			const res = await supertest(app).get('/api/v1/events').set('Authorization', authorization);
+			verify(mockedEventService.findAll()).called();
+			expect(res.status).toEqual(400);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 });
