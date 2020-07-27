@@ -16,6 +16,8 @@ import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
 import { APIError } from './util/errors';
+import { Event } from './entities/Event';
+import { EventRoutes } from './routes/EventRoutes';
 
 export function createExpress() {
 	const app = express();
@@ -33,6 +35,7 @@ export function createExpress() {
 	}
 
 	container.resolve(UserRoutes).routes(router);
+	container.resolve(EventRoutes).routes(router);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	app.use((err: any, req: Request, res: Response, next: NextFunction) => {
@@ -59,7 +62,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation, Profile
+			User, EmailConfirmation, Profile, Event
 		],
 		synchronize: true,
 		logging: false
