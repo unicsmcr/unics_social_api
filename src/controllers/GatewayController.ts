@@ -1,7 +1,6 @@
 import { inject, singleton } from 'tsyringe';
 import GatewayService from '../services/GatewayService';
 import WebSocket, { Server as WebSocketServer, Data } from 'ws';
-import { User } from '../entities/User';
 import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
 import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError } from '../util/gateway';
@@ -12,7 +11,7 @@ export default class GatewayController {
 	private readonly gatewayService: GatewayService;
 	private readonly userService: UserService;
 	private wss?: WebSocketServer;
-	public readonly authenticatedClients: Map<WebSocket, User>;
+	public readonly authenticatedClients: Map<WebSocket, string>;
 
 	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService) {
 		this.authenticatedClients = new Map();
@@ -55,13 +54,12 @@ export default class GatewayController {
 	}
 
 	public async onAuthenticate(ws: WebSocket, packet: IdentifyGatewayPacket) {
-		let user = this.authenticatedClients.get(ws);
-		if (user) throw new GatewayError('Already authenticated!');
+		if (this.authenticatedClients.has(ws)) throw new GatewayError('Already authenticated!');
 		const { token } = packet.data;
 		const { id } = await verifyJWT(token).catch(() => Promise.reject(new GatewayError('Invalid token')));
-		user = await this.userService.findOne({ id });
+		const user = await this.userService.findOne({ id });
 		if (!user) throw new GatewayError('User not found');
-		this.authenticatedClients.set(ws, user);
+		this.authenticatedClients.set(ws, user.id);
 		await this.gatewayService.send([ws], {
 			type: GatewayPacketType.Hello
 		} as HelloGatewayPacket);
