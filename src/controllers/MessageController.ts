@@ -2,6 +2,7 @@ import { NextFunction, Request } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import MessageService from '../services/MessageService';
+import { AccountType } from '../entities/User';
 
 @injectable()
 export class MessageController {
@@ -36,6 +37,19 @@ export class MessageController {
 				page: Number(req.query.page)
 			});
 			res.json({ messages });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async deleteMessage(req: Request & { params: { channelID: string; messageID: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			await this.messageService.deleteMessage({
+				id: req.params.messageID,
+				channelID: req.params.channelID,
+				authorID: res.locals.user.accountType === AccountType.Admin ? undefined : res.locals.user.id
+			});
+			res.status(204).end();
 		} catch (error) {
 			next(error);
 		}

@@ -12,6 +12,12 @@ enum GetMessageError {
 	InvalidChannel = 'Message does not exist for given channel'
 }
 
+enum DeleteMessageError {
+	NotFound = 'Message not found',
+	InvalidChannel = 'Message does not exist for given channel',
+	NotAuthor = 'You are not the author of this message'
+}
+
 enum GetMessagesError {
 	ChannelNotFound = 'Channel does not exist',
 	PageNumberMissing = 'Page number missing'
@@ -49,5 +55,14 @@ export default class MessageService {
 			.take(PAGINATION_COUNT)
 			.getMany();
 		return messages.map(message => message.toJSON());
+	}
+
+	public async deleteMessage(data: Pick<APIMessage, 'id' | 'channelID'> & { authorID?: string }): Promise<void> {
+		if (!data.id) throw new APIError(404, DeleteMessageError.NotFound);
+		const message = await getRepository(Message).findOneOrFail(data.id).catch(() => Promise.reject(new APIError(404, DeleteMessageError.NotFound)));
+		if (message.channel.id !== data.channelID) throw new APIError(400, DeleteMessageError.InvalidChannel);
+		// If authorID is omitted, it means that the user has admin rights and does not need to provide their ID
+		if (data.authorID && message.author.id !== data.authorID) throw new APIError(400, DeleteMessageError.NotAuthor);
+		await getRepository(Message).delete(message);
 	}
 }

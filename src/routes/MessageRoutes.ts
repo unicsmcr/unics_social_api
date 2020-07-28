@@ -13,7 +13,8 @@ export class MessageRoutes {
 
 	public routes(router: Router): void {
 		router.post('/channels/:channelID/messages', getUser, isVerified, this.messageController.createMessage.bind(this.messageController));
-		router.get('/channels/:channelID/messages/:messageID', getUser, isVerified, this.messageController.getMessage.bind(this.messageController));
 		router.get('/channels/:channelID/messages', getUser, isVerified, this.messageController.getMessages.bind(this.messageController));
+		router.get('/channels/:channelID/messages/:messageID', getUser, isVerified, this.messageController.getMessage.bind(this.messageController));
+		router.delete('/channels/:channelID/messages/:messageID', getUser, isVerified, this.messageController.deleteMessage.bind(this.messageController));
 	}
 }
