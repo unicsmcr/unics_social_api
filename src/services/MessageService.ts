@@ -1,7 +1,8 @@
 import { singleton } from 'tsyringe';
 import Message, { APIMessage } from '../entities/Message';
 import { getRepository } from 'typeorm';
-import { APIError } from '../util/errors';
+import { APIError, formatValidationErrors } from '../util/errors';
+import { validateOrReject } from 'class-validator';
 
 const PAGINATION_COUNT = 50;
 
@@ -31,6 +32,7 @@ export default class MessageService {
 		message.time = new Date();
 		message.author = { id: data.authorID } as any;
 		message.channel = { id: data.channelID } as any;
+		await validateOrReject(message).catch(e => Promise.reject(formatValidationErrors(e)));
 		return (await getRepository(Message).save(message)).toJSON();
 	}
 

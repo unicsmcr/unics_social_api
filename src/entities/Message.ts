@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { Channel } from './Channel';
 import { User } from './User';
-import { IsDate, IsString, MaxLength } from 'class-validator';
+import { IsDate, IsString, MaxLength, MinLength } from 'class-validator';
 
 export interface APIMessage {
 	id: string;
@@ -24,6 +24,7 @@ export default class Message {
 
 	@Column()
 	@IsString()
+	@MinLength(1, { message: 'A message must be at least 1 character long' })
 	@MaxLength(400, { message: 'A message can be 400 characters at most' })
 	public content!: string;
 
