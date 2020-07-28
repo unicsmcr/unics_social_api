@@ -20,6 +20,7 @@ import { Event } from './entities/Event';
 import { EventRoutes } from './routes/EventRoutes';
 import { EventChannel, Channel } from './entities/Channel';
 import Message from './entities/Message';
+import { MessageRoutes } from './routes/MessageRoutes';
 
 export function createExpress() {
 	const app = express();
@@ -38,6 +39,7 @@ export function createExpress() {
 
 	container.resolve(UserRoutes).routes(router);
 	container.resolve(EventRoutes).routes(router);
+	container.resolve(MessageRoutes).routes(router);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	app.use((err: any, req: Request, res: Response, next: NextFunction) => {
