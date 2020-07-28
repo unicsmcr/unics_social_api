@@ -28,4 +28,16 @@ export class MessageController {
 			next(error);
 		}
 	}
+
+	public async getMessages(req: Request & { params: { channelID: string; page: number } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const messages = await this.messageService.getMessages({
+				channelID: req.params.channelID,
+				page: Number(req.query.page)
+			});
+			res.json({ messages });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
