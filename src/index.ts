@@ -18,7 +18,7 @@ import MockEmailService from './services/email/MockEmailService';
 import { APIError } from './util/errors';
 import { Event } from './entities/Event';
 import { EventRoutes } from './routes/EventRoutes';
-import { EventChannel } from './entities/Channel';
+import { EventChannel, Channel } from './entities/Channel';
 
 export function createExpress() {
 	const app = express();
@@ -63,7 +63,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation, Profile, Event, EventChannel
+			User, EmailConfirmation, Profile, Event, Channel, EventChannel
 		],
 		synchronize: true,
 		logging: false

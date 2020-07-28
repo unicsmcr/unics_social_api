@@ -1,14 +1,15 @@
-import { PrimaryGeneratedColumn, OneToOne, Entity } from 'typeorm';
+import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, JoinColumn } from 'typeorm';
 import { Event } from './Event';
-export abstract class Channel {
-	public abstract id: string;
-}
 
 @Entity()
-export class EventChannel implements Channel {
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
+export class Channel {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
+}
 
+@ChildEntity()
+export class EventChannel extends Channel {
 	@OneToOne(() => Event, event => event.channel)
 	public event!: Event;
 }
