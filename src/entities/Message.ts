@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
 import { Channel } from './Channel';
+import { User } from './User';
+import { IsDate, IsString, MaxLength } from 'class-validator';
 
 @Entity()
 export default class Message {
@@ -8,4 +10,16 @@ export default class Message {
 
 	@ManyToOne(() => Channel)
 	public channel!: Channel;
+
+	@ManyToOne(() => User)
+	public author!: User;
+
+	@Column()
+	@IsString()
+	@MaxLength(400, { message: 'A message can be 400 characters at most' })
+	public content!: string;
+
+	@Column('timestamp')
+	@IsDate()
+	public time!: Date;
 }
