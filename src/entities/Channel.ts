@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, JoinColumn } from 'typeorm';
+import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity } from 'typeorm';
 import { Event } from './Event';
 
 @Entity()

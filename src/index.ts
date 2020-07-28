@@ -19,6 +19,7 @@ import { APIError } from './util/errors';
 import { Event } from './entities/Event';
 import { EventRoutes } from './routes/EventRoutes';
 import { EventChannel, Channel } from './entities/Channel';
+import Message from './entities/Message';
 
 export function createExpress() {
 	const app = express();
@@ -63,7 +64,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation, Profile, Event, Channel, EventChannel
+			User, EmailConfirmation, Profile, Event, Channel, EventChannel, Message
 		],
 		synchronize: true,
 		logging: false
