@@ -48,7 +48,6 @@ describe('EventService', () => {
 		});
 	});
 
-
 	describe('getMessage', () => {
 		const [, baseMessage] = createMessage({ author, channel });
 
@@ -75,6 +74,68 @@ describe('EventService', () => {
 			await expect(messageService.getMessage({
 				channelID: 'fakechannelid',
 				id: baseMessage.id
+			})).rejects.toMatchObject({ httpCode: 400 });
+		});
+	});
+
+
+	describe('deleteMessage', () => {
+		const [, baseMessage] = createMessage({ author, channel });
+
+		beforeEach(async () => {
+			await getRepository(Message).save(baseMessage);
+		});
+
+		test('Deletes message with valid data (admin)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: baseMessage.channel.id,
+				id: baseMessage.id
+			})).resolves.not.toThrow();
+		});
+
+		test('Fails for unknown message (admin)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: baseMessage.channel.id,
+				id: 'fakeid'
+			})).rejects.toMatchObject({ httpCode: 404 });
+		});
+
+		test('Fails for channel mismatch (admin)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: 'fakeid',
+				id: baseMessage.id
+			})).rejects.toMatchObject({ httpCode: 400 });
+		});
+
+		test('Deletes message with valid data (user)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: baseMessage.channel.id,
+				id: baseMessage.id,
+				authorID: author.id
+			})).resolves.not.toThrow();
+		});
+
+		test('Fails for unknown message (user)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: baseMessage.channel.id,
+				id: 'fakeid',
+				authorID: author.id
+			})).rejects.toMatchObject({ httpCode: 404 });
+		});
+
+		test('Fails for channel mismatch (user)', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: 'fakeid',
+				id: baseMessage.id,
+				authorID: author.id
+			})).rejects.toMatchObject({ httpCode: 400 });
+		});
+
+		test('Fails when user is not author', async () => {
+			await expect(messageService.deleteMessage({
+				channelID: 'fakeid',
+				id: baseMessage.id,
+				authorID: 'fakeuserid'
 			})).rejects.toMatchObject({ httpCode: 400 });
 		});
 	});
