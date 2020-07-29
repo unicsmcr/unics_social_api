@@ -34,7 +34,8 @@ export class MessageController {
 		try {
 			const messages = await this.messageService.getMessages({
 				channelID: req.params.channelID,
-				page: Number(req.query.page)
+				page: Number(req.query.page),
+				count: 50
 			});
 			res.json({ messages });
 		} catch (error) {

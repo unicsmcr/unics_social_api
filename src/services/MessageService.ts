@@ -3,8 +3,7 @@ import Message, { APIMessage } from '../entities/Message';
 import { getRepository } from 'typeorm';
 import { APIError, formatValidationErrors } from '../util/errors';
 import { validateOrReject } from 'class-validator';
-
-const PAGINATION_COUNT = 50;
+import { Channel } from '../entities/Channel';
 
 type MessageCreationData = Omit<APIMessage, 'id'>;
 
@@ -20,8 +19,7 @@ enum DeleteMessageError {
 }
 
 enum GetMessagesError {
-	ChannelNotFound = 'Channel does not exist',
-	PageNumberMissing = 'Page number missing'
+	ChannelNotFound = 'Channel does not exist'
 }
 
 @singleton()
@@ -43,18 +41,18 @@ export default class MessageService {
 		return message.toJSON();
 	}
 
-	public async getMessages(data: { channelID: string; page?: number }): Promise<APIMessage[]> {
-		if (!data.page) data.page = 0;
-		if (isNaN(data.page)) throw new APIError(400, GetMessagesError.PageNumberMissing);
+	public async getMessages(data: { channelID: string; page?: number; count: number }): Promise<APIMessage[]> {
+		if (!data.page || isNaN(data.page)) data.page = 0;
 		if (!data.channelID) throw new APIError(404, GetMessagesError.ChannelNotFound);
+		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(404, GetMessagesError.ChannelNotFound)));
 		const messages = await getRepository(Message)
 			.createQueryBuilder('message')
 			.leftJoinAndSelect('message.channel', 'channel')
 			.leftJoinAndSelect('message.author', 'author')
-			.where('channel.id = :id', { id: data.channelID })
+			.where('channel.id = :id', { id: channel.id })
 			.orderBy('message.time', 'DESC')
-			.skip(PAGINATION_COUNT * data.page)
-			.take(PAGINATION_COUNT)
+			.skip(data.count * data.page)
+			.take(data.count)
 			.getMany();
 		return messages.map(message => message.toJSON());
 	}

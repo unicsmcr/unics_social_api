@@ -78,6 +78,37 @@ describe('EventService', () => {
 		});
 	});
 
+	describe('getMessages', () => {
+		let timeCounter = Date.now();
+		const baseMessages = new Array(5).fill(0).map(() => createMessage({ author, channel, time: new Date(timeCounter--) })[1]);
+
+		beforeEach(async () => {
+			await getRepository(Message).save(baseMessages);
+		});
+
+		test('Pagination works as expected', async () => {
+			for (let i = 0; i < 5; i++) {
+				const page = await messageService.getMessages({ channelID: channel.id, count: 2, page: i });
+				expect(page).toEqual(baseMessages.slice(i * 2, (i + 1) * 2).map(m => m.toJSON()));
+			}
+		});
+
+		test('Fails for empty channel', async () => {
+			await expect(messageService.getMessages({
+				channelID: '',
+				count: 2,
+				page: 0
+			})).rejects.toMatchObject({ httpCode: 404 });
+		});
+
+		test('Fails for unknown channel', async () => {
+			await expect(messageService.getMessages({
+				channelID: author.id,
+				count: 2,
+				page: 0
+			})).rejects.toMatchObject({ httpCode: 404 });
+		});
+	});
 
 	describe('deleteMessage', () => {
 		const [, baseMessage] = createMessage({ author, channel });
