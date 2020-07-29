@@ -120,7 +120,6 @@ describe('MessageController', () => {
 		test('Forwards errors from MessageService', async () => {
 			const channelID = randomString();
 			const id = randomString();
-			const message = randomObject();
 
 			const authorization = randomString();
 			setGetUserAllowed(authorization, verifiedUser);
@@ -134,6 +133,51 @@ describe('MessageController', () => {
 					}
 				});
 			verify(mockedMessageService.getMessage(objectContaining({ channelID, id }))).once();
+		});
+	});
+
+	describe('getMessages', () => {
+		test('200 for valid request', async () => {
+			const channelID = randomString();
+			const messages = [randomObject(), randomObject()];
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.getMessages(objectContaining({ channelID }))).thenResolve(messages);
+			const res = await supertest(app).get(`/api/v1/channels/${channelID}/messages`).set('Authorization', authorization);
+			expect(res.body).toEqual({ messages });
+			expect(res.status).toEqual(200);
+			verify(mockedMessageService.getMessages(objectContaining({ channelID }))).once();
+		});
+
+		test('401 for missing/invalid authorization', async () => {
+			const channelID = randomString();
+			const messages = [randomObject(), randomObject()];
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.getMessages(objectContaining({ channelID }))).thenResolve(messages);
+
+			await expect(supertest(app).get(`/api/v1/channels/${channelID}/messages`)).resolves.toMatchObject({ status: 401 });
+			await expect(supertest(app).get(`/api/v1/channels/${channelID}/messages`).set('Authorization', 'badauth')).resolves.toMatchObject({ status: 401 });
+			verify(mockedMessageService.getMessages(objectContaining({ channelID }))).never();
+		});
+
+		test('Forwards errors from MessageService', async () => {
+			const channelID = randomString();
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.getMessages(objectContaining({ channelID }))).thenReject(testError400);
+
+			await expect(supertest(app).get(`/api/v1/channels/${channelID}/messages`).set('Authorization', authorization))
+				.resolves.toMatchObject({
+					status: 400,
+					body: {
+						error: testError400.message
+					}
+				});
+			verify(mockedMessageService.getMessages(objectContaining({ channelID }))).once();
 		});
 	});
 });
