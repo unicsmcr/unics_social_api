@@ -20,6 +20,9 @@ export function createMessage(data: { author?: User; channel?: Channel; content?
 	message.channel = concreteData.channel;
 	message.id = uuidv4();
 
+	/*
+		Warning! The returned message ID is not guaranteed to be the same as the ID of the message created with the given fixture data.
+	*/
 	return [
 		{
 			authorID: concreteData.author.id,
