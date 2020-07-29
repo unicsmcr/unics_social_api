@@ -6,7 +6,7 @@ import { validateOrReject } from 'class-validator';
 
 const PAGINATION_COUNT = 50;
 
-type MessageCreationData = Omit<APIMessage, 'id' | 'time'>;
+type MessageCreationData = Omit<APIMessage, 'id'>;
 
 enum GetMessageError {
 	NotFound = 'Message not found',
@@ -29,7 +29,7 @@ export default class MessageService {
 	public async createMessage(data: MessageCreationData): Promise<APIMessage> {
 		const message = new Message();
 		message.content = data.content;
-		message.time = new Date();
+		message.time = new Date(data.time);
 		message.author = { id: data.authorID } as any;
 		message.channel = { id: data.channelID } as any;
 		await validateOrReject(message).catch(e => Promise.reject(formatValidationErrors(e)));
