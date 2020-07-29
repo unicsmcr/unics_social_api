@@ -180,4 +180,64 @@ describe('MessageController', () => {
 			verify(mockedMessageService.getMessages(objectContaining({ channelID }))).once();
 		});
 	});
+
+	describe('deleteMessage', () => {
+		test('204 for valid request', async () => {
+			const channelID = randomString();
+			const id = randomString();
+			const message = randomObject();
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).thenResolve(message);
+			const res = await supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', authorization);
+			expect(res.status).toEqual(204);
+			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).once();
+		});
+
+		test('Admin request passes no authorID', async () => {
+			const channelID = randomString();
+			const id = randomString();
+			const message = randomObject();
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, adminUser);
+			when(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: undefined }))).thenResolve(message);
+			const res = await supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', authorization);
+			expect(res.status).toEqual(204);
+			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: undefined }))).once();
+		});
+
+		test('401 for missing/invalid authorization', async () => {
+			const channelID = randomString();
+			const id = randomString();
+			const message = randomObject();
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).thenResolve(message);
+
+			await expect(supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`)).resolves.toMatchObject({ status: 401 });
+			await expect(supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', 'badauth')).resolves.toMatchObject({ status: 401 });
+			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).never();
+		});
+
+		test('Forwards errors from MessageService', async () => {
+			const channelID = randomString();
+			const id = randomString();
+
+			const authorization = randomString();
+			setGetUserAllowed(authorization, verifiedUser);
+			when(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).thenReject(testError400);
+
+			await expect(supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', authorization))
+				.resolves.toMatchObject({
+					status: 400,
+					body: {
+						error: testError400.message
+					}
+				});
+			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).once();
+		});
+	});
 });
