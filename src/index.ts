@@ -16,6 +16,8 @@ import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
 import { APIError } from './util/errors';
+import { Server as WebSocketServer } from 'ws';
+import GatewayController from './controllers/GatewayController';
 import { Event } from './entities/Event';
 import { EventRoutes } from './routes/EventRoutes';
 
@@ -73,4 +75,10 @@ export async function createApp() {
 	const app = createExpress();
 	await createDBConnection();
 	return app;
+}
+
+export function createGateway(wss: WebSocketServer) {
+	const gatewayController = container.resolve(GatewayController);
+	gatewayController.bindTo(wss);
+	return gatewayController;
 }
