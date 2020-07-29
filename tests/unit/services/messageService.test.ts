@@ -22,7 +22,7 @@ afterEach(async () => {
 
 const messageService = new MessageService();
 
-describe('EventService', () => {
+describe('MessageService', () => {
 	const author = users.find(user => user.accountStatus === AccountStatus.Verified)!;
 	const channel = events[0].channel;
 
@@ -31,10 +31,10 @@ describe('EventService', () => {
 		await getRepository(Channel).save(channel);
 	});
 
-	describe('createEvent', () => {
+	describe('createMessage', () => {
 		const [basePayload, baseMessage] = createMessage({ author, channel });
 
-		test('Creates an event with valid data', async () => {
+		test('Creates a message with valid data', async () => {
 			const createdMessage = await messageService.createMessage(basePayload);
 			expect({ ...createdMessage, id: baseMessage.id }).toEqual(baseMessage.toJSON());
 		});
