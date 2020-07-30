@@ -4,7 +4,7 @@ import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
-import { APIError, formatValidationErrors } from '../util/errors';
+import { APIError, formatValidationErrors, HttpResponseCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 
 export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON' | 'profile'>;
@@ -45,7 +45,7 @@ export class UserService {
 			const user = new User();
 
 			if (typeof data.password !== 'string' || data.password.length < 10) {
-				throw new APIError(400, 'Password must be at least 10 characters long');
+				throw new APIError(HttpResponseCode.BadRequest, 'Password must be at least 10 characters long');
 			}
 
 			Object.assign(user, {
@@ -64,10 +64,10 @@ export class UserService {
 				const code = String(error.code);
 				if (code === '23505') {
 					// 23505 is unique_violation
-					throw new APIError(400, RegistrationError.EmailAlreadyExists);
+					throw new APIError(HttpResponseCode.BadRequest, RegistrationError.EmailAlreadyExists);
 				} else if (code === '23502') {
 					// 23502 is not_null_violation
-					throw new APIError(400, RegistrationError.MissingInfo);
+					throw new APIError(HttpResponseCode.BadRequest, RegistrationError.MissingInfo);
 				}
 				throw error;
 			}
@@ -80,11 +80,11 @@ export class UserService {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {
-				throw new APIError(400, EmailVerifyError.ConfirmationNotFound);
+				throw new APIError(HttpResponseCode.BadRequest, EmailVerifyError.ConfirmationNotFound);
 			}
 
 			const confirmation = await entityManager.findOneOrFail(EmailConfirmation, confirmationId)
-				.catch(() => Promise.reject(new APIError(400, EmailVerifyError.ConfirmationNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpResponseCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
 
 			confirmation.user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(confirmation.user);
@@ -95,16 +95,16 @@ export class UserService {
 
 	public async authenticate(email: string, password: string): Promise<User> {
 		if (!email) {
-			throw new APIError(400, AuthenticateError.AccountNotFound);
+			throw new APIError(HttpResponseCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
 
 		const user = await getRepository(User).findOne({ email });
 		if (!user) {
-			throw new APIError(400, AuthenticateError.AccountNotFound);
+			throw new APIError(HttpResponseCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
 
 		if (!verifyPassword(password, user.password)) {
-			throw new APIError(403, AuthenticateError.PasswordIncorrect);
+			throw new APIError(HttpResponseCode.Forbidden, AuthenticateError.PasswordIncorrect);
 		}
 
 		return user;
@@ -112,9 +112,9 @@ export class UserService {
 
 	public async putUserProfile(id: string, options: ProfileDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!id) throw new APIError(400, PutProfileError.AccountNotFound);
+			if (!id) throw new APIError(HttpResponseCode.BadRequest, PutProfileError.AccountNotFound);
 			const user = await entityManager.findOneOrFail(User, { id })
-				.catch(() => Promise.reject(new APIError(400, PutProfileError.AccountNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpResponseCode.BadRequest, PutProfileError.AccountNotFound)));
 
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
@@ -122,7 +122,7 @@ export class UserService {
 			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
 			profile.user = user;
 			user.profile = profile;
-			return entityManager.save(user).catch(() => Promise.reject(new APIError(400, PutProfileError.InvalidEntryDetails)));
+			return entityManager.save(user).catch(() => Promise.reject(new APIError(HttpResponseCode.BadRequest, PutProfileError.InvalidEntryDetails)));
 		});
 	}
 }

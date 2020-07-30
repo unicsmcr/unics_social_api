@@ -1,5 +1,18 @@
 import { ValidationError } from 'class-validator';
 
+export enum HttpResponseCode {
+	OK = 200,
+	Created = 201,
+	NoContent = 204,
+	Redirect = 302,
+	BadRequest = 400,
+	Unauthorized = 401,
+	Forbidden = 403,
+	NotFound = 404,
+	InternalError = 500,
+	NotImplemented = 501
+}
+
 export class APIError extends Error {
 	public httpCode: number;
 
@@ -20,5 +33,5 @@ export function formatValidationErrors(errors: ValidationError|ValidationError[]
 		}
 	}
 	// use Set to remove identical errors, e.g. email constraint on User
-	return new APIError(400, Array.from(new Set(message)).join('\n'));
+	return new APIError(HttpResponseCode.BadRequest, Array.from(new Set(message)).join('\n'));
 }
