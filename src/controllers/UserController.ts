@@ -5,8 +5,7 @@ import EmailService from '../services/email/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
 import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
-import { APIError} from '../util/errors';
-import { HttpResponseCode} from '../util/errors';
+import { APIError, HttpResponseCode } from '../util/errors';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
