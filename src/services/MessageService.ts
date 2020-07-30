@@ -46,14 +46,12 @@ export default class MessageService {
 		if (!data.channelID) throw new APIError(404, GetMessagesError.ChannelNotFound);
 		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(404, GetMessagesError.ChannelNotFound)));
 		const messages = await getRepository(Message)
-			.createQueryBuilder('message')
-			.leftJoinAndSelect('message.channel', 'channel')
-			.leftJoinAndSelect('message.author', 'author')
-			.where('channel.id = :id', { id: channel.id })
-			.orderBy('message.time', 'DESC')
-			.skip(data.count * data.page)
-			.take(data.count)
-			.getMany();
+			.find({
+				where: { channel },
+				order: { time: 'DESC' },
+				skip: data.count * data.page,
+				take: data.count
+			});
 		return messages.map(message => message.toJSON());
 	}
 

@@ -68,7 +68,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation, Profile, Event, Channel, EventChannel, Message
+			`${__dirname}/entities/**/*{.js,.ts}`
 		],
 		synchronize: true,
 		logging: false
