@@ -58,7 +58,7 @@ describe('EventController', () => {
 			const res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', authorization);
 			verify(mockedEventService.createEvent(objectContaining(event))).called();
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(res.body).toEqual({ event });
 		});
 
@@ -114,7 +114,7 @@ describe('EventController', () => {
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
 			verify(mockedEventService.editEvent(objectContaining(event))).called();
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(res.body).toEqual({ event });
 		});
 
@@ -167,7 +167,7 @@ describe('EventController', () => {
 			when(mockedEventService.findAll()).thenResolve(events);
 			const res = await supertest(app).get('/api/v1/events').set('Authorization', authorization);
 			verify(mockedEventService.findAll()).called();
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(res.body).toEqual({ events });
 		});
 

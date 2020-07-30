@@ -136,7 +136,7 @@ describe('UserController', () => {
 			const res = await supertest(app).post(`/api/v1/authenticate`).send({ email, password });
 			verify(mockedUserService.authenticate(email, password)).called();
 			expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: users[1].id }));
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(res.body).toEqual({ token });
 			spy.mockReset();
 		});
@@ -181,7 +181,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
 			const res = await supertest(app).get(`/api/v1/users/@me`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: user!.toLimitedJSON() }));
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 		});
 
 		test('200 for valid request (other user)', async () => {
@@ -193,7 +193,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: userOther.toLimitedJSON() }));
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 		});
 
 		test('Forwards errors from UserService', async () => {
@@ -217,7 +217,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}`).set('Authorization', authorization);
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(clean(res.body)).toEqual(clean({ user: userOther!.toLimitedJSON() }));
 		});
 
@@ -246,7 +246,7 @@ describe('UserController', () => {
 				.set('Authorization', authorization)
 				.send(randomInput);
 			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
-			expect(res.status).toEqual(HttpResponseCode.OK);
+			expect(res.status).toEqual(HttpResponseCode.Ok);
 			expect(res.body).toEqual({ user: randomOutput });
 		});
 
