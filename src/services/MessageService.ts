@@ -1,7 +1,7 @@
 import { singleton } from 'tsyringe';
 import Message, { APIMessage } from '../entities/Message';
 import { getRepository } from 'typeorm';
-import { APIError, formatValidationErrors } from '../util/errors';
+import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import { Channel } from '../entities/Channel';
 
@@ -35,16 +35,16 @@ export default class MessageService {
 	}
 
 	public async getMessage(data: Pick<APIMessage, 'id' | 'channelID'>): Promise<APIMessage> {
-		if (!data.id) throw new APIError(404, GetMessageError.NotFound);
-		const message = await getRepository(Message).findOneOrFail(data.id).catch(() => Promise.reject(new APIError(404, GetMessageError.NotFound)));
-		if (message.channel.id !== data.channelID) throw new APIError(400, GetMessageError.InvalidChannel);
+		if (!data.id) throw new APIError(HttpCode.NotFound, GetMessageError.NotFound);
+		const message = await getRepository(Message).findOneOrFail(data.id).catch(() => Promise.reject(new APIError(HttpCode.NotFound, GetMessageError.NotFound)));
+		if (message.channel.id !== data.channelID) throw new APIError(HttpCode.BadRequest, GetMessageError.InvalidChannel);
 		return message.toJSON();
 	}
 
 	public async getMessages(data: { channelID: string; page?: number; count: number }): Promise<APIMessage[]> {
 		if (!data.page || isNaN(data.page)) data.page = 0;
-		if (!data.channelID) throw new APIError(404, GetMessagesError.ChannelNotFound);
-		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(404, GetMessagesError.ChannelNotFound)));
+		if (!data.channelID) throw new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound);
+		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound)));
 		const messages = await getRepository(Message)
 			.find({
 				where: { channel },
@@ -56,11 +56,11 @@ export default class MessageService {
 	}
 
 	public async deleteMessage(data: Pick<APIMessage, 'id' | 'channelID'> & { authorID?: string }): Promise<void> {
-		if (!data.id) throw new APIError(404, DeleteMessageError.NotFound);
-		const message = await getRepository(Message).findOneOrFail(data.id).catch(() => Promise.reject(new APIError(404, DeleteMessageError.NotFound)));
-		if (message.channel.id !== data.channelID) throw new APIError(400, DeleteMessageError.InvalidChannel);
+		if (!data.id) throw new APIError(HttpCode.NotFound, DeleteMessageError.NotFound);
+		const message = await getRepository(Message).findOneOrFail(data.id).catch(() => Promise.reject(new APIError(HttpCode.NotFound, DeleteMessageError.NotFound)));
+		if (message.channel.id !== data.channelID) throw new APIError(HttpCode.BadRequest, DeleteMessageError.InvalidChannel);
 		// If authorID is omitted, it means that the user has admin rights and does not need to provide their ID
-		if (data.authorID && message.author.id !== data.authorID) throw new APIError(400, DeleteMessageError.NotAuthor);
+		if (data.authorID && message.author.id !== data.authorID) throw new APIError(HttpCode.BadRequest, DeleteMessageError.NotAuthor);
 		await getRepository(Message).delete(message);
 	}
 }

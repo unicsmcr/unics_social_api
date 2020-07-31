@@ -10,6 +10,7 @@ import { createMessage } from '../../fixtures/messages';
 import { AccountStatus, User } from '../../../src/entities/User';
 import { Channel } from '../../../src/entities/Channel';
 import Message from '../../../src/entities/Message';
+import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
 	await createDBConnection();
@@ -40,8 +41,8 @@ describe('MessageService', () => {
 		});
 
 		test('Throws when invalid data passed', async () => {
-			await expect(messageService.createMessage({ ...basePayload, content: '' })).rejects.toMatchObject({ httpCode: 400 });
-			await expect(messageService.createMessage({ ...basePayload, time: '' })).rejects.toMatchObject({ httpCode: 400 });
+			await expect(messageService.createMessage({ ...basePayload, content: '' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(messageService.createMessage({ ...basePayload, time: '' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			// The following 2 outcomes would be unexpected in production
 			await expect(messageService.createMessage({ ...basePayload, authorID: '' })).rejects.toThrow();
 			await expect(messageService.createMessage({ ...basePayload, channelID: '' })).rejects.toThrow();
@@ -64,15 +65,15 @@ describe('MessageService', () => {
 		});
 
 		test('Fails for unknown message', async () => {
-			await expect(messageService.getMessage({ channelID: baseMessage.channel.id, id: 'fakeid' })).rejects.toMatchObject({ httpCode: 404 });
-			await expect(messageService.getMessage({ channelID: baseMessage.channel.id, id: '' })).rejects.toMatchObject({ httpCode: 404 });
+			await expect(messageService.getMessage({ channelID: baseMessage.channel.id, id: 'fakeid' })).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(messageService.getMessage({ channelID: baseMessage.channel.id, id: '' })).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 
 		test('Fails for channel mismatch', async () => {
 			await expect(messageService.getMessage({
 				channelID: 'fakechannelid',
 				id: baseMessage.id
-			})).rejects.toMatchObject({ httpCode: 400 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});
 
@@ -96,7 +97,7 @@ describe('MessageService', () => {
 				channelID: '',
 				count: 2,
 				page: 0
-			})).rejects.toMatchObject({ httpCode: 404 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 
 		test('Fails for unknown channel', async () => {
@@ -104,7 +105,7 @@ describe('MessageService', () => {
 				channelID: author.id,
 				count: 2,
 				page: 0
-			})).rejects.toMatchObject({ httpCode: 404 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 	});
 
@@ -123,15 +124,15 @@ describe('MessageService', () => {
 		});
 
 		test('Fails for unknown message (admin)', async () => {
-			await expect(messageService.deleteMessage({ channelID: baseMessage.channel.id, id: 'fakeid' })).rejects.toMatchObject({ httpCode: 404 });
-			await expect(messageService.deleteMessage({ channelID: baseMessage.channel.id, id: '' })).rejects.toMatchObject({ httpCode: 404 });
+			await expect(messageService.deleteMessage({ channelID: baseMessage.channel.id, id: 'fakeid' })).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(messageService.deleteMessage({ channelID: baseMessage.channel.id, id: '' })).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 
 		test('Fails for channel mismatch (admin)', async () => {
 			await expect(messageService.deleteMessage({
 				channelID: 'fakeid',
 				id: baseMessage.id
-			})).rejects.toMatchObject({ httpCode: 400 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 
 		test('Deletes message with valid data (user)', async () => {
@@ -147,13 +148,13 @@ describe('MessageService', () => {
 				channelID: baseMessage.channel.id,
 				id: 'fakeid',
 				authorID: author.id
-			})).rejects.toMatchObject({ httpCode: 404 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 
 			await expect(messageService.deleteMessage({
 				channelID: baseMessage.channel.id,
 				id: '',
 				authorID: author.id
-			})).rejects.toMatchObject({ httpCode: 404 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 
 		test('Fails for channel mismatch (user)', async () => {
@@ -161,7 +162,7 @@ describe('MessageService', () => {
 				channelID: 'fakeid',
 				id: baseMessage.id,
 				authorID: author.id
-			})).rejects.toMatchObject({ httpCode: 400 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 
 		test('Fails when user is not author', async () => {
@@ -169,7 +170,7 @@ describe('MessageService', () => {
 				channelID: baseMessage.channel.id,
 				id: baseMessage.id,
 				authorID: 'fakeuserid'
-			})).rejects.toMatchObject({ httpCode: 400 });
+			})).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});
 });

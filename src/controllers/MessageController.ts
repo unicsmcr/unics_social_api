@@ -3,6 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import MessageService from '../services/MessageService';
 import { AccountType } from '../entities/User';
+import { HttpCode } from '../util/errors';
 
 @injectable()
 export class MessageController {
@@ -50,7 +51,7 @@ export class MessageController {
 				channelID: req.params.channelID,
 				authorID: res.locals.user.accountType === AccountType.Admin ? undefined : res.locals.user.id
 			});
-			res.status(204).end();
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
