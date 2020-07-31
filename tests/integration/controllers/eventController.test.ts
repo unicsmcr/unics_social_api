@@ -8,7 +8,6 @@ import { APIError, HttpResponseCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import EventService from '../../../src/services/EventService';
-import { Http2ServerRequest } from 'http2';
 
 let app: Express.Application;
 let mockedEventService: EventService;
@@ -49,7 +48,7 @@ describe('EventController', () => {
 	});
 
 	describe('createEvent', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -62,7 +61,7 @@ describe('EventController', () => {
 			expect(res.body).toEqual({ event });
 		});
 
-		test('401 for missing/invalid authorization', async () => {
+		test('Unauthorized error for missing/invalid authorization', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -77,7 +76,7 @@ describe('EventController', () => {
 			verify(mockedEventService.createEvent(objectContaining(event))).never();
 		});
 
-		test('403 for non-admin user', async () => {
+		test('Forbidden error for non-admin user', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, normalUser);
@@ -105,7 +104,7 @@ describe('EventController', () => {
 
 
 	describe('editEvent', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -118,7 +117,7 @@ describe('EventController', () => {
 			expect(res.body).toEqual({ event });
 		});
 
-		test('401 for missing/invalid authorization', async () => {
+		test('Unauthorized error for missing/invalid authorization', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -133,7 +132,7 @@ describe('EventController', () => {
 			verify(mockedEventService.editEvent(objectContaining(event))).never();
 		});
 
-		test('403 for non-admin user', async () => {
+		test('Forbidden error for non-admin user', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, normalUser);
@@ -160,7 +159,7 @@ describe('EventController', () => {
 	});
 
 	describe('getAllEvents', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const events = [randomObject()];
 			const authorization = randomString();
 			setGetUserAllowed(authorization, verifiedUser);

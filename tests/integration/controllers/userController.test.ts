@@ -61,7 +61,7 @@ describe('UserController', () => {
 	});
 
 	describe('registerUser', () => {
-		test('204 for valid request', async () => {
+		test('No content response for valid request', async () => {
 			const data = randomObject();
 
 			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
@@ -102,7 +102,7 @@ describe('UserController', () => {
 	});
 
 	describe('verifyUserEmail', () => {
-		test('204 for valid request', async () => {
+		test('No content response for valid request', async () => {
 			const confirmationId = randomString();
 
 			when(mockedUserService.verifyUserEmail(confirmationId)).thenResolve(users[1]);
@@ -126,7 +126,7 @@ describe('UserController', () => {
 	});
 
 	describe('authenticate', () => {
-		test('204 for valid request', async () => {
+		test('No content response for valid request', async () => {
 			const [email, password, token] = [randomString(), randomString(), randomString()];
 
 			when(mockedUserService.authenticate(email, password)).thenResolve(users[1]);
@@ -173,7 +173,7 @@ describe('UserController', () => {
 	});
 
 	describe('getUser', () => {
-		test('200 for valid request (@me)', async () => {
+		test('Ok response for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user!);
@@ -184,7 +184,7 @@ describe('UserController', () => {
 			expect(res.status).toEqual(HttpResponseCode.Ok);
 		});
 
-		test('200 for valid request (other user)', async () => {
+		test('Ok response for valid request (other user)', async () => {
 			const [userMe, userOther] = users.filter(user => user.profile);
 			const authorization = randomString();
 			setGetUserAllowed(authorization, userMe);
@@ -208,7 +208,7 @@ describe('UserController', () => {
 			expect(res.status).toEqual(HttpResponseCode.BadRequest);
 		});
 
-		test('200 when user has no profile', async () => {
+		test('Ok response when user has no profile', async () => {
 			const userMe = users.find(user => user.profile);
 			const userOther = users.find(user => !user.profile);
 			const authorization = randomString();
@@ -221,7 +221,7 @@ describe('UserController', () => {
 			expect(clean(res.body)).toEqual(clean({ user: userOther!.toLimitedJSON() }));
 		});
 
-		test('404 when user does not exist', async () => {
+		test('Not found error when user does not exist', async () => {
 			const userMe = users.find(user => user.profile);
 			const authorization = randomString();
 			const userOther = randomString();
@@ -235,7 +235,7 @@ describe('UserController', () => {
 	});
 
 	describe('putUserProfile', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
 			const authorization = randomString();
 			const [randomInput, randomOutput] = [randomObject(), randomObject()];
