@@ -12,7 +12,7 @@ import { UserRoutes } from './routes/UserRoutes';
 import { container } from 'tsyringe';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
-import { APIError } from './util/errors';
+import { APIError, HttpCode } from './util/errors';
 import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
 import { EventRoutes } from './routes/EventRoutes';
@@ -50,7 +50,7 @@ export function createExpress() {
 			if (getConfig().logErrors) {
 				console.error(err.stack);
 			}
-			res.status(500).send({ error: 'Something went wrong!' });
+			res.status(HttpCode.InternalError).send({ error: 'Something went wrong!' });
 		}
 	});
 

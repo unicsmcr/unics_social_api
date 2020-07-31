@@ -4,7 +4,7 @@ import { container } from 'tsyringe';
 import supertest from 'supertest';
 import '../../util/dbTeardown';
 import users from '../../fixtures/users';
-import { APIError } from '../../../src/util/errors';
+import { APIError, HttpCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import EventService from '../../../src/services/EventService';
@@ -27,7 +27,7 @@ beforeEach(() => {
 const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
 const randomString = () => String(randomNumber());
 const randomObject = () => ({ tag: randomString() }) as any;
-const testError400 = new APIError(400, 'EventController test error');
+const testError400 = new APIError(HttpCode.BadRequest, 'EventController test error');
 
 describe('EventController', () => {
 	const spiedGetUser = jest.spyOn(middleware, 'default');
@@ -48,7 +48,7 @@ describe('EventController', () => {
 	});
 
 	describe('createEvent', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -57,26 +57,26 @@ describe('EventController', () => {
 			const res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', authorization);
 			verify(mockedEventService.createEvent(objectContaining(event))).called();
-			expect(res.status).toEqual(200);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ event });
 		});
 
-		test('401 for missing/invalid authorization', async () => {
+		test('Unauthorized error for missing/invalid authorization', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
 			when(mockedEventService.createEvent(objectContaining(event))).thenResolve(event);
 
 			let res = await supertest(app).post('/api/v1/events').send(event);
-			expect(res.status).toEqual(401);
+			expect(res.status).toEqual(HttpCode.Unauthorized);
 
 			res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', 'invalidauth');
-			expect(res.status).toEqual(401);
+			expect(res.status).toEqual(HttpCode.Unauthorized);
 			verify(mockedEventService.createEvent(objectContaining(event))).never();
 		});
 
-		test('403 for non-admin user', async () => {
+		test('Forbidden error for non-admin user', async () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, normalUser);
@@ -84,7 +84,7 @@ describe('EventController', () => {
 
 			const res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', authorization);
-			expect(res.status).toEqual(403);
+			expect(res.status).toEqual(HttpCode.Forbidden);
 			verify(mockedEventService.createEvent(objectContaining(event))).never();
 		});
 
@@ -96,7 +96,7 @@ describe('EventController', () => {
 
 			const res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', authorization);
-			expect(res.status).toEqual(400);
+			expect(res.status).toEqual(HttpCode.BadRequest);
 			expect(res.body).toEqual({ error: testError400.message });
 			verify(mockedEventService.createEvent(objectContaining(event))).once();
 		});
@@ -104,7 +104,7 @@ describe('EventController', () => {
 
 
 	describe('editEvent', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
@@ -113,26 +113,26 @@ describe('EventController', () => {
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
 			verify(mockedEventService.editEvent(objectContaining(event))).called();
-			expect(res.status).toEqual(200);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ event });
 		});
 
-		test('401 for missing/invalid authorization', async () => {
+		test('Unauthorized error for missing/invalid authorization', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
 			when(mockedEventService.editEvent(objectContaining(event))).thenResolve(event);
 
 			let res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event);
-			expect(res.status).toEqual(401);
+			expect(res.status).toEqual(HttpCode.Unauthorized);
 
 			res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', 'invalidauth');
-			expect(res.status).toEqual(401);
+			expect(res.status).toEqual(HttpCode.Unauthorized);
 			verify(mockedEventService.editEvent(objectContaining(event))).never();
 		});
 
-		test('403 for non-admin user', async () => {
+		test('Forbidden error for non-admin user', async () => {
 			const event = { ...randomObject(), id: randomString() };
 			const authorization = randomString();
 			setGetUserAllowed(authorization, normalUser);
@@ -140,7 +140,7 @@ describe('EventController', () => {
 
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
-			expect(res.status).toEqual(403);
+			expect(res.status).toEqual(HttpCode.Forbidden);
 			verify(mockedEventService.editEvent(objectContaining(event))).never();
 		});
 
@@ -152,21 +152,21 @@ describe('EventController', () => {
 
 			const res = await supertest(app).patch(`/api/v1/events/${event.id as string}`).send(event)
 				.set('Authorization', authorization);
-			expect(res.status).toEqual(400);
+			expect(res.status).toEqual(HttpCode.BadRequest);
 			expect(res.body).toEqual({ error: testError400.message });
 			verify(mockedEventService.editEvent(objectContaining(event))).once();
 		});
 	});
 
 	describe('getAllEvents', () => {
-		test('200 for valid request', async () => {
+		test('Ok response for valid request', async () => {
 			const events = [randomObject()];
 			const authorization = randomString();
 			setGetUserAllowed(authorization, verifiedUser);
 			when(mockedEventService.findAll()).thenResolve(events);
 			const res = await supertest(app).get('/api/v1/events').set('Authorization', authorization);
 			verify(mockedEventService.findAll()).called();
-			expect(res.status).toEqual(200);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ events });
 		});
 
@@ -176,7 +176,7 @@ describe('EventController', () => {
 			when(mockedEventService.findAll()).thenReject(testError400);
 			const res = await supertest(app).get('/api/v1/events').set('Authorization', authorization);
 			verify(mockedEventService.findAll()).called();
-			expect(res.status).toEqual(400);
+			expect(res.status).toEqual(HttpCode.BadRequest);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
