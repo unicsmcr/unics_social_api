@@ -5,7 +5,7 @@ import EmailService from '../services/email/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
 import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
-import { APIError, HttpResponseCode } from '../util/errors';
+import { APIError, HttpCode } from '../util/errors';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -33,7 +33,7 @@ export class UserController {
 				subject: 'Verify your UniCS KB email',
 				html: VerifyEmailTemplate(confirmation.user.forename, confirmation.id)
 			});
-			res.status(HttpResponseCode.NoContent).end();
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
@@ -42,7 +42,7 @@ export class UserController {
 	public async verifyUserEmail(req: Request & { query: { confirmationId: string } }, res: Response, next: NextFunction): Promise<void> {
 		try {
 			await this.userService.verifyUserEmail(req.query.confirmationId);
-			res.status(HttpResponseCode.NoContent).end();
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
@@ -60,10 +60,10 @@ export class UserController {
 
 	public async getUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			if (!req.params.id) throw new APIError(HttpResponseCode.NotFound, GetUserError.UserNotFound);
+			if (!req.params.id) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			if (req.params.id === '@me') req.params.id = res.locals.user.id;
 			const user = await this.userService.findOne({ id: req.params.id });
-			if (!user) throw new APIError(HttpResponseCode.NotFound, GetUserError.UserNotFound);
+			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			res.json({
 				user: user.toLimitedJSON()
 			});

@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { Event } from '../entities/Event';
 import { getRepository, getConnection } from 'typeorm';
 import { validateOrReject } from 'class-validator';
-import { formatValidationErrors, APIError, HttpResponseCode } from '../util/errors';
+import { formatValidationErrors, APIError, HttpCode } from '../util/errors';
 
 type EventCreationData = Omit<Event, 'id'>;
 
@@ -27,8 +27,8 @@ export default class EventService {
 
 	public async editEvent(data: Pick<Event, 'id'> & Partial<Event>): Promise<Event> {
 		return getConnection().transaction(async entityManager => {
-			if (!data.id) throw new APIError(HttpResponseCode.BadRequest, PatchEventError.IdMissing);
-			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(HttpResponseCode.BadRequest, PatchEventError.EventNotFound)));
+			if (!data.id) throw new APIError(HttpCode.BadRequest, PatchEventError.IdMissing);
+			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.EventNotFound)));
 			Object.assign(event, data);
 			await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
 			return entityManager.save(event);

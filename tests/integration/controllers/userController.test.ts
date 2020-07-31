@@ -8,7 +8,7 @@ import * as authUtils from '../../../src/util/auth';
 import '../../util/dbTeardown';
 import emailConfirmations from '../../fixtures/emailConfirmations';
 import users from '../../fixtures/users';
-import { APIError, HttpResponseCode } from '../../../src/util/errors';
+import { APIError, HttpCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
 import { AccountStatus, User } from '../../../src/entities/User';
 
@@ -34,7 +34,7 @@ beforeEach(() => {
 const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
 const randomString = () => String(randomNumber());
 const randomObject = () => ({ tag: randomString() }) as any;
-const testError400 = new APIError(HttpResponseCode.BadRequest, 'UserController test error');
+const testError400 = new APIError(HttpCode.BadRequest, 'UserController test error');
 
 function clean(obj: Record<string, any>) {
 	const output: Record<string, any> = {};
@@ -70,7 +70,7 @@ describe('UserController', () => {
 			const res = await supertest(app).post('/api/v1/register').send(data);
 			verify(mockedUserService.registerUser(objectContaining(data))).called();
 			verify(mockedEmailService.sendEmail(anything())).called();
-			expect(res.status).toEqual(HttpResponseCode.NoContent);
+			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
 
@@ -109,7 +109,7 @@ describe('UserController', () => {
 
 			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
 			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
-			expect(res.status).toEqual(HttpResponseCode.NoContent);
+			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
 
@@ -136,7 +136,7 @@ describe('UserController', () => {
 			const res = await supertest(app).post(`/api/v1/authenticate`).send({ email, password });
 			verify(mockedUserService.authenticate(email, password)).called();
 			expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: users[1].id }));
-			expect(res.status).toEqual(HttpResponseCode.Ok);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ token });
 			spy.mockReset();
 		});
@@ -181,7 +181,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
 			const res = await supertest(app).get(`/api/v1/users/@me`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: user!.toLimitedJSON() }));
-			expect(res.status).toEqual(HttpResponseCode.Ok);
+			expect(res.status).toEqual(HttpCode.Ok);
 		});
 
 		test('Ok response for valid request (other user)', async () => {
@@ -193,7 +193,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
 			expect(clean(res.body)).toEqual(clean({ user: userOther.toLimitedJSON() }));
-			expect(res.status).toEqual(HttpResponseCode.Ok);
+			expect(res.status).toEqual(HttpCode.Ok);
 		});
 
 		test('Forwards errors from UserService', async () => {
@@ -205,7 +205,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenReject(testError400);
 			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
 			expect(res.body).toEqual({ error: testError400.message });
-			expect(res.status).toEqual(HttpResponseCode.BadRequest);
+			expect(res.status).toEqual(HttpCode.BadRequest);
 		});
 
 		test('Ok response when user has no profile', async () => {
@@ -217,7 +217,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}`).set('Authorization', authorization);
-			expect(res.status).toEqual(HttpResponseCode.Ok);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(clean(res.body)).toEqual(clean({ user: userOther!.toLimitedJSON() }));
 		});
 
@@ -230,7 +230,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: randomString() }))).thenResolve(undefined);
 			const res = await supertest(app).get(`/api/v1/users/${userOther}`).set('Authorization', authorization);
-			expect(res.status).toEqual(HttpResponseCode.NotFound);
+			expect(res.status).toEqual(HttpCode.NotFound);
 		});
 	});
 
@@ -246,7 +246,7 @@ describe('UserController', () => {
 				.set('Authorization', authorization)
 				.send(randomInput);
 			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput))).called();
-			expect(res.status).toEqual(HttpResponseCode.Ok);
+			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ user: randomOutput });
 		});
 

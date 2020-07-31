@@ -1,6 +1,6 @@
 import { ValidationError } from 'class-validator';
 
-export enum HttpResponseCode {
+export enum HttpCode {
 	Ok = 200,
 	Created = 201,
 	NoContent = 204,
@@ -33,5 +33,5 @@ export function formatValidationErrors(errors: ValidationError|ValidationError[]
 		}
 	}
 	// use Set to remove identical errors, e.g. email constraint on User
-	return new APIError(HttpResponseCode.BadRequest, Array.from(new Set(message)).join('\n'));
+	return new APIError(HttpCode.BadRequest, Array.from(new Set(message)).join('\n'));
 }

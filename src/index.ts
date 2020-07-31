@@ -15,7 +15,7 @@ import { container } from 'tsyringe';
 import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
-import { APIError, HttpResponseCode } from './util/errors';
+import { APIError, HttpCode } from './util/errors';
 import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
 import { Event } from './entities/Event';
@@ -52,7 +52,7 @@ export function createExpress() {
 			if (getConfig().logErrors) {
 				console.error(err.stack);
 			}
-			res.status(HttpResponseCode.InternalError).send({ error: 'Something went wrong!' });
+			res.status(HttpCode.InternalError).send({ error: 'Something went wrong!' });
 		}
 	});
 
