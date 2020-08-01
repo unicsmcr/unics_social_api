@@ -43,9 +43,6 @@ describe('MessageService', () => {
 		test('Throws when invalid data passed', async () => {
 			await expect(messageService.createMessage({ ...basePayload, content: '' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(messageService.createMessage({ ...basePayload, time: '' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			// The following 2 outcomes would be unexpected in production
-			await expect(messageService.createMessage({ ...basePayload, authorID: '' })).rejects.toThrow();
-			await expect(messageService.createMessage({ ...basePayload, channelID: '' })).rejects.toThrow();
 		});
 	});
 

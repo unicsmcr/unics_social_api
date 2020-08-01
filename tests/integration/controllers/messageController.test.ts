@@ -6,8 +6,11 @@ import '../../util/dbTeardown';
 import users from '../../fixtures/users';
 import { APIError, HttpCode } from '../../../src/util/errors';
 import * as getUserMiddleware from '../../../src/routes/middleware/getUser';
+import * as getChannelMiddleware from '../../../src/routes/middleware/getChannel';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import MessageService from '../../../src/services/MessageService';
+import { Channel } from '../../../src/entities/Channel';
+import events from '../../fixtures/events';
 
 let app: Express.Application;
 let mockedMessageService: MessageService;
@@ -31,8 +34,10 @@ const testError400 = new APIError(HttpCode.BadRequest, 'EventController test err
 
 describe('MessageController', () => {
 	const spiedGetUser = jest.spyOn(getUserMiddleware, 'default');
+	const spiedGetChannel = jest.spyOn(getChannelMiddleware, 'default');
 	const adminUser = users.find(user => user.accountType === AccountType.Admin)!;
 	const verifiedUser = users.find(user => user.accountType === AccountType.User && user.accountStatus === AccountStatus.Verified)!;
+	const eventChannel = events[0].channel;
 
 	function setGetUserAllowed(authorization: string, user: User) {
 		spiedGetUser.mockImplementation((req, res, next) => {
@@ -42,6 +47,16 @@ describe('MessageController', () => {
 		});
 	}
 
+	function setChannelMiddleware(id: string, channel: Channel) {
+		spiedGetChannel.mockImplementation((req, res, next) => {
+			if (req.params.channelID === id) (res.locals as any).channel = channel;
+			next();
+			return Promise.resolve();
+		});
+	}
+
+	setChannelMiddleware('id_placeholder', eventChannel);
+
 	afterEach(() => {
 		spiedGetUser.mockReset();
 	});
@@ -50,13 +65,14 @@ describe('MessageController', () => {
 		test('Ok response for valid request', async () => {
 			const message = randomObject();
 			const authorization = randomString();
+			const expectedInput = objectContaining({ ...message, author: verifiedUser, channel: eventChannel });
 			setGetUserAllowed(authorization, verifiedUser);
-			when(mockedMessageService.createMessage(objectContaining(message))).thenResolve(message);
+			when(mockedMessageService.createMessage(expectedInput)).thenResolve(message);
 			const res = await supertest(app).post('/api/v1/channels/id_placeholder/messages').send(message)
 				.set('Authorization', authorization);
 			expect(res.body).toEqual({ message });
 			expect(res.status).toEqual(HttpCode.Ok);
-			verify(mockedMessageService.createMessage(objectContaining(message))).once();
+			verify(mockedMessageService.createMessage(expectedInput)).once();
 		});
 
 		test('Unauthorized response for missing/invalid authorization', async () => {
