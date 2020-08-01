@@ -53,6 +53,15 @@ export default class GatewayController {
 		}
 	}
 
+	public async broadcast(message: GatewayPacket) {
+		await this.gatewayService.send([...this.authenticatedClients.keys()], message);
+	}
+
+	public async sendMessage(to: string[], message: GatewayPacket) {
+		const recipients = [...this.authenticatedClients.entries()].filter(([,id]) => to.includes(id)).map(entry => entry[0]);
+		await this.gatewayService.send(recipients, message);
+	}
+
 	public async onAuthenticate(ws: WebSocket, packet: IdentifyGatewayPacket) {
 		if (this.authenticatedClients.has(ws)) throw new GatewayError('Already authenticated!');
 		const { token } = packet.data;
