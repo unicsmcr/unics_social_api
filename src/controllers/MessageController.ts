@@ -4,6 +4,7 @@ import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import MessageService from '../services/MessageService';
 import { AccountType } from '../entities/User';
 import { HttpCode } from '../util/errors';
+import { ChannelResponse } from '../routes/middleware/getChannel';
 
 @injectable()
 export class MessageController {
@@ -13,9 +14,9 @@ export class MessageController {
 		this.messageService = messageService;
 	}
 
-	public async createMessage(req: Request & { params: { channelID: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async createMessage(req: Request, res: ChannelResponse, next: NextFunction): Promise<void> {
 		try {
-			const message = await this.messageService.createMessage({ ...req.body, channelID: req.params.channelID, authorID: res.locals.user.id });
+			const message = await this.messageService.createMessage({ ...req.body, channel: res.locals.channel, author: res.locals.user });
 			res.json({ message });
 		} catch (error) {
 			next(error);

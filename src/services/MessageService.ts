@@ -4,8 +4,9 @@ import { getRepository } from 'typeorm';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import { Channel } from '../entities/Channel';
+import { User } from '../entities/User';
 
-type MessageCreationData = Omit<APIMessage, 'id'>;
+type MessageCreationData = Omit<APIMessage, 'id' | 'channelID' | 'authorID'> & { channel: Channel; author: User };
 
 enum GetMessageError {
 	NotFound = 'Message not found',
@@ -28,8 +29,8 @@ export default class MessageService {
 		const message = new Message();
 		message.content = data.content;
 		message.time = new Date(data.time);
-		message.author = { id: data.authorID } as any;
-		message.channel = { id: data.channelID } as any;
+		message.author = data.author;
+		message.channel = data.channel;
 		await validateOrReject(message).catch(e => Promise.reject(formatValidationErrors(e)));
 		return (await getRepository(Message).save(message)).toJSON();
 	}
