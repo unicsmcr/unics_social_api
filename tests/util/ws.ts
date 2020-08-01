@@ -57,6 +57,7 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 	public CLOSED = WebSocket.CLOSED;
 	public mirror!: MockWebSocket;
 	public messages: string[];
+	public allMessages: string[];
 	private _nextMessagePromise?: [(data: string) => void, (error: Error) => void];
 	public onopen!: (event: WebSocket.OpenEvent) => void;
 	public onerror!: (event: WebSocket.ErrorEvent) => void;
@@ -71,8 +72,10 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 			setImmediate(() => this.mirror.emit('open'));
 		}
 		this.messages = [];
+		this.allMessages = [];
 		this.on('message', data => {
 			this.messages.push(data);
+			this.allMessages.push(data);
 			if (this._nextMessagePromise) {
 				this._nextMessagePromise[0](this.messages.shift()!);
 				this._nextMessagePromise = undefined;
@@ -117,6 +120,7 @@ export class MockWebSocket extends EventEmitter implements WebSocket {
 	}
 
 	public send(data: any, options?: any, cb?: (err: any) => void): Promise<void> {
+		if (typeof options === 'function') cb = options;
 		setImmediate(() => this.mirror.emit('message', data));
 		if (cb) cb(undefined);
 		return Promise.resolve();
