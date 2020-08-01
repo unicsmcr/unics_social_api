@@ -45,10 +45,10 @@ export class MessageController {
 		}
 	}
 
-	public async getMessages(req: Request & { params: { channelID: string; page: number } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async getMessages(req: Request & { params: { channelID: string; page: number } }, res: ChannelResponse, next: NextFunction): Promise<void> {
 		try {
 			const messages = await this.messageService.getMessages({
-				channelID: req.params.channelID,
+				channel: res.locals.channel,
 				page: Number(req.query.page),
 				count: 50
 			});

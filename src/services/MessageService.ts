@@ -19,10 +19,6 @@ enum DeleteMessageError {
 	NotAuthor = 'You are not the author of this message'
 }
 
-enum GetMessagesError {
-	ChannelNotFound = 'Channel does not exist'
-}
-
 @singleton()
 export default class MessageService {
 	public async createMessage(data: MessageCreationData): Promise<APIMessage> {
@@ -42,13 +38,11 @@ export default class MessageService {
 		return message.toJSON();
 	}
 
-	public async getMessages(data: { channelID: string; page?: number; count: number }): Promise<APIMessage[]> {
+	public async getMessages(data: { channel: Channel; page?: number; count: number }): Promise<APIMessage[]> {
 		if (!data.page || isNaN(data.page)) data.page = 0;
-		if (!data.channelID) throw new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound);
-		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound)));
 		const messages = await getRepository(Message)
 			.find({
-				where: { channel },
+				where: { channel: data.channel },
 				order: { time: 'DESC' },
 				skip: data.count * data.page,
 				take: data.count
