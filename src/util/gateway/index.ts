@@ -1,8 +1,8 @@
 export class GatewayError extends Error {}
 
 export enum GatewayPacketType {
-	Identify,
-	Hello
+	Identify = 'IDENTIFY',
+	Hello = 'HELLO'
 }
 
 export interface GatewayPacket {
