@@ -8,18 +8,15 @@ import express, { Router, Response, Request, NextFunction } from 'express';
 
 import { createConnection } from 'typeorm';
 import { getConfig } from './util/config';
-import { User } from './entities/User';
 import { UserRoutes } from './routes/UserRoutes';
-import { EmailConfirmation } from './entities/EmailConfirmation';
 import { container } from 'tsyringe';
-import Profile from './entities/Profile';
 import EmailService from './services/email/EmailService';
 import MockEmailService from './services/email/MockEmailService';
 import { APIError, HttpCode } from './util/errors';
 import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
-import { Event } from './entities/Event';
 import { EventRoutes } from './routes/EventRoutes';
+import { MessageRoutes } from './routes/MessageRoutes';
 
 export function createExpress() {
 	const app = express();
@@ -38,6 +35,7 @@ export function createExpress() {
 
 	container.resolve(UserRoutes).routes(router);
 	container.resolve(EventRoutes).routes(router);
+	container.resolve(MessageRoutes).routes(router);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	app.use((err: any, req: Request, res: Response, next: NextFunction) => {
@@ -64,7 +62,7 @@ export async function createDBConnection() {
 		type: 'postgres',
 		...getConfig().db, // username, password, host, port, database
 		entities: [
-			User, EmailConfirmation, Profile, Event
+			`${__dirname}/entities/**/*{.js,.ts}`
 		],
 		synchronize: true,
 		logging: false
