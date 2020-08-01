@@ -14,8 +14,9 @@ export type ChannelResponse = AuthenticatedResponse & { locals: { channel: Chann
 
 export default async function getChannel(req: Request, res: AuthenticatedResponse, next: NextFunction) {
 	const channelService = container.resolve(ChannelService);
+	if (!req.params.channelID) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));
 	const channel = await channelService.findOne({ id: req.params.channelID });
-	if (!channel) throw new APIError(HttpCode.NotFound, GetChannelError.NotFound);
+	if (!channel) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));
 
 	if (channel instanceof EventChannel) {
 		(res as ChannelResponse).locals.channel = channel;
