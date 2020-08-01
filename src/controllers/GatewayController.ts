@@ -53,7 +53,7 @@ export default class GatewayController {
 		}
 	}
 
-	public async broadcast(message: GatewayPacket) {
+	public async broadcast<T extends GatewayPacket>(message: T) {
 		await this.gatewayService.send([...this.authenticatedClients.keys()], message);
 	}
 

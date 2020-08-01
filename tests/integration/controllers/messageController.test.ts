@@ -1,5 +1,5 @@
 import { createApp } from '../../../src';
-import { mock, instance, when, verify, objectContaining, reset } from 'ts-mockito';
+import { mock, instance, when, verify, objectContaining, reset, anything, resetCalls } from 'ts-mockito';
 import { container } from 'tsyringe';
 import supertest from 'supertest';
 import '../../util/dbTeardown';
@@ -11,20 +11,29 @@ import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import MessageService from '../../../src/services/MessageService';
 import { Channel } from '../../../src/entities/Channel';
 import events from '../../fixtures/events';
+import GatewayController from '../../../src/controllers/GatewayController';
+import { GatewayPacketType } from '../../../src/util/gateway';
 
 let app: Express.Application;
 let mockedMessageService: MessageService;
+let mockedGatewayController: GatewayController;
 
 beforeAll(async () => {
 	mockedMessageService = mock(MessageService);
+	mockedGatewayController = mock(GatewayController);
+
+	when(mockedGatewayController.broadcast(anything())).thenResolve();
+
 	container.clearInstances();
 	container.register<MessageService>(MessageService, { useValue: instance(mockedMessageService) });
+	container.register<GatewayController>(GatewayController, { useValue: instance(mockedGatewayController) });
 
 	app = await createApp();
 });
 
 beforeEach(() => {
 	reset(mockedMessageService);
+	resetCalls(mockedGatewayController);
 });
 
 const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
@@ -55,7 +64,7 @@ describe('MessageController', () => {
 		});
 	}
 
-	setChannelMiddleware('id_placeholder', eventChannel);
+	setChannelMiddleware(eventChannel.id, eventChannel);
 
 	afterEach(() => {
 		spiedGetUser.mockReset();
@@ -68,11 +77,17 @@ describe('MessageController', () => {
 			const expectedInput = objectContaining({ ...message, author: verifiedUser, channel: eventChannel });
 			setGetUserAllowed(authorization, verifiedUser);
 			when(mockedMessageService.createMessage(expectedInput)).thenResolve(message);
-			const res = await supertest(app).post('/api/v1/channels/id_placeholder/messages').send(message)
+			const res = await supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
 				.set('Authorization', authorization);
 			expect(res.body).toEqual({ message });
 			expect(res.status).toEqual(HttpCode.Ok);
 			verify(mockedMessageService.createMessage(expectedInput)).once();
+			verify(mockedGatewayController.broadcast(objectContaining({
+				type: GatewayPacketType.MessageCreate,
+				data: {
+					message
+				}
+			}))).once();
 		});
 
 		test('Unauthorized response for missing/invalid authorization', async () => {
@@ -80,8 +95,8 @@ describe('MessageController', () => {
 			setGetUserAllowed(randomString(), verifiedUser);
 			when(mockedMessageService.createMessage(objectContaining(message))).thenResolve(message);
 
-			await expect(supertest(app).post('/api/v1/channels/id_placeholder/messages').send(message)).resolves.toMatchObject({ status: HttpCode.Unauthorized });
-			await expect(supertest(app).post('/api/v1/channels/id_placeholder/messages').send(message)
+			await expect(supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)).resolves.toMatchObject({ status: HttpCode.Unauthorized });
+			await expect(supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
 				.set('Authorization', 'fake')).resolves.toMatchObject({ status: HttpCode.Unauthorized });
 			verify(mockedMessageService.createMessage(objectContaining(message))).never();
 		});
@@ -92,7 +107,7 @@ describe('MessageController', () => {
 			setGetUserAllowed(authorization, verifiedUser);
 			when(mockedMessageService.createMessage(objectContaining(message))).thenReject(testError400);
 
-			await expect(supertest(app).post('/api/v1/channels/id_placeholder/messages').send(message)
+			await expect(supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
 				.set('Authorization', authorization)).resolves.toMatchObject({
 				status: HttpCode.BadRequest,
 				body: {
@@ -105,7 +120,7 @@ describe('MessageController', () => {
 
 	describe('getMessage', () => {
 		test('Ok response for valid request', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 			const message = randomObject();
 
@@ -119,7 +134,7 @@ describe('MessageController', () => {
 		});
 
 		test('Unauthorized response for missing/invalid authorization', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 			const message = randomObject();
 
@@ -133,7 +148,7 @@ describe('MessageController', () => {
 		});
 
 		test('Forwards errors from MessageService', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 
 			const authorization = randomString();
@@ -153,7 +168,7 @@ describe('MessageController', () => {
 
 	describe('getMessages', () => {
 		test('Ok response for valid request', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const messages = [randomObject(), randomObject()];
 
 			const authorization = randomString();
@@ -166,7 +181,7 @@ describe('MessageController', () => {
 		});
 
 		test('Unauthorized response for missing/invalid authorization', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const messages = [randomObject(), randomObject()];
 
 			const authorization = randomString();
@@ -179,7 +194,7 @@ describe('MessageController', () => {
 		});
 
 		test('Forwards errors from MessageService', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 
 			const authorization = randomString();
 			setGetUserAllowed(authorization, verifiedUser);
@@ -198,20 +213,26 @@ describe('MessageController', () => {
 
 	describe('deleteMessage', () => {
 		test('No content response for valid request', async () => {
-			const channelID = randomString();
 			const id = randomString();
 			const message = randomObject();
-
+			const channelID = eventChannel.id;
 			const authorization = randomString();
 			setGetUserAllowed(authorization, verifiedUser);
 			when(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).thenResolve(message);
 			const res = await supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', authorization);
 			expect(res.status).toEqual(HttpCode.NoContent);
 			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: verifiedUser.id }))).once();
+			verify(mockedGatewayController.broadcast(objectContaining({
+				type: GatewayPacketType.MessageDelete,
+				data: {
+					messageID: id,
+					channelID
+				}
+			}))).once();
 		});
 
 		test('Admin request passes no authorID', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 			const message = randomObject();
 
@@ -221,10 +242,17 @@ describe('MessageController', () => {
 			const res = await supertest(app).delete(`/api/v1/channels/${channelID}/messages/${id}`).set('Authorization', authorization);
 			expect(res.status).toEqual(HttpCode.NoContent);
 			verify(mockedMessageService.deleteMessage(objectContaining({ channelID, id, authorID: undefined }))).once();
+			verify(mockedGatewayController.broadcast(objectContaining({
+				type: GatewayPacketType.MessageDelete,
+				data: {
+					messageID: id,
+					channelID
+				}
+			}))).once();
 		});
 
 		test('Unauthorized response for missing/invalid authorization', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 			const message = randomObject();
 
@@ -238,7 +266,7 @@ describe('MessageController', () => {
 		});
 
 		test('Forwards errors from MessageService', async () => {
-			const channelID = randomString();
+			const channelID = eventChannel.id;
 			const id = randomString();
 
 			const authorization = randomString();
