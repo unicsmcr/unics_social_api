@@ -73,6 +73,19 @@ describe('UserService', () => {
 			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
 		});
 
+		test('Success for valid forename/surname (20 chars)', async () => {
+			const { email, surname } = users[0];
+			const forename = 'f'.repeat(20);
+			const details = { email, forename, surname, password: 'thunderbolt' };
+			const confirmation = await userService.registerUser(details);
+			expect(confirmation.user).toMatchObject({
+				email,
+				forename,
+				surname,
+				accountType: AccountType.User,
+				accountStatus: AccountStatus.Unverified
+			});
+		});
 
 		test('Fails with no forename/surname (0 chars)', async () => {
 			const { email, forename, surname } = users[0];
