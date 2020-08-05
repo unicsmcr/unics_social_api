@@ -6,6 +6,7 @@ import { VerifyEmailTemplate } from '../util/emails';
 import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
+import ChannelService from '../services/ChannelService';
 /*
 	to-do:
 	improve error handling, use more enums, do not expose raw errors to enduser
@@ -19,10 +20,12 @@ enum GetUserError {
 export class UserController {
 	private readonly userService: UserService;
 	private readonly emailService: EmailService;
+	private readonly channelService: ChannelService;
 
-	public constructor(@inject(UserService) _userService: UserService, @inject(EmailService) _emailService: EmailService) {
-		this.userService = _userService;
-		this.emailService = _emailService;
+	public constructor(@inject(UserService) userService: UserService, @inject(EmailService) emailService: EmailService, @inject(ChannelService) channelService: ChannelService) {
+		this.userService = userService;
+		this.emailService = emailService;
+		this.channelService = channelService;
 	}
 
 	public async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -76,6 +79,15 @@ export class UserController {
 		try {
 			const user = await this.userService.putUserProfile(res.locals.user.id, req.body);
 			res.json({ user });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async createDMChannel(req: Request & { params: { recipientID: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const channel = await this.channelService.createOrGetDMChannel([res.locals.user.id, req.params.recipientID]);
+			res.json({ channel });
 		} catch (error) {
 			next(error);
 		}

@@ -7,7 +7,7 @@ import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 
-export type UserDataToCreate = Omit<User, 'id' | 'accountStatus' | 'accountType' | 'toJSON' | 'toLimitedJSON' | 'profile'>;
+export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
 
 enum RegistrationError {

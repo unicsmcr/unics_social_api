@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable } from 'typeorm';
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile from './Profile';
+import { DMChannel } from './Channel';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -43,6 +44,10 @@ export class User {
 
 	@Column()
 	public accountType!: AccountType;
+
+	@ManyToMany(() => DMChannel, channel => channel.users)
+	@JoinTable()
+	public dmChannels!: DMChannel[];
 
 	@OneToOne(() => Profile, profile => profile.user, { nullable: true, eager: true, cascade: true })
 	@JoinColumn()
