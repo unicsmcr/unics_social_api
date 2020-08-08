@@ -11,6 +11,8 @@ import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
 	await createDBConnection();
+	const spy = jest.spyOn(passwordUtils, 'hashPassword');
+	spy.mockImplementation(password => Promise.resolve(password.split('').reverse().join('')));
 });
 
 afterEach(async () => {
@@ -23,10 +25,6 @@ const userService = new UserService();
 describe('UserService', () => {
 	describe('registerUser', () => {
 		test('Registers a user with valid details', async () => {
-			// Mock
-			const spy = jest.spyOn(passwordUtils, 'hashPassword');
-			spy.mockImplementation(() => Promise.resolve('passwordhash'));
-
 			const { email, forename, surname } = users[0];
 			const details = { email, forename, surname, password: 'thunderbolt' };
 			const confirmation = await userService.registerUser(details);
@@ -38,10 +36,9 @@ describe('UserService', () => {
 				accountType: AccountType.User,
 				accountStatus: AccountStatus.Unverified
 			});
-			expect(confirmation.user.password).toStrictEqual('passwordhash');
+			expect(confirmation.user.password).toStrictEqual('tlobrednuht');
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			spy.mockReset();
 		});
 
 		test('Fails with invalid email', async () => {
@@ -65,11 +62,33 @@ describe('UserService', () => {
 			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
 		});
 
-		test('Fails with very long forename/surname (50 chars)', async () => {
+		test('Fails with very long forename/surname (41 chars)', async () => {
 			const { email, forename, surname } = users[0];
-			await expect(userService.registerUser({ email, forename: 'f'.repeat(50), surname, password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.registerUser({ email, forename: 'f'.repeat(41), surname, password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
-			await expect(userService.registerUser({ email, forename, surname: 'h'.repeat(50), password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.registerUser({ email, forename, surname: 'h'.repeat(41), password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+		});
+
+		test('Success for valid forename/surname (20 chars)', async () => {
+			const { email, surname } = users[0];
+			const forename = 'f'.repeat(20);
+			const details = { email, forename, surname, password: 'thunderbolt' };
+			const confirmation = await userService.registerUser(details);
+			expect(confirmation.user).toMatchObject({
+				email,
+				forename,
+				surname,
+				accountType: AccountType.User,
+				accountStatus: AccountStatus.Unverified
+			});
+		});
+
+		test('Fails with no forename/surname (0 chars)', async () => {
+			const { email, forename, surname } = users[0];
+			await expect(userService.registerUser({ email, forename: '', surname, password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
+			await expect(userService.registerUser({ email, forename, surname: '', password: 'thunderbolt' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(getRepository(User).findOneOrFail()).rejects.toThrow();
 		});
 	});

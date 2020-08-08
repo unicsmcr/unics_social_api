@@ -21,14 +21,14 @@ export class User {
 
 	@Column()
 	@IsString()
-	@MinLength(1, { message: 'Forename must be between 1 to 16 characters long' })
-	@MaxLength(12, { message: 'Forename must be between 1 to 16 characters long' })
+	@MinLength(1, { message: 'Forename must be between 1 to 40 characters long' })
+	@MaxLength(40, { message: 'Forename must be between 1 to 40 characters long' })
 	public forename!: string;
 
 	@Column()
 	@IsString()
-	@MinLength(1, { message: 'Surname must be between 1 to 16 characters long' })
-	@MaxLength(16, { message: 'Surname must be between 1 to 16 characters long' })
+	@MinLength(1, { message: 'Surname must be between 1 to 40 characters long' })
+	@MaxLength(40, { message: 'Surname must be between 1 to 40 characters long' })
 	public surname!: string;
 
 	@Column()
