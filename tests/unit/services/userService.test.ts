@@ -11,6 +11,8 @@ import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
 	await createDBConnection();
+	const spy = jest.spyOn(passwordUtils, 'hashPassword');
+	spy.mockImplementation(password => Promise.resolve(password.split('').reverse().join('')));
 });
 
 afterEach(async () => {
@@ -23,10 +25,6 @@ const userService = new UserService();
 describe('UserService', () => {
 	describe('registerUser', () => {
 		test('Registers a user with valid details', async () => {
-			// Mock
-			const spy = jest.spyOn(passwordUtils, 'hashPassword');
-			spy.mockImplementation(() => Promise.resolve('passwordhash'));
-
 			const { email, forename, surname } = users[0];
 			const details = { email, forename, surname, password: 'thunderbolt' };
 			const confirmation = await userService.registerUser(details);
@@ -38,10 +36,9 @@ describe('UserService', () => {
 				accountType: AccountType.User,
 				accountStatus: AccountStatus.Unverified
 			});
-			expect(confirmation.user.password).toStrictEqual('passwordhash');
+			expect(confirmation.user.password).toStrictEqual('tlobrednuht');
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			spy.mockReset();
 		});
 
 		test('Fails with invalid email', async () => {
