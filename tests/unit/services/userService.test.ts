@@ -44,6 +44,17 @@ describe('UserService', () => {
 			spy.mockReset();
 		});
 
+		test('Accepts Postgrad Email', async () => {
+			const spy = jest.spyOn(passwordUtils, 'hashPassword');
+			spy.mockImplementation(() => Promise.resolve('passwordhash'));
+
+			const { email, forename, surname } = users[1];
+			const details = { email, forename, surname, password: 'thunderbolt' };
+			const confirmation = await userService.registerUser(details);
+			expect(confirmation.user.email).toStrictEqual(email);
+			spy.mockReset();
+		});
+
 		test('Fails with invalid email', async () => {
 			const { forename, surname } = users[0];
 			const details = { email: 'not-a-student@gmail.com', forename, surname, password: 'thunderbolt' };
