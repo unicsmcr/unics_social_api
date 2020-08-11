@@ -5,10 +5,12 @@ import { UserService } from '../../../src/services/UserService';
 import { container } from 'tsyringe';
 import { mock, instance, reset, spy, when, objectContaining, verify, anything } from 'ts-mockito';
 import * as auth from '../../../src/util/auth';
+import GatewayController from '../../../src/controllers/GatewayController';
 
 let spiedVerifyJWT: typeof auth;
 let wss: MockWebSocketServer;
 let mockedUserService: UserService;
+let gatewayController: GatewayController;
 
 beforeAll(() => {
 	spiedVerifyJWT = spy(auth);
@@ -16,7 +18,7 @@ beforeAll(() => {
 	container.clearInstances();
 	container.register<UserService>(UserService, { useValue: instance(mockedUserService) });
 	wss = new MockWebSocketServer();
-	createGateway(wss);
+	gatewayController = createGateway(wss);
 });
 
 function createWebSocket(): Promise<MockWebSocket> {
@@ -27,18 +29,18 @@ function createWebSocket(): Promise<MockWebSocket> {
 	});
 }
 
-let ws: MockWebSocket;
+let sockets: MockWebSocket[];
 
 beforeEach(async () => {
 	reset(spiedVerifyJWT);
 	spiedVerifyJWT = spy(auth);
 	reset(mockedUserService);
-	ws = await createWebSocket();
+	sockets = await Promise.all([0, 0].map(() => createWebSocket()));
 	await wait();
 });
 
 afterEach(async () => {
-	await ws.close();
+	await Promise.all(sockets.map(ws => ws.close()));
 	await wait();
 });
 
@@ -51,18 +53,62 @@ function wait() {
 describe('GatewayController', () => {
 	describe('general', () => {
 		test('Closes for unknown JSON', async () => {
-			await ws.send(JSON.stringify({ z: 2 }));
-			await expect(ws.nextMessage).rejects.toThrow();
+			await sockets[0].send(JSON.stringify({ z: 2 }));
+			await expect(sockets[0].nextMessage).rejects.toThrow();
 		});
 
 		test('Closes for unknown packet', async () => {
-			await ws.send(JSON.stringify({ type: -1 }));
-			await expect(ws.nextMessage).rejects.toThrow();
+			await sockets[0].send(JSON.stringify({ type: -1 }));
+			await expect(sockets[0].nextMessage).rejects.toThrow();
 		});
 
 		test('Closes for invalid packet', async () => {
-			await ws.send('garbage');
-			await expect(ws.nextMessage).rejects.toThrow();
+			await sockets[0].send('garbage');
+			await expect(sockets[0].nextMessage).rejects.toThrow();
+		});
+
+		test('broadcast', async () => {
+			// Authenticate the first socket
+			gatewayController.authenticatedClients.set(sockets[0].mirror, '');
+
+			const payload = { time: Date.now() };
+			const stringPayload = JSON.stringify(payload);
+
+			await gatewayController.broadcast(payload as any);
+			await wait();
+			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
+			expect(sockets[1].allMessages.length).toEqual(0);
+
+			// Authenticate the second socket
+			gatewayController.authenticatedClients.set(sockets[1].mirror, '');
+			await gatewayController.broadcast(payload as any);
+			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
+			await expect(sockets[1].nextMessage).resolves.toEqual(stringPayload);
+		});
+
+		test('sendTo', async () => {
+			// Authenticate the first socket
+			gatewayController.authenticatedClients.set(sockets[0].mirror, 'banana');
+			gatewayController.authenticatedClients.set(sockets[1].mirror, 'apple');
+
+			const payload = { time: Date.now() };
+			const stringPayload = JSON.stringify(payload);
+
+			await gatewayController.sendMessage(['banana'], payload as any);
+			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
+			expect(sockets[1].allMessages.length).toEqual(0);
+
+			await gatewayController.sendMessage(['apple'], payload as any);
+			await expect(sockets[1].nextMessage).resolves.toEqual(stringPayload);
+			expect(sockets[0].allMessages.length).toEqual(1);
+
+			await gatewayController.sendMessage(['apple', 'banana'], payload as any);
+			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
+			await expect(sockets[1].nextMessage).resolves.toEqual(stringPayload);
+
+			await gatewayController.sendMessage(['apple', 'banana', 'ghost'], payload as any);
+			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
+			await expect(sockets[1].nextMessage).resolves.toEqual(stringPayload);
 		});
 	});
 
@@ -77,8 +123,8 @@ describe('GatewayController', () => {
 
 			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456' });
 			when(mockedUserService.findOne(objectContaining({ id: '456' }))).thenResolve({} as any);
-			await ws.send(JSON.stringify(payload));
-			expect(JSON.parse(await ws.nextMessage)).toMatchObject({ type: GatewayPacketType.Hello });
+			await sockets[0].send(JSON.stringify(payload));
+			expect(JSON.parse(await sockets[0].nextMessage)).toMatchObject({ type: GatewayPacketType.Hello });
 			verify(spiedVerifyJWT.verifyJWT('123')).once();
 			verify(mockedUserService.findOne(objectContaining({ id: '456' }))).once();
 		});
@@ -92,8 +138,8 @@ describe('GatewayController', () => {
 			};
 
 			when(spiedVerifyJWT.verifyJWT('123')).thenReject(new Error('Test Error'));
-			await ws.send(JSON.stringify(payload));
-			await expect(ws.nextMessage).rejects.toThrow();
+			await sockets[0].send(JSON.stringify(payload));
+			await expect(sockets[0].nextMessage).rejects.toThrow();
 			verify(spiedVerifyJWT.verifyJWT('123')).once();
 			verify(mockedUserService.findOne(anything())).never();
 		});
@@ -108,8 +154,8 @@ describe('GatewayController', () => {
 
 			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456' });
 			when(mockedUserService.findOne(objectContaining({ id: '456' }))).thenReject(new Error('Test Error'));
-			await ws.send(JSON.stringify(payload));
-			await expect(ws.nextMessage).rejects.toThrow();
+			await sockets[0].send(JSON.stringify(payload));
+			await expect(sockets[0].nextMessage).rejects.toThrow();
 			verify(spiedVerifyJWT.verifyJWT('123')).once();
 			verify(mockedUserService.findOne(objectContaining({ id: '456' }))).once();
 		});

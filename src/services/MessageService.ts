@@ -4,8 +4,9 @@ import { getRepository } from 'typeorm';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import { Channel } from '../entities/Channel';
+import { User } from '../entities/User';
 
-type MessageCreationData = Omit<APIMessage, 'id'>;
+type MessageCreationData = Omit<APIMessage, 'id' | 'channelID' | 'authorID'> & { channel: Channel; author: User };
 
 enum GetMessageError {
 	NotFound = 'Message not found',
@@ -18,18 +19,14 @@ enum DeleteMessageError {
 	NotAuthor = 'You are not the author of this message'
 }
 
-enum GetMessagesError {
-	ChannelNotFound = 'Channel does not exist'
-}
-
 @singleton()
 export default class MessageService {
 	public async createMessage(data: MessageCreationData): Promise<APIMessage> {
 		const message = new Message();
 		message.content = data.content;
 		message.time = new Date(data.time);
-		message.author = { id: data.authorID } as any;
-		message.channel = { id: data.channelID } as any;
+		message.author = data.author;
+		message.channel = data.channel;
 		await validateOrReject(message).catch(e => Promise.reject(formatValidationErrors(e)));
 		return (await getRepository(Message).save(message)).toJSON();
 	}
@@ -41,13 +38,11 @@ export default class MessageService {
 		return message.toJSON();
 	}
 
-	public async getMessages(data: { channelID: string; page?: number; count: number }): Promise<APIMessage[]> {
+	public async getMessages(data: { channel: Channel; page?: number; count: number }): Promise<APIMessage[]> {
 		if (!data.page || isNaN(data.page)) data.page = 0;
-		if (!data.channelID) throw new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound);
-		const channel = await getRepository(Channel).findOneOrFail(data.channelID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, GetMessagesError.ChannelNotFound)));
 		const messages = await getRepository(Message)
 			.find({
-				where: { channel },
+				where: { channel: data.channel },
 				order: { time: 'DESC' },
 				skip: data.count * data.page,
 				take: data.count

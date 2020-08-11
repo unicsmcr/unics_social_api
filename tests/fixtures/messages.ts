@@ -6,7 +6,7 @@ import users from './users';
 import events from './events';
 import { v4 as uuidv4 } from 'uuid';
 
-export function createMessage(data: { author?: User; channel?: Channel; content?: string; time?: Date }): [Pick<APIMessage, 'content' | 'authorID' | 'channelID' | 'time'>, Message] {
+export function createMessage(data: { author?: User; channel?: Channel; content?: string; time?: Date }): [Pick<APIMessage, 'content' | 'time'> & { author: User; channel: Channel }, Message] {
 	const concreteData = {
 		author: data.author ?? users.find(user => user.accountStatus === AccountStatus.Verified)!,
 		channel: data.channel ?? events[0].channel,
@@ -25,8 +25,8 @@ export function createMessage(data: { author?: User; channel?: Channel; content?
 	*/
 	return [
 		{
-			authorID: concreteData.author.id,
-			channelID: concreteData.channel.id,
+			author: concreteData.author,
+			channel: concreteData.channel,
 			content: concreteData.content,
 			time: message.time.toISOString()
 		},
