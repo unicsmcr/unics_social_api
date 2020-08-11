@@ -42,7 +42,7 @@ export class EventChannel extends Channel {
 
 @ChildEntity()
 export class DMChannel extends Channel {
-	@ManyToMany(() => User, user => user.dmChannels)
+	@ManyToMany(() => User, user => user.dmChannels, { eager: true })
 	public users!: User[];
 
 	public toJSON(): APIDMChannel {

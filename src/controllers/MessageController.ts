@@ -7,7 +7,7 @@ import { HttpCode } from '../util/errors';
 import { ChannelResponse } from '../routes/middleware/getChannel';
 import GatewayController from './GatewayController';
 import { MessageCreateGatewayPacket, GatewayPacketType, MessageDeleteGatewayPacket } from '../util/gateway';
-import { EventChannel } from '../entities/Channel';
+import { EventChannel, DMChannel } from '../entities/Channel';
 
 @injectable()
 export class MessageController {
@@ -22,13 +22,16 @@ export class MessageController {
 	public async createMessage(req: Request, res: ChannelResponse, next: NextFunction): Promise<void> {
 		try {
 			const message = await this.messageService.createMessage({ ...req.body, channel: res.locals.channel, author: res.locals.user });
+			const gatewayPayload: MessageCreateGatewayPacket = {
+				type: GatewayPacketType.MessageCreate,
+				data: {
+					message
+				}
+			};
 			if (res.locals.channel instanceof EventChannel) {
-				await this.gatewayController.broadcast<MessageCreateGatewayPacket>({
-					type: GatewayPacketType.MessageCreate,
-					data: {
-						message
-					}
-				});
+				await this.gatewayController.broadcast<MessageCreateGatewayPacket>(gatewayPayload);
+			} else if (res.locals.channel instanceof DMChannel) {
+				await this.gatewayController.sendMessage<MessageCreateGatewayPacket>(res.locals.channel.users.map(user => user.id), gatewayPayload);
 			}
 			res.json({ message });
 		} catch (error) {
@@ -65,14 +68,17 @@ export class MessageController {
 				channelID: res.locals.channel.id,
 				authorID: res.locals.user.accountType === AccountType.Admin ? undefined : res.locals.user.id
 			});
+			const gatewayPayload: MessageDeleteGatewayPacket = {
+				type: GatewayPacketType.MessageDelete,
+				data: {
+					messageID: req.params.messageID,
+					channelID: res.locals.channel.id
+				}
+			};
 			if (res.locals.channel instanceof EventChannel) {
-				await this.gatewayController.broadcast<MessageDeleteGatewayPacket>({
-					type: GatewayPacketType.MessageDelete,
-					data: {
-						messageID: req.params.messageID,
-						channelID: res.locals.channel.id
-					}
-				});
+				await this.gatewayController.broadcast<MessageDeleteGatewayPacket>(gatewayPayload);
+			} else if (res.locals.channel instanceof DMChannel) {
+				await this.gatewayController.sendMessage<MessageDeleteGatewayPacket>(res.locals.channel.users.map(user => user.id), gatewayPayload);
 			}
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {
