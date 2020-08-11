@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import { getRepository, FindOneOptions, FindConditions, getConnection } from 'typeorm';
-import { Channel, DMChannel, APIDMChannel } from '../entities/Channel';
+import { Channel, DMChannel, APIDMChannel, APIChannel, EventChannel } from '../entities/Channel';
 import { User, AccountStatus } from '../entities/User';
 import { APIError } from '../util/errors';
 
@@ -48,5 +48,21 @@ export default class ChannelService {
 
 			return channel.toJSON();
 		});
+	}
+
+	public async getChannelsForUser(id: string): Promise<APIChannel[]> {
+		const [eventChannels, dmChannels] = await Promise.all([
+			getRepository(EventChannel).find({ relations: ['event'] }),
+			getConnection()
+				.createQueryBuilder(DMChannel, 'dmChannel')
+				.select(['dmChannel', 'user.id'])
+				.innerJoin('dmChannel.users', 'user')
+				.where('user.id = :id', { id })
+				.getMany()
+		]);
+		return [
+			...eventChannels,
+			...dmChannels
+		].map(channel => channel.toJSON());
 	}
 }

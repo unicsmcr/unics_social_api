@@ -8,10 +8,12 @@ export interface APIChannel {
 
 export interface APIEventChannel extends APIChannel {
 	event: APIEvent;
+	type: 'event';
 }
 
 export interface APIDMChannel extends APIChannel {
 	users: string[];
+	type: 'dm';
 }
 
 @Entity()
@@ -35,6 +37,7 @@ export class EventChannel extends Channel {
 	public toJSON(): APIEventChannel {
 		return {
 			...super.toJSON(),
+			type: 'event',
 			event: this.event.toJSON()
 		};
 	}
@@ -48,6 +51,7 @@ export class DMChannel extends Channel {
 	public toJSON(): APIDMChannel {
 		return {
 			...super.toJSON(),
+			type: 'dm',
 			users: this.users.map(user => user.id)
 		};
 	}

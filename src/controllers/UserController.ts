@@ -92,4 +92,13 @@ export class UserController {
 			next(error);
 		}
 	}
+
+	public async getChannels(req: Request, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const channels = await this.channelService.getChannelsForUser(res.locals.user.id);
+			res.json({ channels });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
