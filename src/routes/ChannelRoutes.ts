@@ -5,7 +5,7 @@ import { MessageController } from '../controllers/MessageController';
 import getChannel from './middleware/getChannel';
 
 @injectable()
-export class MessageRoutes {
+export class ChannelRoutes {
 	private readonly messageController: MessageController;
 
 	public constructor(@inject(MessageController) messageController: MessageController) {
