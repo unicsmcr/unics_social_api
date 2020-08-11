@@ -53,12 +53,7 @@ export default class ChannelService {
 	public async getChannelsForUser(id: string): Promise<APIChannel[]> {
 		const [eventChannels, dmChannels] = await Promise.all([
 			getRepository(EventChannel).find({ relations: ['event'] }),
-			getConnection()
-				.createQueryBuilder(DMChannel, 'dmChannel')
-				.select(['dmChannel', 'user.id'])
-				.innerJoin('dmChannel.users', 'user')
-				.where('user.id = :id', { id })
-				.getMany()
+			(await getRepository(DMChannel).find({ relations: ['users'] })).filter(channel => channel.users.some(user => user.id === id))
 		]);
 		return [
 			...eventChannels,
