@@ -1,4 +1,5 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { IsString } from 'class-validator';
 import { User } from './User';
 
 @Entity()
@@ -10,6 +11,7 @@ export default class Profile {
 	public user!: User;
 
 	@Column()
+	@IsString()
 	public course!: string;
 
 	@Column({ type: 'integer' })
