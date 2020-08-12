@@ -16,7 +16,7 @@ import { APIError, HttpCode } from './util/errors';
 import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
 import { EventRoutes } from './routes/EventRoutes';
-import { MessageRoutes } from './routes/MessageRoutes';
+import { ChannelRoutes } from './routes/ChannelRoutes';
 
 export function createExpress() {
 	const app = express();
@@ -35,7 +35,7 @@ export function createExpress() {
 
 	container.resolve(UserRoutes).routes(router);
 	container.resolve(EventRoutes).routes(router);
-	container.resolve(MessageRoutes).routes(router);
+	container.resolve(ChannelRoutes).routes(router);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	app.use((err: any, req: Request, res: Response, next: NextFunction) => {

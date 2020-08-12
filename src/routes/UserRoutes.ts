@@ -21,5 +21,7 @@ export class UserRoutes {
 		router.get('/users/:id', getUser, isVerified, this.userController.getUser.bind(this.userController));
 
 		router.put('/users/@me/profile', getUser, isVerified, this.userController.putUserProfile.bind(this.userController));
+
+		router.post('/users/:recipientID/channel', getUser, isVerified, this.userController.createDMChannel.bind(this.userController));
 	}
 }
