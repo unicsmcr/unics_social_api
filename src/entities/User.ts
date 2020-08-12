@@ -36,7 +36,7 @@ export class User {
 
 	@Column({ unique: true })
 	@IsEmail(undefined, { message: 'A University of Manchester student email account is required' })
-	@Matches(/(@student\.manchester\.ac\.uk)$/, { message: 'A University of Manchester student email account is required' })
+	@Matches(/(@(\w+\.)?manchester\.ac\.uk)$/, { message: 'A University of Manchester student email account is required' })
 	public email!: string;
 
 	@Column()
