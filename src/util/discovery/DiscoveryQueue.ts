@@ -11,7 +11,7 @@ interface QueueUser {
 	options: QueueOptions;
 }
 
-interface QueueOptions {
+export interface QueueOptions {
 	sameYear: boolean;
 }
 
