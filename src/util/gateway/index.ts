@@ -1,7 +1,6 @@
 import { APIMessage } from '../../entities/Message';
 import { QueueOptions } from '../discovery/DiscoveryQueue';
 import { APIDMChannel } from '../../entities/Channel';
-import { APIUser } from '../../entities/User';
 
 export class GatewayError extends Error {}
 
@@ -14,8 +13,6 @@ export enum GatewayPacketType {
 	JoinDiscoveryQueue = 'JOIN_DISCOVERY_QUEUE',
 	// Sent by the client to leave a Discovery queue
 	LeaveDiscoveryQueue = 'LEAVE_DISCOVERY_QUEUE',
-	// Sent by the gateway periodically to inform the client of how many users are in the queue
-	DiscoveryQueueUpdate = 'DISCOVERY_QUEUE_UPDATE',
 	// Sent by the gateway once a match has been made
 	DiscoveryQueueMatch = 'DISCOVERY_QUEUE_MATCH'
 }
@@ -53,30 +50,17 @@ export interface MessageDeleteGatewayPacket extends GatewayPacket {
 export interface JoinDiscoveryQueuePacket extends GatewayPacket {
 	type: GatewayPacketType.JoinDiscoveryQueue;
 	data: {
-		eventID: string;
 		options: QueueOptions;
 	};
 }
 
 export interface LeaveDiscoveryQueuePacket extends GatewayPacket {
 	type: GatewayPacketType.LeaveDiscoveryQueue;
-	data: {
-		eventID: string;
-	};
-}
-
-export interface DiscoveryQueueUpdatePacket extends GatewayPacket {
-	type: GatewayPacketType.DiscoveryQueueUpdate;
-	data: {
-		eventID: string;
-		queueLength: number;
-	};
 }
 
 export interface DiscoveryQueueMatchPacket extends GatewayPacket {
 	type: GatewayPacketType.DiscoveryQueueMatch;
 	data: {
 		channel: APIDMChannel;
-		user: APIUser;
 	};
 }

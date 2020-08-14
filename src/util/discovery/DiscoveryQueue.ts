@@ -1,6 +1,6 @@
 import { UserService } from '../../services/UserService';
 import ChannelService from '../../services/ChannelService';
-import { inject, injectable } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import { APIDMChannel } from '../../entities/Channel';
 
 interface QueueUser {
@@ -20,7 +20,7 @@ interface QueueMatchData {
 	channel: APIDMChannel;
 }
 
-@injectable()
+@singleton()
 export class DiscoveryQueue {
 	private readonly userService: UserService;
 	private readonly channelService: ChannelService;
@@ -84,6 +84,14 @@ export class DiscoveryQueue {
 			// If neither user requires the same year, then match
 			} else {
 				return this.matchUsers(user.id, queueUser.user.id);
+			}
+		}
+	}
+
+	public removeFromQueue(userId: string): void {
+		for (const queueUser of this.queue.values()) {
+			if (queueUser.user.id === userId) {
+				this.queue.delete(queueUser);
 			}
 		}
 	}

@@ -3,20 +3,23 @@ import GatewayService from '../services/GatewayService';
 import WebSocket, { Server as WebSocketServer, Data } from 'ws';
 import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
-import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError } from '../util/gateway';
+import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
+import { DiscoveryQueue } from '../util/discovery/DiscoveryQueue';
 
 @singleton()
 export default class GatewayController {
 	private readonly gatewayService: GatewayService;
 	private readonly userService: UserService;
+	private readonly discoveryQueue: DiscoveryQueue;
 	private wss?: WebSocketServer;
 	public readonly authenticatedClients: Map<WebSocket, string>;
 
-	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService) {
+	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService, @inject(DiscoveryQueue) discoveryQueue: DiscoveryQueue) {
 		this.authenticatedClients = new Map();
 		this.gatewayService = gatewayService;
 		this.userService = userService;
+		this.discoveryQueue = discoveryQueue;
 	}
 
 	public bindTo(wss: WebSocketServer) {
@@ -48,6 +51,10 @@ export default class GatewayController {
 		switch (packet.type) {
 			case GatewayPacketType.Identify:
 				return this.onAuthenticate(ws, packet as IdentifyGatewayPacket);
+			case GatewayPacketType.JoinDiscoveryQueue:
+				return this.onJoinDiscoveryQueue(ws, packet as JoinDiscoveryQueuePacket);
+			case GatewayPacketType.LeaveDiscoveryQueue:
+				return this.onLeaveDiscoveryQueue(ws);
 			default:
 				throw new GatewayError(`Received invalid packet type ${packet.type}`);
 		}
@@ -72,5 +79,26 @@ export default class GatewayController {
 		await this.gatewayService.send([ws], {
 			type: GatewayPacketType.Hello
 		} as HelloGatewayPacket);
+	}
+
+	public async onJoinDiscoveryQueue(ws: WebSocket, packet: JoinDiscoveryQueuePacket) {
+		const userId = this.authenticatedClients.get(ws);
+		if (!userId) throw new GatewayError('Not authenticated');
+		const matchData = await this.discoveryQueue.addToQueue(userId, packet.data.options);
+		if (matchData) {
+			const payload: DiscoveryQueueMatchPacket = {
+				type: GatewayPacketType.DiscoveryQueueMatch,
+				data: {
+					channel: matchData.channel
+				}
+			};
+			await this.sendMessage<DiscoveryQueueMatchPacket>(matchData.users, payload);
+		}
+	}
+
+	public onLeaveDiscoveryQueue(ws: WebSocket) {
+		const userId = this.authenticatedClients.get(ws);
+		if (!userId) throw new GatewayError('Not authenticated');
+		this.discoveryQueue.removeFromQueue(userId);
 	}
 }
