@@ -57,7 +57,7 @@ export class DiscoveryQueue {
 	public async addToQueue(userId: string, options: QueueOptions): Promise<QueueMatchData|undefined> {
 		for (const queueUser of this.queue.values()) {
 			if (queueUser.user.id === userId) {
-				continue;
+				return;
 			}
 		}
 
