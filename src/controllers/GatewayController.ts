@@ -84,7 +84,12 @@ export default class GatewayController {
 	public async onJoinDiscoveryQueue(ws: WebSocket, packet: JoinDiscoveryQueuePacket) {
 		const userId = this.authenticatedClients.get(ws);
 		if (!userId) throw new GatewayError('Not authenticated');
-		const matchData = await this.discoveryQueue.addToQueue(userId, packet.data.options);
+		let matchData;
+		try {
+			matchData = await this.discoveryQueue.addToQueue(userId, packet.data.options);
+		} catch (error) {
+			throw new GatewayError(error.message);
+		}
 		if (matchData) {
 			const payload: DiscoveryQueueMatchPacket = {
 				type: GatewayPacketType.DiscoveryQueueMatch,
