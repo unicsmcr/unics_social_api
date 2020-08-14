@@ -1,6 +1,6 @@
 import { UserService } from '../../services/UserService';
 import ChannelService from '../../services/ChannelService';
-import { container } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { APIDMChannel } from '../../entities/Channel';
 
 interface QueueUser {
@@ -20,14 +20,15 @@ interface QueueMatchData {
 	channel: APIDMChannel;
 }
 
+@injectable()
 export class DiscoveryQueue {
 	private readonly userService: UserService;
 	private readonly channelService: ChannelService;
 	public readonly queue: Set<QueueUser>;
 
-	public constructor() {
-		this.userService = container.resolve<UserService>(UserService);
-		this.channelService = container.resolve<ChannelService>(ChannelService);
+	public constructor(@inject(UserService) userService: UserService, @inject(ChannelService) channelService: ChannelService) {
+		this.userService = userService;
+		this.channelService = channelService;
 		this.queue = new Set();
 	}
 
