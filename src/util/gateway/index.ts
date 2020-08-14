@@ -1,6 +1,7 @@
 import { APIMessage } from '../../entities/Message';
 import { QueueOptions } from '../discovery/DiscoveryQueue';
 import { APIDMChannel } from '../../entities/Channel';
+import { APIUser } from '../../entities/User';
 
 export class GatewayError extends Error {}
 
@@ -76,5 +77,6 @@ export interface DiscoveryQueueMatchPacket extends GatewayPacket {
 	type: GatewayPacketType.DiscoveryQueueMatch;
 	data: {
 		channel: APIDMChannel;
+		user: APIUser;
 	};
 }
