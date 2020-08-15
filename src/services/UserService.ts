@@ -6,14 +6,15 @@ import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
-import { writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
 
 const writeFile = promisify(_writeFile);
+const unlink = promisify(_unlink);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
-export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
+export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 
 enum RegistrationError {
 	EmailAlreadyExists = 'Email address already registered.',
@@ -116,28 +117,36 @@ export class UserService {
 		return user;
 	}
 
-	public async putUserProfile(id: string, options: ProfileDataToCreate, avatar?: Express.Multer.File) {
+	public async putUserProfile(id: string, options: ProfileDataToCreate, file?: Express.Multer.File) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound);
 			const user = await entityManager.findOneOrFail(User, { id })
 				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound)));
 
-			let processedAvatar: Buffer|undefined;
+
+			// If a profile doesn't exist, create it
+			const profile = user.profile ?? new Profile();
+			const { twitter, instagram, yearOfStudy, course, facebook } = options;
+			Object.assign(profile, { twitter, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
+			profile.user = user;
+			user.profile = profile;
+
+			const unsetAvatar = typeof options.avatar === 'boolean' ? !options.avatar : options.avatar === 'false';
+
 			// If there is an avatar, try to process it
-			if (avatar?.buffer && avatar.buffer.length > 0) {
-				processedAvatar = await sharp(avatar.buffer)
+			let processedAvatar: Buffer|undefined;
+			if (!unsetAvatar && file?.buffer && file.buffer.length > 0) {
+				processedAvatar = await sharp(file.buffer)
 					.resize({ width: 150, height: 150, fit: sharp.fit.contain })
 					.png()
 					.toBuffer()
 					.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidAvatar)));
+				profile.avatar = true;
+			} else if (unsetAvatar) {
+				await unlink(`./assets/${user.id}.png`).catch(() => Promise.resolve());
+				profile.avatar = false;
 			}
 
-			// If a profile doesn't exist, create it
-			const profile = user.profile ?? new Profile();
-			const { twitter, profilePicture, instagram, yearOfStudy, course, facebook } = options;
-			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
-			profile.user = user;
-			user.profile = profile;
 			const savedUser = entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
 			if (processedAvatar) {
 				await writeFile(`./assets/${user.id}.png`, processedAvatar);
