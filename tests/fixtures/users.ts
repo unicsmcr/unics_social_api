@@ -34,6 +34,7 @@ user2Profile.course = 'Computer Science';
 user2Profile.yearOfStudy = 2;
 user2Profile.instagram = 'testuser';
 user2Profile.user = user2;
+user2Profile.avatar = false;
 user2.profile = user2Profile;
 
 
@@ -56,6 +57,7 @@ user3Profile.course = 'International Management';
 user3Profile.yearOfStudy = 2;
 user3Profile.instagram = 'randomstudent';
 user3Profile.twitter = 'randomstudent_handle';
+user3Profile.avatar = false;
 user3Profile.user = user3;
 user3.profile = user3Profile;
 
