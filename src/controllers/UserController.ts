@@ -71,7 +71,7 @@ export class UserController {
 		}
 	}
 
-	public async putUserProfile(req: Request & { file: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async putUserProfile(req: Request & { file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
 			const user = await this.userService.putUserProfile(res.locals.user.id, req.body, req.file);
 			res.json({ user });
