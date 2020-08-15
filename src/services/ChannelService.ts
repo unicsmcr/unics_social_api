@@ -51,17 +51,19 @@ export default class ChannelService {
 	}
 
 	public async getChannelsForUser(id: string): Promise<APIChannel[]> {
+		// Sort the dmChannels within the query for speed
 		const [eventChannels, dmChannels] = await Promise.all([
-			getRepository(EventChannel).find({ relations: ['event'] }),
+			getRepository(EventChannel).find({ relations: ['event'], order: { lastUpdated: 'DESC' } }),
 			(await getConnection()
 				.createQueryBuilder(DMChannel, 'dmChannel')
 				.select(['dmChannel', 'user.id'])
 				.leftJoin('dmChannel.users', 'user')
+				.orderBy('dmChannel.lastUpdated', 'DESC')
 				.getMany()).filter(channel => channel.users.some(user => user.id === id))
 		]);
 		return [
 			...eventChannels,
 			...dmChannels
-		].map(channel => channel.toJSON());
+		].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime()).map(channel => channel.toJSON());
 	}
 }
