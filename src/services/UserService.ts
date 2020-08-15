@@ -6,6 +6,11 @@ import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
+import { writeFile as _writeFile } from 'fs';
+import { promisify } from 'util';
+import sharp from 'sharp';
+
+const writeFile = promisify(_writeFile);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON'>;
@@ -26,7 +31,8 @@ enum AuthenticateError {
 
 enum PutProfileError {
 	AccountNotFound = 'Account not found.',
-	InvalidEntryDetails = 'Invalid profile details.'
+	InvalidEntryDetails = 'Invalid profile details.',
+	InvalidAvatar = 'Avatar must be an image.'
 }
 
 /*
@@ -110,19 +116,33 @@ export class UserService {
 		return user;
 	}
 
-	public async putUserProfile(id: string, options: ProfileDataToCreate) {
+	public async putUserProfile(id: string, options: ProfileDataToCreate, avatar?: Express.Multer.File) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound);
 			const user = await entityManager.findOneOrFail(User, { id })
 				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound)));
 
+			let processedAvatar: Buffer|undefined;
+			// If there is an avatar, try to process it
+			if (avatar?.buffer && avatar.buffer.length > 0) {
+				processedAvatar = await sharp(avatar.buffer)
+					.resize({ width: 150, height: 150, fit: sharp.fit.contain })
+					.png()
+					.toBuffer()
+					.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidAvatar)));
+			}
+
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
 			const { twitter, profilePicture, instagram, yearOfStudy, course, facebook } = options;
-			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
+			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
 			profile.user = user;
 			user.profile = profile;
-			return entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
+			const savedUser = entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
+			if (processedAvatar) {
+				await writeFile(`./avatars/${user.id}.png`, processedAvatar);
+			}
+			return savedUser;
 		});
 	}
 }
