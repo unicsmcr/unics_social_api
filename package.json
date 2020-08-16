@@ -69,6 +69,9 @@
   ],
   "coveragePathIgnorePatterns": [
    "src/app.ts"
+  ],
+  "setupFilesAfterEnv": [
+    "<rootDir>/tests/util/setup.ts"
   ]
  },
  "dependencies": {

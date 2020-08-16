@@ -5,7 +5,6 @@ import { mock, instance, when, anything, verify, objectContaining, reset } from 
 import { container } from 'tsyringe';
 import supertest from 'supertest';
 import * as authUtils from '../../../src/util/auth';
-import '../../util/dbTeardown';
 import emailConfirmations from '../../fixtures/emailConfirmations';
 import users from '../../fixtures/users';
 import { APIError, HttpCode } from '../../../src/util/errors';

@@ -21,6 +21,10 @@ beforeAll(() => {
 	gatewayController = createGateway(wss);
 });
 
+afterAll(() => {
+	gatewayController.stopHeartbeats();
+});
+
 function createWebSocket(): Promise<MockWebSocket> {
 	return new Promise((resolve, reject) => {
 		const ws = new MockWebSocket(wss);
@@ -69,7 +73,7 @@ describe('GatewayController', () => {
 
 		test('broadcast', async () => {
 			// Authenticate the first socket
-			gatewayController.authenticatedClients.set(sockets[0].mirror, '');
+			gatewayController.authenticatedClients.set(sockets[0].mirror, { id: '', lastPong: Date.now() });
 
 			const payload = { time: Date.now() };
 			const stringPayload = JSON.stringify(payload);
@@ -80,7 +84,7 @@ describe('GatewayController', () => {
 			expect(sockets[1].allMessages.length).toEqual(0);
 
 			// Authenticate the second socket
-			gatewayController.authenticatedClients.set(sockets[1].mirror, '');
+			gatewayController.authenticatedClients.set(sockets[1].mirror, { id: '', lastPong: Date.now() });
 			await gatewayController.broadcast(payload as any);
 			await expect(sockets[0].nextMessage).resolves.toEqual(stringPayload);
 			await expect(sockets[1].nextMessage).resolves.toEqual(stringPayload);
@@ -88,8 +92,8 @@ describe('GatewayController', () => {
 
 		test('sendTo', async () => {
 			// Authenticate the first socket
-			gatewayController.authenticatedClients.set(sockets[0].mirror, 'banana');
-			gatewayController.authenticatedClients.set(sockets[1].mirror, 'apple');
+			gatewayController.authenticatedClients.set(sockets[0].mirror, { id: 'banana', lastPong: Date.now() });
+			gatewayController.authenticatedClients.set(sockets[1].mirror, { id: 'apple', lastPong: Date.now() });
 
 			const payload = { time: Date.now() };
 			const stringPayload = JSON.stringify(payload);
