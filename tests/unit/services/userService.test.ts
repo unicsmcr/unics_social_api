@@ -5,7 +5,7 @@ import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
-import Profile from '../../../src/entities/Profile';
+import { APIProfile } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
@@ -143,7 +143,7 @@ describe('UserService', () => {
 
 		test('Authenticates a user with the correct password', async () => {
 			const resolvedUser = await userService.authenticate(user.email, 'thunderbolt');
-			expect(resolvedUser).toMatchObject(user);
+			expect(resolvedUser).toMatchObject(user.toJSONPrivate());
 		});
 
 		test('Authenticate fails with empty/invalid email', async () => {
@@ -170,9 +170,9 @@ describe('UserService', () => {
 				course: 'Computer Science',
 				yearOfStudy: 1
 			});
-			expect(savedUser).toMatchObject(userWithoutProfile);
-			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof Profile]);
-			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy', 'user']));
+			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
+			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
+			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
 			expect(savedUser.profile!.course).toStrictEqual('Computer Science');
 			expect(savedUser.profile!.yearOfStudy).toStrictEqual(1);
 		});
@@ -184,8 +184,8 @@ describe('UserService', () => {
 				yearOfStudy: 2
 			});
 			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
-			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof Profile]);
-			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy', 'user']));
+			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
+			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
 			expect(initialProfile).not.toMatchObject(savedUser.profile!);
 			expect(savedUser.profile!.course).toStrictEqual('Software Engineering');
 			expect(savedUser.profile!.yearOfStudy).toStrictEqual(2);

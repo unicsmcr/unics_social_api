@@ -3,8 +3,9 @@ import GatewayService from '../services/GatewayService';
 import WebSocket, { Server as WebSocketServer, Data } from 'ws';
 import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
-import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket } from '../util/gateway';
+import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
+import { DiscoveryQueue } from '../util/discovery/DiscoveryQueue';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
@@ -13,14 +14,16 @@ const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
 export default class GatewayController {
 	private readonly gatewayService: GatewayService;
 	private readonly userService: UserService;
+	private readonly discoveryQueue: DiscoveryQueue;
 	private wss?: WebSocketServer;
 	public readonly authenticatedClients: Map<WebSocket, { id: string; lastPong: number }>;
 	private readonly _heartbeatInterval: NodeJS.Timeout;
 
-	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService) {
+	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService, @inject(DiscoveryQueue) discoveryQueue: DiscoveryQueue) {
 		this.authenticatedClients = new Map();
 		this.gatewayService = gatewayService;
 		this.userService = userService;
+		this.discoveryQueue = discoveryQueue;
 
 		this._heartbeatInterval = setInterval(() => {
 			this.checkHeartbeats()
@@ -61,7 +64,11 @@ export default class GatewayController {
 				ws.close();
 			}));
 			ws.on('close', () => {
-				this.authenticatedClients.delete(ws);
+				const userConfig = this.authenticatedClients.get(ws);
+				if (userConfig) {
+					this.discoveryQueue.removeFromQueue(userConfig.id);
+					this.authenticatedClients.delete(ws);
+				}
 			});
 		});
 	}
@@ -81,6 +88,10 @@ export default class GatewayController {
 				return this.onAuthenticate(ws, packet as IdentifyGatewayPacket);
 			case GatewayPacketType.Pong:
 				return this.onPong(ws);
+			case GatewayPacketType.JoinDiscoveryQueue:
+				return this.onJoinDiscoveryQueue(ws, packet as JoinDiscoveryQueuePacket);
+			case GatewayPacketType.LeaveDiscoveryQueue:
+				return this.onLeaveDiscoveryQueue(ws);
 			default:
 				throw new GatewayError(`Received invalid packet type ${packet.type}`);
 		}
@@ -111,5 +122,31 @@ export default class GatewayController {
 		const userConfig = this.authenticatedClients.get(ws);
 		if (!userConfig) throw new GatewayError('Not authenticated');
 		userConfig.lastPong = Date.now();
+	}
+
+	public async onJoinDiscoveryQueue(ws: WebSocket, packet: JoinDiscoveryQueuePacket) {
+		const userConfig = this.authenticatedClients.get(ws);
+		if (!userConfig) throw new GatewayError('Not authenticated');
+		let matchData;
+		try {
+			matchData = await this.discoveryQueue.addToQueue(userConfig.id, packet.data.options);
+		} catch (error) {
+			throw new GatewayError(error.message);
+		}
+		if (matchData) {
+			const payload: DiscoveryQueueMatchPacket = {
+				type: GatewayPacketType.DiscoveryQueueMatch,
+				data: {
+					channel: matchData.channel
+				}
+			};
+			await this.sendMessage<DiscoveryQueueMatchPacket>(matchData.users, payload);
+		}
+	}
+
+	public onLeaveDiscoveryQueue(ws: WebSocket) {
+		const userConfig = this.authenticatedClients.get(ws);
+		if (!userConfig) throw new GatewayError('Not authenticated');
+		this.discoveryQueue.removeFromQueue(userConfig.id);
 	}
 }
