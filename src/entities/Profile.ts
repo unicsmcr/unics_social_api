@@ -2,6 +2,16 @@ import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsString } from 'class-validator';
 import { User } from './User';
 
+export interface APIProfile {
+	id: string;
+	course: string;
+	yearOfStudy: number;
+	profilePicture?: string;
+	instagram?: string;
+	facebook?: string;
+	twitter?: string;
+}
+
 @Entity()
 export default class Profile {
 	@PrimaryGeneratedColumn('uuid')
@@ -30,8 +40,9 @@ export default class Profile {
 	public twitter?: string;
 
 	public toJSON() {
-		const { course, yearOfStudy, avatar, instagram, facebook, twitter } = this;
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter } = this;
 		return {
+			id,
 			course,
 			yearOfStudy,
 			avatar,

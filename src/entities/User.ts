@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable } from 'typeorm';
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
-import Profile from './Profile';
+import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
 
 export enum AccountStatus {
@@ -12,6 +12,19 @@ export enum AccountStatus {
 export enum AccountType {
 	User = 0,
 	Admin = 1
+}
+
+export interface APIUser {
+	id: string;
+	forename: string;
+	surname: string;
+	accountStatus: AccountStatus;
+	accountType: AccountType;
+	profile?: APIProfile;
+}
+
+export interface APIPrivateUser extends APIUser {
+	email: string;
 }
 
 @Entity()
@@ -53,13 +66,12 @@ export class User {
 	@JoinColumn()
 	public profile?: Profile;
 
-	public toJSON() {
-		const { id, forename, surname, email, accountStatus, accountType, profile } = this;
-		return { id, forename, surname, email, accountStatus, accountType, profile: profile?.toJSON() };
-	}
-
-	public toLimitedJSON() {
+	public toJSON(): APIUser {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;
 		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON() };
+	}
+
+	public toJSONPrivate(): APIPrivateUser {
+		return { ...this.toJSON(), email: this.email };
 	}
 }

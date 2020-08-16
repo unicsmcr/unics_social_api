@@ -180,7 +180,7 @@ describe('UserController', () => {
 
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
 			const res = await supertest(app).get(`/api/v1/users/@me`).set('Authorization', authorization);
-			expect(clean(res.body)).toEqual(clean({ user: user!.toLimitedJSON() }));
+			expect(clean(res.body)).toEqual(clean({ user: user!.toJSON() }));
 			expect(res.status).toEqual(HttpCode.Ok);
 		});
 
@@ -192,7 +192,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther.id}`).set('Authorization', authorization);
-			expect(clean(res.body)).toEqual(clean({ user: userOther.toLimitedJSON() }));
+			expect(clean(res.body)).toEqual(clean({ user: userOther.toJSON() }));
 			expect(res.status).toEqual(HttpCode.Ok);
 		});
 
@@ -218,7 +218,7 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
 			const res = await supertest(app).get(`/api/v1/users/${userOther!.id}`).set('Authorization', authorization);
 			expect(res.status).toEqual(HttpCode.Ok);
-			expect(clean(res.body)).toEqual(clean({ user: userOther!.toLimitedJSON() }));
+			expect(clean(res.body)).toEqual(clean({ user: userOther!.toJSON() }));
 		});
 
 		test('Not found error when user does not exist', async () => {

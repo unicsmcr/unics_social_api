@@ -64,7 +64,7 @@ export class UserController {
 			const user = await this.userService.findOne({ id: req.params.id });
 			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			res.json({
-				user: user.toLimitedJSON()
+				user: user.toJSON()
 			});
 		} catch (error) {
 			next(error);
