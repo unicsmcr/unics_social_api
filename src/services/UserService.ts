@@ -1,4 +1,4 @@
-import { User, AccountStatus, AccountType } from '../entities/User';
+import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/User';
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { EmailConfirmation } from '../entities/EmailConfirmation';
@@ -76,7 +76,7 @@ export class UserService {
 		});
 	}
 
-	public async verifyUserEmail(confirmationId: string): Promise<User> {
+	public async verifyUserEmail(confirmationId: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
 			if (!confirmationId) {
@@ -89,11 +89,11 @@ export class UserService {
 			confirmation.user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(confirmation.user);
 			await entityManager.remove(confirmation);
-			return confirmation.user;
+			return confirmation.user.toJSONPrivate();
 		});
 	}
 
-	public async authenticate(email: string, password: string): Promise<User> {
+	public async authenticate(email: string, password: string): Promise<APIPrivateUser> {
 		if (!email) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
@@ -107,7 +107,7 @@ export class UserService {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.PasswordIncorrect);
 		}
 
-		return user;
+		return user.toJSONPrivate();
 	}
 
 	public async putUserProfile(id: string, options: ProfileDataToCreate) {
@@ -122,7 +122,7 @@ export class UserService {
 			Object.assign(profile, { twitter, profilePicture, instagram, yearOfStudy, course, facebook });
 			profile.user = user;
 			user.profile = profile;
-			return entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
+			return (await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)))).toJSONPrivate();
 		});
 	}
 }
