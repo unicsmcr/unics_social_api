@@ -2,7 +2,6 @@ import { createApp } from '../../../src';
 import { mock, instance, when, verify, objectContaining, reset, anything, resetCalls } from 'ts-mockito';
 import { container } from 'tsyringe';
 import supertest from 'supertest';
-import '../../util/dbTeardown';
 import users from '../../fixtures/users';
 import { APIError, HttpCode } from '../../../src/util/errors';
 import * as getUserMiddleware from '../../../src/routes/middleware/getUser';

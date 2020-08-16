@@ -5,7 +5,6 @@ import { createDBConnection } from '../../../src';
 import { Event, APIEvent } from '../../../src/entities/Event';
 import events from '../../fixtures/events';
 import { getConnection, getRepository } from 'typeorm';
-import '../../util/dbTeardown';
 import { HttpCode } from '../../../src/util/errors';
 
 

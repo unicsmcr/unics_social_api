@@ -2,7 +2,6 @@ import 'reflect-metadata';
 
 import { createDBConnection } from '../../../src';
 import { getConnection, getRepository } from 'typeorm';
-import '../../util/dbTeardown';
 import MessageService from '../../../src/services/MessageService';
 import users from '../../fixtures/users';
 import events from '../../fixtures/events';

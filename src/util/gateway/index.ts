@@ -9,6 +9,8 @@ export enum GatewayPacketType {
 	Hello = 'HELLO',
 	MessageCreate = 'MESSAGE_CREATE',
 	MessageDelete = 'MESSAGE_DELETE',
+	Ping = 'PING',
+	Pong = 'PONG',
 	// Sent by the client to join a Discovery queue
 	JoinDiscoveryQueue = 'JOIN_DISCOVERY_QUEUE',
 	// Sent by the client to leave a Discovery queue
@@ -19,6 +21,20 @@ export enum GatewayPacketType {
 
 export interface GatewayPacket {
 	type: GatewayPacketType;
+}
+
+export interface PingGatewayPacket {
+	type: GatewayPacketType.Ping;
+	data: {
+		timestamp: number;
+	};
+}
+
+export interface PongGatewayPacket {
+	type: GatewayPacketType.Pong;
+	data: {
+		timestamp: number;
+	};
 }
 
 export interface IdentifyGatewayPacket extends GatewayPacket {

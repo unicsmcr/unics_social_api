@@ -1,7 +1,6 @@
 import { UserService } from '../../../src/services/UserService';
 import { createDBConnection } from '../../../src';
 import { AccountStatus, AccountType, User } from '../../../src/entities/User';
-import '../../util/dbTeardown';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
