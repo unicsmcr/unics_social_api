@@ -73,7 +73,7 @@
    "src/app.ts"
   ],
   "setupFilesAfterEnv": [
-    "<rootDir>/tests/util/setup.ts"
+   "<rootDir>/tests/util/setup.ts"
   ]
  },
  "dependencies": {
@@ -90,6 +90,7 @@
   "reflect-metadata": "^0.1.13",
   "sharp": "^0.25.4",
   "tsyringe": "^4.3.0",
+  "twilio-video": "^2.7.2",
   "typeorm": "^0.2.25",
   "ws": "^7.3.1"
  }
