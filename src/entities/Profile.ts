@@ -27,8 +27,8 @@ export default class Profile {
 	@Column({ type: 'integer' })
 	public yearOfStudy!: number;
 
-	@Column({ nullable: true })
-	public profilePicture?: string;
+	@Column({ 'default': false })
+	public avatar!: boolean;
 
 	@Column({ nullable: true })
 	public instagram?: string;
@@ -39,13 +39,13 @@ export default class Profile {
 	@Column({ nullable: true })
 	public twitter?: string;
 
-	public toJSON(): APIProfile {
-		const { id, course, yearOfStudy, profilePicture, instagram, facebook, twitter } = this;
+	public toJSON() {
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter } = this;
 		return {
 			id,
 			course,
 			yearOfStudy,
-			profilePicture,
+			avatar,
 			instagram,
 			facebook,
 			twitter

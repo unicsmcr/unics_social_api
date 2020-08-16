@@ -169,7 +169,8 @@ describe('UserService', () => {
 		test('User profile registered for valid request (new profile)', async () => {
 			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
 				course: 'Computer Science',
-				yearOfStudy: 1
+				yearOfStudy: 1,
+				avatar: false
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -182,7 +183,8 @@ describe('UserService', () => {
 			const initialProfile = userWithProfile.profile;
 			const savedUser = await userService.putUserProfile(userWithProfile.id, {
 				course: 'Software Engineering',
-				yearOfStudy: 2
+				yearOfStudy: 2,
+				avatar: false
 			});
 			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -193,7 +195,7 @@ describe('UserService', () => {
 		});
 
 		test('Fails to create user profile for non-existent user', async () => {
-			const details = { course: 'Computer Science', yearOfStudy: 1 };
+			const details = { course: 'Computer Science', yearOfStudy: 1, avatar: false };
 			await expect(userService.putUserProfile('', details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithProfile.id}1`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithoutProfile.id}a`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
