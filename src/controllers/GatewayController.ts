@@ -3,7 +3,7 @@ import GatewayService from '../services/GatewayService';
 import WebSocket, { Server as WebSocketServer, Data } from 'ws';
 import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
-import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, PongGatewayPacket } from '../util/gateway';
+import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
 
 const HEARTBEAT_INTERVAL = 20_000;
@@ -15,16 +15,21 @@ export default class GatewayController {
 	private readonly userService: UserService;
 	private wss?: WebSocketServer;
 	public readonly authenticatedClients: Map<WebSocket, { id: string; lastPong: number }>;
+	private readonly _heartbeatInterval: NodeJS.Timeout;
 
 	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService) {
 		this.authenticatedClients = new Map();
 		this.gatewayService = gatewayService;
 		this.userService = userService;
 
-		setInterval(() => {
+		this._heartbeatInterval = setInterval(() => {
 			this.checkHeartbeats()
 				.catch(console.error);
 		}, HEARTBEAT_INTERVAL);
+	}
+
+	public stopHeartbeats() {
+		clearInterval(this._heartbeatInterval);
 	}
 
 	public async checkHeartbeats() {
