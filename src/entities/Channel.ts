@@ -1,9 +1,11 @@
-import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany } from 'typeorm';
+import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany, Column } from 'typeorm';
 import { Event, APIEvent } from './Event';
 import { User } from './User';
+import { IsDate } from 'class-validator';
 
 export interface APIChannel {
 	id: string;
+	lastUpdated: string;
 }
 
 export interface APIEventChannel extends APIChannel {
@@ -22,9 +24,14 @@ export class Channel {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
+	@Column('timestamp', { 'default': () => 'CURRENT_TIMESTAMP' })
+	@IsDate()
+	public lastUpdated!: Date;
+
 	public toJSON(): APIChannel {
 		return {
-			id: this.id
+			id: this.id,
+			lastUpdated: this.lastUpdated.toISOString()
 		};
 	}
 }

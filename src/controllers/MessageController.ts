@@ -21,7 +21,7 @@ export class MessageController {
 
 	public async createMessage(req: Request, res: ChannelResponse, next: NextFunction): Promise<void> {
 		try {
-			const message = await this.messageService.createMessage({ ...req.body, channel: res.locals.channel, author: res.locals.user });
+			const message = await this.messageService.createMessage({ ...req.body, channel: res.locals.channel, author: res.locals.user, time: new Date() });
 			const gatewayPayload: MessageCreateGatewayPacket = {
 				type: GatewayPacketType.MessageCreate,
 				data: {
