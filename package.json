@@ -30,7 +30,9 @@
  "homepage": "https://github.com/unicsmcr/unics_social_api#readme",
  "devDependencies": {
   "@types/jest": "^26.0.4",
+  "@types/multer": "^1.4.4",
   "@types/node": "^14.0.22",
+  "@types/sharp": "^0.25.1",
   "@types/supertest": "^2.0.10",
   "@types/uuid": "^8.0.0",
   "@typescript-eslint/eslint-plugin": "^3.8.0",
@@ -83,8 +85,10 @@
   "dotenv": "^8.2.0",
   "express": "^4.17.1",
   "jsonwebtoken": "^8.5.1",
+  "multer": "^1.4.2",
   "pg": "^8.3.0",
   "reflect-metadata": "^0.1.13",
+  "sharp": "^0.25.4",
   "tsyringe": "^4.3.0",
   "typeorm": "^0.2.25",
   "ws": "^7.3.1"

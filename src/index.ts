@@ -24,6 +24,7 @@ export function createExpress() {
 
 	const router = Router();
 	app.use('/api/v1', router);
+	app.use('/assets', express.static(`${__dirname}/../assets`));
 
 	// Use the right email service
 	// The only time the EmailService is already registered is during tests, so we shouldn't interfere in that case.

@@ -7,10 +7,6 @@ import { generateJWT } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
 import ChannelService from '../services/ChannelService';
-/*
-	to-do:
-	improve error handling, use more enums, do not expose raw errors to enduser
-*/
 
 enum GetUserError {
 	UserNotFound = 'User not found',
@@ -75,9 +71,9 @@ export class UserController {
 		}
 	}
 
-	public async putUserProfile(req: Request, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async putUserProfile(req: Request & { file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.putUserProfile(res.locals.user.id, req.body);
+			const user = await this.userService.putUserProfile(res.locals.user.id, req.body, req.file);
 			res.json({ user });
 		} catch (error) {
 			next(error);
