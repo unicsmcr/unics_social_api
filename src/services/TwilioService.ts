@@ -30,7 +30,7 @@ export class TwilioService {
 			uniqueName: roomId,
 			maxParticipants: 2
 		});
-		// We can use the given roomId to access the room in place of its actual SID
+		// We can use the given roomId (should be same as the uniqueName) to access the room in place of its actual SID
 		return room.uniqueName;
 	}
 
