@@ -11,6 +11,7 @@ test: export MOCK_EMAIL_SERVICE=false
 test: export JWT_SECRET=thisisasecret
 test: export TWILIO_ACCOUNT_SID=AC123
 test: export TWILIO_AUTH_TOKEN=token123
+test: export TWILIO_SECRET=xxxx
 test:
 	docker-compose -f tests/docker-compose.yml up -d db
 	@node scripts/waitForPort $(DB_PORT)

@@ -24,6 +24,7 @@ export interface EnvConfig {
 	twilio: {
 		accountSid: string;
 		token: string;
+		secret: string;
 	};
 }
 
@@ -46,7 +47,8 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		},
 		twilio: {
 			accountSid: getEnv(source, 'TWILIO_ACCOUNT_SID'),
-			token: getEnv(source, 'TWILIO_AUTH_TOKEN')
+			token: getEnv(source, 'TWILIO_AUTH_TOKEN'),
+			secret: getEnv(source, 'TWILIO_SECRET')
 		}
 	};
 }
