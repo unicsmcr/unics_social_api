@@ -90,7 +90,7 @@
   "reflect-metadata": "^0.1.13",
   "sharp": "^0.25.4",
   "tsyringe": "^4.3.0",
-  "twilio-video": "^2.7.2",
+  "twilio": "^3.48.2",
   "typeorm": "^0.2.25",
   "ws": "^7.3.1"
  }
