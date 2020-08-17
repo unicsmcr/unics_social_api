@@ -1,5 +1,6 @@
-import { Column, PrimaryGeneratedColumn, Entity, OneToMany } from 'typeorm';
+import { Column, PrimaryGeneratedColumn, Entity, OneToMany, JoinColumn, OneToOne } from 'typeorm';
 import { VideoUser } from './VideoUser';
+import { DMChannel } from './Channel';
 
 @Entity()
 export class VideoIntegration {
@@ -13,5 +14,9 @@ export class VideoIntegration {
 	public endTime!: Date;
 
 	@OneToMany(() => VideoUser, videoUser => videoUser.videoIntegration, { eager: true })
+	@JoinColumn()
 	public videoUsers!: VideoUser[];
+
+	@OneToOne(() => DMChannel, channel => channel.videoIntegration)
+	public dmChannel!: DMChannel;
 }

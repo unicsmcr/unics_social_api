@@ -1,7 +1,8 @@
-import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany, Column } from 'typeorm';
+import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany, Column, JoinColumn } from 'typeorm';
 import { Event, APIEvent } from './Event';
 import { User } from './User';
 import { IsDate } from 'class-validator';
+import { VideoIntegration } from './VideoIntegration';
 
 export interface APIChannel {
 	id: string;
@@ -54,6 +55,10 @@ export class EventChannel extends Channel {
 export class DMChannel extends Channel {
 	@ManyToMany(() => User, user => user.dmChannels, { eager: true })
 	public users!: User[];
+
+	@OneToOne(() => VideoIntegration, videoIntegration => videoIntegration.dmChannel, { nullable: true, eager: true })
+	@JoinColumn()
+	public videoIntegration?: VideoIntegration;
 
 	public toJSON(): APIDMChannel {
 		return {
