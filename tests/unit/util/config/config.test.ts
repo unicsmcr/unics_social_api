@@ -17,6 +17,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		JWT_SECRET: 'test123test',
 		TWILIO_ACCOUNT_SID: 'ACX123',
 		TWILIO_AUTH_TOKEN: 'TESTTOKEN',
+		TWILIO_API_KEY: 'SK123',
 		TWILIO_SECRET: 'asecret123'
 	},
 	{
@@ -37,6 +38,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		twilio: {
 			accountSid: 'ACX123',
 			token: 'TESTTOKEN',
+			apiKey: 'SK123',
 			secret: 'asecret123'
 		},
 		jwtSecret: 'test123test'
@@ -59,6 +61,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		JWT_SECRET: 'asecret',
 		TWILIO_ACCOUNT_SID: 'ACX5674567234',
 		TWILIO_AUTH_TOKEN: 'token123',
+		TWILIO_API_KEY: 'SKabc123',
 		TWILIO_SECRET: 'secretabc123'
 	},
 	{
@@ -79,6 +82,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		twilio: {
 			accountSid: 'ACX5674567234',
 			token: 'token123',
+			apiKey: 'SKabc123',
 			secret: 'secretabc123'
 		},
 		jwtSecret: 'asecret'

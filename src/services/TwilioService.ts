@@ -1,12 +1,25 @@
 import { singleton } from 'tsyringe';
-import buildClient, { Twilio } from 'twilio';
+import buildClient, { Twilio, jwt } from 'twilio';
 import { getConfig } from '../util/config';
+
+interface GenerateAccessTokenOptions {
+	userId: string;
+	roomId: string;
+}
+
+// Room time limit is 5 minutes
+const ROOM_TIME_LIMIT = 60 * 5;
+
+// Allow JWTs to live for 10% longer than the room time limit
+const ROOM_TIME_LIMIT_TTL = Math.floor(ROOM_TIME_LIMIT * 1.10);
 
 @singleton()
 export class TwilioService {
 	private readonly twilioClient: Twilio;
 	public constructor() {
 		const { twilio } = getConfig();
+		// to-do: dublin Edge Location for API access available Sept 1st, 2020
+		// https://www.twilio.com/docs/global-infrastructure/edge-locations
 		this.twilioClient = buildClient(twilio.accountSid, twilio.token);
 	}
 
@@ -25,5 +38,15 @@ export class TwilioService {
 		await this.twilioClient.video.rooms(roomId).update({
 			status: 'completed'
 		});
+	}
+
+	public generateAccessToken(options: GenerateAccessTokenOptions): string {
+		const { twilio } = getConfig();
+		const token = new jwt.AccessToken(twilio.accountSid, twilio.apiKey, twilio.secret, { identity: options.userId, ttl: ROOM_TIME_LIMIT_TTL });
+		const videoGrant = new jwt.AccessToken.VideoGrant({
+			room: options.roomId
+		});
+		token.addGrant(videoGrant);
+		return token.toJwt();
 	}
 }
