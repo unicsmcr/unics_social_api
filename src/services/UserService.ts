@@ -1,7 +1,6 @@
 import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/User';
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
-import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
@@ -9,6 +8,7 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import { verifyJWT } from '../util/auth';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -22,7 +22,8 @@ enum RegistrationError {
 }
 
 enum EmailVerifyError {
-	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
+	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
+	TokenNotFound = 'Unable to find JWT token'
 }
 
 enum AuthenticateError {
@@ -47,7 +48,7 @@ export class UserService {
 		return getRepository(User).findOne(findConditions, options);
 	}
 
-	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
+	public async registerUser(data: UserDataToCreate): Promise<User> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
 
@@ -64,39 +65,22 @@ export class UserService {
 
 			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
 
-			const emailConfirmation = new EmailConfirmation();
-			try {
-				emailConfirmation.user = await entityManager.save(user);
-			} catch (error) {
-				const code = String(error.code);
-				if (code === '23505') {
-					// 23505 is unique_violation
-					throw new APIError(HttpCode.BadRequest, RegistrationError.EmailAlreadyExists);
-				} else if (code === '23502') {
-					// 23502 is not_null_violation
-					throw new APIError(HttpCode.BadRequest, RegistrationError.MissingInfo);
-				}
-				throw error;
-			}
-
-			return entityManager.save(emailConfirmation);
+			return entityManager.save(user);
 		});
 	}
 
-	public async verifyUserEmail(confirmationId: string): Promise<APIPrivateUser> {
+	public async verifyUserEmail(jwt: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
-			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
-			if (!confirmationId) {
-				throw new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound);
+			if (!jwt) {
+				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
 			}
 
-			const confirmation = await entityManager.findOneOrFail(EmailConfirmation, confirmationId)
-				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
+			const jwtToken = await verifyJWT(jwt);
+			const user = await entityManager.findOneOrFail(User, jwtToken.id);
 
-			confirmation.user.accountStatus = AccountStatus.Verified;
-			await entityManager.save(confirmation.user);
-			await entityManager.remove(confirmation);
-			return confirmation.user.toJSONPrivate();
+			user.accountStatus = AccountStatus.Verified;
+			await entityManager.save(user);
+			return user.toJSONPrivate();
 		});
 	}
 

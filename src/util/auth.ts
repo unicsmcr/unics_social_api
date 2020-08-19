@@ -3,14 +3,19 @@ import { getConfig } from './config';
 import { promisify } from 'util';
 import { User } from '../entities/User';
 
-type Payload = Pick<User, 'id'>;
+export enum TokenType {
+	Auth = 0,
+	PasswordReset = 1,
+	EmailVerify = 2
+}
 
+type Payload = Pick<User, 'id'>;
 const verify = promisify(_verify);
 
-export function generateJWT(payload: Payload): Promise<string> {
+export function generateJWT(payload: Payload, TokenType: TokenType): Promise<string> {
 	// wouldn't play nice with promisify :(
 	return new Promise((resolve, reject) => {
-		sign({ id: payload.id }, getConfig().jwtSecret, { expiresIn: '3 days' }, (err, jwt) => {
+		sign({ id: payload.id, TokenType: TokenType }, getConfig().jwtSecret, { expiresIn: '3 days' }, (err, jwt) => {
 			err ? reject(err) : resolve(jwt);
 		});
 	});

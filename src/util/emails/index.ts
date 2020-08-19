@@ -1,11 +1,11 @@
-export const VerifyEmailTemplate = (name: string, confirmationId: string) =>
+export const VerifyEmailTemplate = (name: string, token: string) =>
 	`<b>Hi ${name}!</b>
 
 <p>We need you to activate your UniCS KB account.</p>
 
 <p>
-<a href="https://URLPLACEHOLDER.com/verify?confirmationId=${confirmationId}">Click here to confirm your email address</a>.
-If that link does not work, please follow https://URLPLACEHOLDER.com/verify?confirmationId=${confirmationId}.
+<a href="https://URLPLACEHOLDER.com/verify?token=${token}">Click here to confirm your email address</a>.
+If that link does not work, please follow https://URLPLACEHOLDER.com/verify?token=${token}.
 </p>
 
 <p>
