@@ -2,6 +2,12 @@ import { Column, PrimaryGeneratedColumn, Entity, OneToMany, JoinColumn, OneToOne
 import { VideoUser } from './VideoUser';
 import { DMChannel } from './Channel';
 
+export interface APIVideoIntegration {
+	id: string;
+	creationTime: string;
+	endTime: string;
+}
+
 @Entity()
 export class VideoIntegration {
 	@PrimaryGeneratedColumn('uuid')
@@ -19,4 +25,12 @@ export class VideoIntegration {
 
 	@OneToOne(() => DMChannel, channel => channel.videoIntegration)
 	public dmChannel!: DMChannel;
+
+	public toJSON(): APIVideoIntegration {
+		return {
+			id: this.id,
+			creationTime: this.creationTime.toISOString(),
+			endTime: this.endTime.toISOString()
+		};
+	}
 }

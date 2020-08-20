@@ -32,7 +32,8 @@ export default class ChannelService {
 			// Find all DM Channels with at least one of the users in it
 			const channels = await entityManager
 				.createQueryBuilder(DMChannel, 'dmChannel')
-				.select(['dmChannel', 'user.id'])
+				.select(['dmChannel', 'user.id', 'videoIntegration.id', 'videoIntegration.creationTime', 'videoIntegration.endTime'])
+				.leftJoin('dmChannel.videoIntegration', 'videoIntegration')
 				.innerJoin('dmChannel.users', 'user')
 				.where('user.id IN (:...recipientIDs)', { recipientIDs })
 				.getMany();
@@ -56,7 +57,7 @@ export default class ChannelService {
 			channel.users = recipients;
 
 			if (hasVideo) {
-				let videoIntegration = await entityManager.create(VideoIntegration, {
+				let videoIntegration = entityManager.create(VideoIntegration, {
 					dmChannel: channel,
 					creationTime: new Date(),
 					endTime: new Date(Date.now() + (1000 * 60 * 5)),
@@ -66,11 +67,11 @@ export default class ChannelService {
 				const roomId = await this.twilioService.createRoom(videoIntegration.id);
 				const videoUsers = await Promise.all(recipients.map(async user => {
 					const accessToken = await this.twilioService.generateAccessToken({ roomId, userId: user.id });
-					const videoUser = new VideoUser();
-					videoUser.user = user;
-					videoUser.videoIntegration = videoIntegration;
-					videoUser.accessToken = accessToken;
-					return videoUser;
+					return entityManager.create(VideoUser, {
+						user,
+						videoIntegration,
+						accessToken
+					});
 				}));
 				videoIntegration.videoUsers = videoUsers;
 				channel.videoIntegration = videoIntegration;

@@ -2,7 +2,7 @@ import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity
 import { Event, APIEvent } from './Event';
 import { User } from './User';
 import { IsDate } from 'class-validator';
-import { VideoIntegration } from './VideoIntegration';
+import { VideoIntegration, APIVideoIntegration } from './VideoIntegration';
 
 export interface APIChannel {
 	id: string;
@@ -17,6 +17,7 @@ export interface APIEventChannel extends APIChannel {
 export interface APIDMChannel extends APIChannel {
 	users: string[];
 	type: 'dm';
+	video?: APIVideoIntegration;
 }
 
 @Entity()
@@ -64,7 +65,8 @@ export class DMChannel extends Channel {
 		return {
 			...super.toJSON(),
 			type: 'dm',
-			users: this.users.map(user => user.id)
+			users: this.users.map(user => user.id),
+			video: this.videoIntegration ? this.videoIntegration.toJSON() : undefined
 		};
 	}
 }
