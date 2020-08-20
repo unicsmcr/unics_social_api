@@ -1,8 +1,11 @@
-import { singleton } from 'tsyringe';
+import { singleton, inject } from 'tsyringe';
 import { getRepository, FindOneOptions, FindConditions, getConnection } from 'typeorm';
 import { Channel, DMChannel, APIDMChannel, APIChannel, EventChannel } from '../entities/Channel';
 import { User, AccountStatus } from '../entities/User';
 import { APIError } from '../util/errors';
+import { TwilioService } from './TwilioService';
+import { VideoIntegration } from '../entities/VideoIntegration';
+import { VideoUser } from '../entities/VideoUser';
 
 enum CreateDMChannelError {
 	InvalidUserCount = 'Exactly 2 users can be in a DM channel at the moment',
@@ -11,12 +14,19 @@ enum CreateDMChannelError {
 
 @singleton()
 export default class ChannelService {
+	private readonly twilioService: TwilioService;
+
+	public constructor(@inject(TwilioService) twilioService: TwilioService) {
+		this.twilioService = twilioService;
+	}
+
 	public async findOne(findConditions: FindConditions<Channel>, options?: FindOneOptions) {
 		return getRepository(Channel).findOne(findConditions, options);
 	}
 
-	public async createOrGetDMChannel(recipientIDs: string[]): Promise<APIDMChannel> {
+	public async createOrGetDMChannel(options: { recipientIDs: string[]; hasVideo?: boolean }): Promise<APIDMChannel> {
 		return getConnection().transaction(async entityManager => {
+			const { recipientIDs, hasVideo } = options;
 			if (recipientIDs.length !== 2) throw new APIError(400, CreateDMChannelError.InvalidUserCount);
 
 			// Find all DM Channels with at least one of the users in it
@@ -44,6 +54,29 @@ export default class ChannelService {
 
 			const channel = new DMChannel();
 			channel.users = recipients;
+
+			if (hasVideo) {
+				let videoIntegration = await entityManager.create(VideoIntegration, {
+					dmChannel: channel,
+					creationTime: new Date(),
+					endTime: new Date(Date.now() + (1000 * 60 * 5)),
+					videoUsers: []
+				});
+				videoIntegration = await entityManager.save(videoIntegration);
+				const roomId = await this.twilioService.createRoom(videoIntegration.id);
+				const videoUsers = await Promise.all(recipients.map(async user => {
+					const accessToken = await this.twilioService.generateAccessToken({ roomId, userId: user.id });
+					const videoUser = new VideoUser();
+					videoUser.user = user;
+					videoUser.videoIntegration = videoIntegration;
+					videoUser.accessToken = accessToken;
+					return videoUser;
+				}));
+				videoIntegration.videoUsers = videoUsers;
+				channel.videoIntegration = videoIntegration;
+				await entityManager.save(videoIntegration);
+			}
+
 			await entityManager.save(channel);
 
 			return channel.toJSON();

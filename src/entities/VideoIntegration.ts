@@ -13,7 +13,7 @@ export class VideoIntegration {
 	@Column('timestamp')
 	public endTime!: Date;
 
-	@OneToMany(() => VideoUser, videoUser => videoUser.videoIntegration, { eager: true })
+	@OneToMany(() => VideoUser, videoUser => videoUser.videoIntegration, { eager: true, cascade: true })
 	@JoinColumn()
 	public videoUsers!: VideoUser[];
 

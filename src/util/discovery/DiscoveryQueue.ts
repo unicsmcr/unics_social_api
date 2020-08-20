@@ -41,7 +41,7 @@ export class DiscoveryQueue {
 		}
 
 		// Create the DM channel for the users
-		const dmChannel = await this.channelService.createOrGetDMChannel([user1, user2]);
+		const dmChannel = await this.channelService.createOrGetDMChannel({ recipientIDs: [user1, user2], hasVideo: true });
 
 		return {
 			users: [user1, user2],
