@@ -17,7 +17,7 @@ export interface APIEventChannel extends APIChannel {
 export interface APIDMChannel extends APIChannel {
 	users: string[];
 	type: 'dm';
-	video?: APIVideoIntegration;
+	video?: APIVideoIntegration & { accessToken?: string };
 }
 
 @Entity()

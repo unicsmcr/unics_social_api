@@ -7,7 +7,7 @@ export class VideoUser {
 	@ManyToOne(() => User, { primary: true })
 	public user!: User;
 
-	@ManyToOne(() => VideoIntegration, { primary: true })
+	@ManyToOne(() => VideoIntegration, videoIntegration => videoIntegration.videoUsers, { primary: true })
 	public videoIntegration!: VideoIntegration;
 
 	@Column()

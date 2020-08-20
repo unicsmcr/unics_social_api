@@ -24,15 +24,17 @@ export default class ChannelService {
 		return getRepository(Channel).findOne(findConditions, options);
 	}
 
-	public async createOrGetDMChannel(options: { recipientIDs: string[]; hasVideo?: boolean }): Promise<APIDMChannel> {
+	public async createOrGetDMChannel(options: { recipientIDs: string[]; hasVideo?: boolean; wantAccessToken?: boolean }): Promise<APIDMChannel> {
 		return getConnection().transaction(async entityManager => {
-			const { recipientIDs, hasVideo } = options;
+			const { recipientIDs, hasVideo, wantAccessToken } = options;
 			if (recipientIDs.length !== 2) throw new APIError(400, CreateDMChannelError.InvalidUserCount);
+
+			// NOTE! recipientIDs[0] should be the user making the request!
 
 			// Find all DM Channels with at least one of the users in it
 			const channels = await entityManager
 				.createQueryBuilder(DMChannel, 'dmChannel')
-				.select(['dmChannel', 'user.id', 'videoIntegration.id', 'videoIntegration.creationTime', 'videoIntegration.endTime'])
+				.select(['dmChannel', 'user.id', 'videoIntegration'])
 				.leftJoin('dmChannel.videoIntegration', 'videoIntegration')
 				.innerJoin('dmChannel.users', 'user')
 				.where('user.id IN (:...recipientIDs)', { recipientIDs })
@@ -41,7 +43,17 @@ export default class ChannelService {
 			// Try to find a channel that has only the recipients
 			for (const channel of channels) {
 				if (channel.users.every(user => recipientIDs.includes(user.id)) && channel.users.length === recipientIDs.length) {
-					return channel.toJSON();
+					const json = channel.toJSON();
+					if (wantAccessToken && channel.videoIntegration && json.video && new Date() <= new Date(channel.videoIntegration.endTime)) {
+						const videoUser = await entityManager.findOneOrFail(VideoUser, {
+							where: {
+								user: { id: recipientIDs[0] },
+								videoIntegration: channel.videoIntegration
+							}
+						});
+						json.video.accessToken = videoUser.accessToken;
+					}
+					return json;
 				}
 			}
 
@@ -56,6 +68,7 @@ export default class ChannelService {
 			const channel = new DMChannel();
 			channel.users = recipients;
 
+			let requesterAccessToken: string|undefined;
 			if (hasVideo) {
 				let videoIntegration = entityManager.create(VideoIntegration, {
 					dmChannel: channel,
@@ -65,22 +78,26 @@ export default class ChannelService {
 				});
 				videoIntegration = await entityManager.save(videoIntegration);
 				const roomId = await this.twilioService.createRoom(videoIntegration.id);
-				const videoUsers = await Promise.all(recipients.map(async user => {
-					const accessToken = await this.twilioService.generateAccessToken({ roomId, userId: user.id });
+				const videoUsers = recipients.map(user => {
+					const accessToken = this.twilioService.generateAccessToken({ roomId, userId: user.id });
+					if (user.id === recipientIDs[0]) requesterAccessToken = accessToken;
 					return entityManager.create(VideoUser, {
 						user,
 						videoIntegration,
 						accessToken
 					});
-				}));
+				});
 				videoIntegration.videoUsers = videoUsers;
 				channel.videoIntegration = videoIntegration;
 				await entityManager.save(videoIntegration);
 			}
 
 			await entityManager.save(channel);
-
-			return channel.toJSON();
+			const json = channel.toJSON();
+			if (wantAccessToken && json.video && requesterAccessToken) {
+				json.video.accessToken = requesterAccessToken;
+			}
+			return json;
 		});
 	}
 
