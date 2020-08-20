@@ -21,7 +21,7 @@ enum RegistrationError {
 	MissingInfo = 'Registration data incomplete'
 }
 
-enum EmailVerifyError {
+export enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
 	TokenNotFound = 'Unable to find JWT token'
 }
@@ -76,8 +76,10 @@ export class UserService {
 			}
 
 			const jwtToken = await verifyJWT(jwt);
-			const user = await entityManager.findOneOrFail(User, jwtToken.id);
-
+			if (!jwtToken) {
+				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
+			}
+			const user = await entityManager.findOneOrFail(User, jwtToken.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
 			user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(user);
 			return user.toJSONPrivate();

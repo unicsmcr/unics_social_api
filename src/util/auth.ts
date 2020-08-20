@@ -2,11 +2,13 @@ import { sign, verify as _verify } from 'jsonwebtoken';
 import { getConfig } from './config';
 import { promisify } from 'util';
 import { User } from '../entities/User';
+import { APIError, HttpCode } from './errors';
+import { EmailVerifyError } from '../services/UserService';
 
 export enum TokenType {
-	Auth = 0,
-	PasswordReset = 1,
-	EmailVerify = 2
+	Auth,
+	PasswordReset,
+	EmailVerify
 }
 
 type Payload = Pick<User, 'id'>;
@@ -21,7 +23,11 @@ export function generateJWT(payload: Payload, TokenType: TokenType): Promise<str
 	});
 }
 
-export async function verifyJWT(jwt: string): Promise<Payload> {
-	const payload = (await verify(jwt, getConfig().jwtSecret)) as Payload;
-	return payload;
+export async function verifyJWT(jwt: string): Promise<Payload & TokenType> {
+	try {
+		const payload = (await verify(jwt, getConfig().jwtSecret)) as Payload & TokenType;
+		return payload;
+	} catch (e) {
+		throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
+	}
 }
