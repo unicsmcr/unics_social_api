@@ -3,6 +3,7 @@ import { Event, APIEvent } from './Event';
 import { User } from './User';
 import { IsDate } from 'class-validator';
 import { VideoIntegration, APIVideoIntegration } from './VideoIntegration';
+import { VideoUser } from './VideoUser';
 
 export interface APIChannel {
 	id: string;
@@ -61,12 +62,12 @@ export class DMChannel extends Channel {
 	@JoinColumn()
 	public videoIntegration?: VideoIntegration;
 
-	public toJSON(): APIDMChannel {
+	public toJSON(filter?: (videoUser: VideoUser) => boolean): APIDMChannel {
 		return {
 			...super.toJSON(),
 			type: 'dm',
 			users: this.users.map(user => user.id),
-			video: this.videoIntegration ? this.videoIntegration.toJSON() : undefined
+			video: this.videoIntegration ? this.videoIntegration.toJSON(filter) : undefined
 		};
 	}
 }

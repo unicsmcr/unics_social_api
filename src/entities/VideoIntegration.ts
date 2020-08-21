@@ -6,6 +6,10 @@ export interface APIVideoIntegration {
 	id: string;
 	creationTime: string;
 	endTime: string;
+	users?: {
+		id: string;
+		accessToken: string;
+	}[];
 }
 
 @Entity()
@@ -25,11 +29,15 @@ export class VideoIntegration {
 	@OneToOne(() => DMChannel, channel => channel.videoIntegration)
 	public dmChannel!: DMChannel;
 
-	public toJSON(): APIVideoIntegration {
+	public toJSON(filter?: (videoUser: VideoUser) => boolean): APIVideoIntegration {
 		return {
 			id: this.id,
 			creationTime: this.creationTime.toISOString(),
-			endTime: this.endTime.toISOString()
+			endTime: this.endTime.toISOString(),
+			users: this.videoUsers.filter(filter ?? Boolean).map(videoUser => ({
+				id: videoUser.user.id,
+				accessToken: videoUser.accessToken
+			}))
 		};
 	}
 }
