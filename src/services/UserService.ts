@@ -21,7 +21,7 @@ enum RegistrationError {
 	MissingInfo = 'Registration data incomplete'
 }
 
-export enum EmailVerifyError {
+enum EmailVerifyError {
 	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
 	TokenNotFound = 'Unable to find JWT token'
 }

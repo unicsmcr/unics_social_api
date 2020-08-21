@@ -62,7 +62,7 @@ describe('UserController', () => {
 		test('No content response for valid request', async () => {
 			const data = randomObject();
 
-			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
+			when(mockedUserService.registerUser(anything())).thenResolve(users[0]);
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
 
 			const res = await supertest(app).post('/api/v1/register').send(data);
@@ -88,7 +88,7 @@ describe('UserController', () => {
 		test('Forwards errors from EmailService', async () => {
 			const data = randomObject();
 
-			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
+			when(mockedUserService.registerUser(anything())).thenResolve(users[0]);
 			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
 
 			const res = await supertest(app).post('/api/v1/register').send(data);
@@ -101,23 +101,23 @@ describe('UserController', () => {
 
 	describe('verifyUserEmail', () => {
 		test('No content response for valid request', async () => {
-			const confirmationId = randomString();
+			const token = randomString();
 
-			when(mockedUserService.verifyUserEmail(confirmationId)).thenResolve(users[1]);
+			when(mockedUserService.verifyUserEmail(token)).thenResolve(users[1]);
 
-			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
-			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
+			const res = await supertest(app).get(`/api/v1/verify?token=${token}`);
+			verify(mockedUserService.verifyUserEmail(token)).called();
 			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
 
 		test('Forwards errors from UserService', async () => {
-			const confirmationId = randomString();
+			const token = randomString();
 
-			when(mockedUserService.verifyUserEmail(confirmationId)).thenReject(testError400);
+			when(mockedUserService.verifyUserEmail(token)).thenReject(testError400);
 
-			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
-			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
+			const res = await supertest(app).get(`/api/v1/verify?token=${token}`);
+			verify(mockedUserService.verifyUserEmail(token)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
