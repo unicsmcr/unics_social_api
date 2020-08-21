@@ -5,7 +5,7 @@ import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
 import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
-import { DiscoveryQueue } from '../util/discovery/DiscoveryQueue';
+import { DiscoveryQueue, QueueMatchData } from '../util/discovery/DiscoveryQueue';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
@@ -127,20 +127,20 @@ export default class GatewayController {
 	public async onJoinDiscoveryQueue(ws: WebSocket, packet: JoinDiscoveryQueuePacket) {
 		const userConfig = this.authenticatedClients.get(ws);
 		if (!userConfig) throw new GatewayError('Not authenticated');
-		let matchData;
+		let matchData: QueueMatchData|undefined;
 		try {
 			matchData = await this.discoveryQueue.addToQueue(userConfig.id, packet.data.options);
 		} catch (error) {
 			throw new GatewayError(error.message);
 		}
 		if (matchData) {
-			const payload: DiscoveryQueueMatchPacket = {
+			const channel = matchData.channel;
+			await Promise.all(matchData.users.map(userID => this.sendMessage<DiscoveryQueueMatchPacket>([userID], {
 				type: GatewayPacketType.DiscoveryQueueMatch,
 				data: {
-					channel: matchData.channel
+					channel: channel.toJSON(videoUser => videoUser.user.id === userID)
 				}
-			};
-			await this.sendMessage<DiscoveryQueueMatchPacket>(matchData.users, payload);
+			})));
 		}
 	}
 

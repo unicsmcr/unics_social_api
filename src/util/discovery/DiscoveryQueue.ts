@@ -1,7 +1,7 @@
 import { UserService } from '../../services/UserService';
 import ChannelService from '../../services/ChannelService';
 import { inject, singleton } from 'tsyringe';
-import { APIDMChannel } from '../../entities/Channel';
+import { DMChannel } from '../../entities/Channel';
 
 interface QueueUser {
 	user: {
@@ -15,9 +15,9 @@ export interface QueueOptions {
 	sameYear: boolean;
 }
 
-interface QueueMatchData {
+export interface QueueMatchData {
 	users: [string, string];
-	channel: APIDMChannel;
+	channel: DMChannel;
 }
 
 @singleton()
@@ -41,7 +41,7 @@ export class DiscoveryQueue {
 		}
 
 		// Create the DM channel for the users
-		const dmChannel = await this.channelService.createOrGetDMChannel({ recipientIDs: [user1, user2], hasVideo: true });
+		const dmChannel = await this.channelService.createOrGetDMChannelRaw({ recipientIDs: [user1, user2], hasVideo: true, wantAccessToken: true });
 
 		return {
 			users: [user1, user2],
