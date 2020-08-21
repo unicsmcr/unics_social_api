@@ -1,5 +1,6 @@
 import { User, AccountType, AccountStatus } from '../../src/entities/User';
 import Profile from '../../src/entities/Profile';
+import { DMChannel } from '../../src/entities/Channel';
 
 /*
 	User 1
@@ -60,6 +61,11 @@ user3Profile.twitter = 'randomstudent_handle';
 user3Profile.avatar = false;
 user3Profile.user = user3;
 user3.profile = user3Profile;
+
+const dmChannel1 = new DMChannel();
+dmChannel1.users = [user1, user3];
+dmChannel1.id = 'df8m32ie-1023-8576-ofu0-5502bj49c704';
+user3.dmChannels = [dmChannel1];
 
 export default [
 	user1, user2, user3
