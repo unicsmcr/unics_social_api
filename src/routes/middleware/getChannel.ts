@@ -26,7 +26,9 @@ export default async function getChannel(req: Request, res: AuthenticatedRespons
 			return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
 		}
 		for (const chan of dmChannels) {
-			if (chan.id !== req.params.channelID) {
+			if (chan.id === req.params.channelID) {
+				break;
+			} else {
 				return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
 			}
 		}
