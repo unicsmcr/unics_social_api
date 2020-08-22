@@ -31,7 +31,7 @@ export default class GatewayController {
 		}, HEARTBEAT_INTERVAL);
 	}
 
-	public stopHeartbeats() {
+	public teardown() {
 		clearInterval(this._heartbeatInterval);
 	}
 

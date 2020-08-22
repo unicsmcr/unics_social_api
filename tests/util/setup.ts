@@ -11,6 +11,6 @@ afterAll(async () => {
 
 	try {
 		const gateway = container.resolve(GatewayController);
-		gateway.stopHeartbeats();
+		gateway.teardown();
 	} catch (e) { }
 });

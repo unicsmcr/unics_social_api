@@ -22,7 +22,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-	gatewayController.stopHeartbeats();
+	gatewayController.teardown();
 });
 
 function createWebSocket(): Promise<MockWebSocket> {
