@@ -19,18 +19,16 @@ export default async function getChannel(req: Request, res: AuthenticatedRespons
 
 	if (channel instanceof DMChannel) {
 		const dmChannels = res.locals.user.dmChannels;
-		if (!dmChannels) {
-			return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
-		}
-		if (dmChannels.length === 0) {
-			return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
-		}
-		for (const chan of dmChannels) {
-			if (chan.id === req.params.channelID) {
-				break;
-			} else {
-				return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
+		try {
+			for (const chan of dmChannels) {
+				if (chan.id === req.params.channelID) {
+					break;
+				} else {
+					return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
+				}
 			}
+		} catch (error) {
+			return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
 		}
 	}
 	if (!channel) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));
