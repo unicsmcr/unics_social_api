@@ -18,17 +18,8 @@ export default async function getChannel(req: Request, res: AuthenticatedRespons
 	const channel = await channelService.findOne({ id: req.params.channelID });
 
 	if (channel instanceof DMChannel) {
-		const dmChannels = res.locals.user.dmChannels;
-		try {
-			for (const chan of dmChannels) {
-				if (chan.id === req.params.channelID) {
-					break;
-				} else {
-					return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
-				}
-			}
-		} catch (error) {
-			return next(new APIError(HttpCode.NotFound, GetChannelError.NotAllowed));
+		if (!channel.users.some(user => user.id === res.locals.user.id)) {
+		  return next(new APIError(HttpCode.Forbidden, GetChannelError.NotAllowed));
 		}
 	}
 	if (!channel) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));

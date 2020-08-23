@@ -51,7 +51,7 @@ describe('getChannel middleware', () => {
 		await getChannel(req, res, next);
 		expect(res.locals.channel).toBeUndefined();
 		expect(next.mock.calls[0][0]).toBeInstanceOf(APIError);
-		expect(next.mock.calls[0][0]).toMatchObject({ httpCode: HttpCode.NotFound });
+		expect(next.mock.calls[0][0]).toMatchObject({ httpCode: HttpCode.Forbidden });
 	});
 
 	test('Throws when channel not found', async () => {

@@ -63,7 +63,7 @@ user3Profile.user = user3;
 user3.profile = user3Profile;
 
 const dmChannel1 = new DMChannel();
-dmChannel1.users = [user1, user3];
+dmChannel1.users = [user3];
 dmChannel1.id = 'df8m32ie-1023-8576-ofu0-5502bj49c704';
 user3.dmChannels = [dmChannel1];
 
