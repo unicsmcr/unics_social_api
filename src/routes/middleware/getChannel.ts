@@ -1,5 +1,5 @@
 import { NextFunction, Request } from 'express';
-import { Channel } from '../../entities/Channel';
+import { Channel, DMChannel } from '../../entities/Channel';
 import { APIError, HttpCode } from '../../util/errors';
 import { AuthenticatedResponse } from './getUser';
 import { container } from 'tsyringe';
@@ -16,6 +16,12 @@ export default async function getChannel(req: Request, res: AuthenticatedRespons
 	const channelService = container.resolve(ChannelService);
 	if (!req.params.channelID) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));
 	const channel = await channelService.findOne({ id: req.params.channelID });
+
+	if (channel instanceof DMChannel) {
+		if (!channel.users.some(user => user.id === res.locals.user.id)) {
+		  return next(new APIError(HttpCode.Forbidden, GetChannelError.NotAllowed));
+		}
+	}
 	if (!channel) return next(new APIError(HttpCode.NotFound, GetChannelError.NotFound));
 	(res as ChannelResponse).locals.channel = channel;
 	next();
