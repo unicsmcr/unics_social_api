@@ -21,6 +21,12 @@ export interface EnvConfig {
 		token: string;
 		mock: boolean;
 	};
+	twilio: {
+		accountSid: string;
+		token: string;
+		secret: string;
+		apiKey: string;
+	};
 }
 
 export function load(source: Record<string, string | undefined> = process.env): EnvConfig {
@@ -39,6 +45,12 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			fromEmail: getEnv(source, 'SENDGRID_FROM_EMAIL'),
 			token: getEnv(source, 'SENDGRID_TOKEN'),
 			mock: intoBoolean(getEnv(source, 'MOCK_EMAIL_SERVICE'))
+		},
+		twilio: {
+			accountSid: getEnv(source, 'TWILIO_ACCOUNT_SID'),
+			token: getEnv(source, 'TWILIO_AUTH_TOKEN'),
+			apiKey: getEnv(source, 'TWILIO_API_KEY'),
+			secret: getEnv(source, 'TWILIO_SECRET')
 		}
 	};
 }

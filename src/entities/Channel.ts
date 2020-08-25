@@ -1,7 +1,9 @@
-import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany, Column } from 'typeorm';
+import { PrimaryGeneratedColumn, OneToOne, Entity, TableInheritance, ChildEntity, ManyToMany, Column, JoinColumn } from 'typeorm';
 import { Event, APIEvent } from './Event';
 import { User } from './User';
 import { IsDate } from 'class-validator';
+import { VideoIntegration, APIVideoIntegration } from './VideoIntegration';
+import { VideoUser } from './VideoUser';
 
 export interface APIChannel {
 	id: string;
@@ -16,6 +18,7 @@ export interface APIEventChannel extends APIChannel {
 export interface APIDMChannel extends APIChannel {
 	users: string[];
 	type: 'dm';
+	video?: APIVideoIntegration & { accessToken?: string };
 }
 
 @Entity()
@@ -55,11 +58,16 @@ export class DMChannel extends Channel {
 	@ManyToMany(() => User, user => user.dmChannels, { eager: true })
 	public users!: User[];
 
-	public toJSON(): APIDMChannel {
+	@OneToOne(() => VideoIntegration, videoIntegration => videoIntegration.dmChannel, { nullable: true, eager: true })
+	@JoinColumn()
+	public videoIntegration?: VideoIntegration;
+
+	public toJSON(filter?: (videoUser: VideoUser) => boolean): APIDMChannel {
 		return {
 			...super.toJSON(),
 			type: 'dm',
-			users: this.users.map(user => user.id)
+			users: this.users.map(user => user.id),
+			video: this.videoIntegration ? this.videoIntegration.toJSON(filter) : undefined
 		};
 	}
 }
