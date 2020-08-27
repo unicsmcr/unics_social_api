@@ -109,7 +109,7 @@ export class UserService {
 		const user = await getRepository(User)
 			.createQueryBuilder('user').where('user.email= :email', { email })
 			.addSelect('user.password')
-			.getOne()
+			.getOne();
 
 		if (!user) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
