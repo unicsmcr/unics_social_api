@@ -106,10 +106,12 @@ export class UserService {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
 
-		const user = await getRepository(User)
-			.createQueryBuilder('user').where('user.email= :email', { email })
-			.addSelect('user.password')
-			.getOne();
+		const user = await getRepository(User).findOne({
+			where: {
+				email
+			},
+			select: ['password']
+		});
 
 		if (!user) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
