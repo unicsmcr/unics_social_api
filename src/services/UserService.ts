@@ -13,6 +13,7 @@ import sharp from 'sharp';
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
 
+
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 
@@ -104,8 +105,12 @@ export class UserService {
 		if (!email) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
-
-		const user = await getRepository(User).findOne({ email });
+		
+		const user = await getRepository(User)
+		.createQueryBuilder("user").where("user.email= :email", {email})
+		.addSelect('user.password')
+		.getOne()
+		
 		if (!user) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
