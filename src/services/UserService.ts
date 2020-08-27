@@ -105,12 +105,12 @@ export class UserService {
 		if (!email) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
-		
+
 		const user = await getRepository(User)
-		.createQueryBuilder("user").where("user.email= :email", {email})
-		.addSelect('user.password')
-		.getOne()
-		
+			.createQueryBuilder("user").where("user.email= :email", {email})
+			.addSelect('user.password')
+			.getOne()
+
 		if (!user) {
 			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
 		}
