@@ -1,6 +1,6 @@
 {
  "name": "@unicsmcr/unics_social_api",
- "version": "0.0.1",
+ "version": "0.0.2",
  "description": "networking for CS students at the University of Manchester",
  "main": "dist/index.js",
  "scripts": {
