@@ -7,6 +7,7 @@ import { APIError, HttpCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import EventService from '../../../src/services/EventService';
+import { send } from 'process';
 
 let app: Express.Application;
 let mockedEventService: EventService;
@@ -51,11 +52,11 @@ describe('EventController', () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
-			when(mockedEventService.createEvent(objectContaining(event))).thenResolve(event);
 
+			when(mockedEventService.createEvent(objectContaining(event), anything())).thenResolve(event);
 			const res = await supertest(app).post('/api/v1/events').send(event)
 				.set('Authorization', authorization);
-			verify(mockedEventService.createEvent(objectContaining(event))).called();
+			verify(mockedEventService.createEvent(objectContaining(event), anything())).called();
 			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ event });
 		});
@@ -91,13 +92,14 @@ describe('EventController', () => {
 			const event = randomObject();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, adminUser);
-			when(mockedEventService.createEvent(anything())).thenReject(testError400);
+			when(mockedEventService.createEvent(anything(), anything())).thenReject(testError400);
 
-			const res = await supertest(app).post('/api/v1/events').send(event)
+			const res = await supertest(app).post('/api/v1/events')
+				.send(event)
 				.set('Authorization', authorization);
-			expect(res.status).toEqual(HttpCode.BadRequest);
+			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
-			verify(mockedEventService.createEvent(objectContaining(event))).once();
+			verify(mockedEventService.createEvent(objectContaining(event), anything())).once();
 		});
 	});
 
