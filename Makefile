@@ -1,5 +1,6 @@
 test: export PORT=8070
 test: export LOG_ERRORS=false
+test: export HOST=http://localhost:3000
 test: export DB_HOST=localhost
 test: export DB_PORT=5442
 test: export DB_USER=unics_social

@@ -6,6 +6,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 	{
 		PORT: '8000',
 		LOG_ERRORS: 'true',
+		HOST: 'https://kb.unicsmcr.com',
 		DB_HOST: 'localhost',
 		DB_PORT: '3306',
 		DB_USER: 'root',
@@ -23,6 +24,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 	{
 		port: 8000,
 		logErrors: true,
+		host: 'https://kb.unicsmcr.com',
 		db: {
 			host: 'localhost',
 			username: 'root',
@@ -50,6 +52,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 	{
 		PORT: '25565',
 		LOG_ERRORS: 'false',
+		HOST: 'http://localhost:3000',
 		DB_HOST: 'db',
 		DB_PORT: '5432',
 		DB_USER: 'unics_social',
@@ -67,6 +70,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 	{
 		port: 25565,
 		logErrors: false,
+		host: 'http://localhost:3000',
 		db: {
 			host: 'db',
 			username: 'unics_social',

@@ -8,6 +8,7 @@ export enum Environment {
 export interface EnvConfig {
 	port: number;
 	logErrors: boolean;
+	host: string;
 	jwtSecret: string;
 	db: {
 		host: string;
@@ -33,6 +34,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 	return {
 		port: intoNumber(getEnv(source, 'PORT')),
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
+		host: getEnv(source, 'HOST'),
 		jwtSecret: getEnv(source, 'JWT_SECRET'),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
