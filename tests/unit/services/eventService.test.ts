@@ -80,7 +80,8 @@ describe('EventService', () => {
 			const event = await getRepository(Event).save(events[0]);
 			await eventService.editEvent({
 				id: event.id,
-				title: 'Test123'
+				title: 'Test123',
+				image: false
 			});
 			expect({ ...event.toJSON(), title: 'Test123' }).toEqual((await getRepository(Event).findOneOrFail(events[0].id)).toJSON());
 		});
@@ -89,27 +90,29 @@ describe('EventService', () => {
 			const event = await getRepository(Event).save(events[0]);
 			await eventService.editEvent({
 				id: event.id,
-				title: 'Test123'
+				title: 'Test123',
+				image: false
 			});
 			expect({ ...event.toJSON(), title: 'Test123' }).toEqual((await getRepository(Event).findOneOrFail(events[0].id)).toJSON());
 			await eventService.editEvent({
 				id: event.id,
 				title: 'Testing title',
-				description: 'New description!'
+				description: 'New description!',
+				image: false
 			});
 			expect({ ...event.toJSON(), title: 'Testing title', description: 'New description!' }).toEqual((await getRepository(Event).findOneOrFail(events[0].id)).toJSON());
 		});
 
 		test('Fails on invalid id/event not found', async () => {
-			await expect(eventService.editEvent({ id: '', title: 'Test123' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(eventService.editEvent({ id: '', title: 'Test123', image: false })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(eventService.findAll()).resolves.toEqual([]);
-			await expect(eventService.editEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123' })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(eventService.editEvent({ id: '209d15de-57ba-4bb9-a9c9-e00042841b9b', title: 'Test123', image: false })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(eventService.findAll()).resolves.toEqual([]);
 		});
 
 		test('Fails for invalid data (title too long)', async () => {
 			const event = await getRepository(Event).save(events[0]);
-			await expect(eventService.editEvent({ id: event.id, title: 'Test123'.repeat(50) })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(eventService.editEvent({ id: event.id, title: 'Test123'.repeat(50), image: false })).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(eventService.findAll()).resolves.toEqual([event.toJSON()]);
 		});
 	});
