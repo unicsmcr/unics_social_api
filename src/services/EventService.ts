@@ -7,6 +7,7 @@ import { formatValidationErrors, APIError, HttpCode } from '../util/errors';
 import sharp from 'sharp';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
+import { v4 } from 'uuid';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -47,6 +48,8 @@ export default class EventService {
 
 	public async createEvent(data: EventCreationData, file?: Express.Multer.File): Promise<APIEvent> {
 		const event = new Event();
+		// If a file is attached, then an ID must be generated before saving the asset
+		if (file) event.id = v4();
 		const { title, description, startTime, endTime, external } = data;
 		Object.assign(event, { title, description, startTime: new Date(startTime), endTime: new Date(endTime), external });
 		await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
