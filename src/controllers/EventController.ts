@@ -31,7 +31,7 @@ export class EventController {
 
 	public async editEvent(req: Request & { params: { id: string }; file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const event = await this.eventService.editEvent({ ...req.body, id: req.params.id, file: req.file });
+			const event = await this.eventService.editEvent({ ...req.body, id: req.params.id }, req.file);
 			res.json({ event });
 		} catch (error) {
 			next(error);

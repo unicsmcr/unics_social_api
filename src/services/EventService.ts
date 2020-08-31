@@ -28,7 +28,7 @@ export default class EventService {
 		let processedImage: Buffer|undefined;
 		if (!unsetImage && file?.buffer && file.buffer.length > 0) {
 			processedImage = await sharp(file.buffer)
-				.resize({ width: 800 })
+				.resize({ width: 1200 })
 				.png()
 				.toBuffer()
 				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.InvalidImage)));
@@ -67,7 +67,7 @@ export default class EventService {
 		return getConnection().transaction(async entityManager => {
 			if (!data.id) throw new APIError(HttpCode.BadRequest, PatchEventError.IdMissing);
 			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.EventNotFound)));
-			Object.assign(event, { ...data, channel: event.channel });
+			Object.assign(event, { ...data, image: event.image, channel: event.channel });
 			await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
 
 			event.image = (await this.uploadImage(data.image, event, file)).image;
