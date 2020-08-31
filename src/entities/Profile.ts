@@ -1,5 +1,6 @@
+/* eslint-disable linebreak-style */
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { IsString } from 'class-validator';
+import { IsString, IsEnum } from 'class-validator';
 import { User } from './User';
 
 export interface APIProfile {
@@ -12,6 +13,15 @@ export interface APIProfile {
 	twitter?: string;
 }
 
+export enum Course {
+	ARTIFICIAL_INTELLIGENCE = 'Artificial Intelligence',
+	COMPUTER_SCIENCE_AND_MATHEMATICS = 'Computer Science and Mathematics',
+	COMPUTER_SCIENCE = 'Computer Science',
+	HUMAN_COMPUTER_INTERACTION = 'Human Computer Interaction',
+	COMPUTER_SYSTEMS_ENGINEERING = 'Computer Systems Engineering',
+	SOFTWARE_ENGINEERING = 'Software Engineering'
+}
+
 @Entity()
 export default class Profile {
 	@PrimaryGeneratedColumn('uuid')
@@ -21,7 +31,7 @@ export default class Profile {
 	public user!: User;
 
 	@Column()
-	@IsString()
+	@IsEnum(Course)
 	public course!: string;
 
 	@Column({ type: 'integer' })
