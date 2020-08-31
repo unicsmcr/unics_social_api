@@ -44,7 +44,7 @@ export class User {
 	@MaxLength(40, { message: 'Surname must be between 1 to 40 characters long' })
 	public surname!: string;
 
-	@Column()
+	@Column({ select: false })
 	public password!: string;
 
 	@Column({ unique: true })

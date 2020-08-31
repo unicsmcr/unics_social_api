@@ -12,6 +12,7 @@ import { APIError, HttpCode } from '../../../src/util/errors';
 const verifiedUserFixture = users.find(user => user.accountStatus === AccountStatus.Verified);
 
 const channelFixture = events[0].channel;
+const channelFixture1 = users[2].dmChannels[0];
 let mockedChannelService: ChannelService;
 
 beforeAll(() => {
@@ -21,6 +22,7 @@ beforeAll(() => {
 
 	when(mockedChannelService.findOne(anything())).thenResolve(undefined);
 	when(mockedChannelService.findOne(objectContaining({ id: channelFixture.id }))).thenResolve(channelFixture);
+	when(mockedChannelService.findOne(objectContaining({ id: channelFixture1.id }))).thenResolve(channelFixture1);
 });
 
 describe('getChannel middleware', () => {
@@ -31,6 +33,25 @@ describe('getChannel middleware', () => {
 		await getChannel(req, res, next);
 		expect(res.locals.channel).toEqual(channelFixture);
 		expect(next).toHaveBeenCalledWith();
+	});
+
+	test('Allows registered User for DM Channel', async () => {
+		const req: any = { params: { channelID: channelFixture1.id } };
+		const res: any = { locals: { user: users[2] } };
+		const next: any = jest.fn();
+		await getChannel(req, res, next);
+		expect(res.locals.channel).toEqual(channelFixture1);
+		expect(next).toHaveBeenCalledWith();
+	});
+
+	test('Throws when unregistered User for DM Channel', async () => {
+		const req: any = { params: { channelID: channelFixture1.id } };
+		const res: any = { locals: { user: verifiedUserFixture } };
+		const next: any = jest.fn();
+		await getChannel(req, res, next);
+		expect(res.locals.channel).toBeUndefined();
+		expect(next.mock.calls[0][0]).toBeInstanceOf(APIError);
+		expect(next.mock.calls[0][0]).toMatchObject({ httpCode: HttpCode.Forbidden });
 	});
 
 	test('Throws when channel not found', async () => {

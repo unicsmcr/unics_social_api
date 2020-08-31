@@ -1,96 +1,99 @@
 {
-    "name": "@unicsmcr/unics_social_api",
-    "version": "0.0.1",
-    "description": "networking for CS students at the University of Manchester",
-    "main": "dist/index.js",
-    "scripts": {
-     "build": "tsc",
-     "lint": "eslint src --ext .ts",
-     "lint:fix": "eslint src --ext .ts --fix",
-     "test": "make test"
-    },
-    "repository": {
-     "type": "git",
-     "url": "git+https://github.com/unicsmcr/unics_social_api.git"
-    },
-    "keywords": [
-     "social",
-     "network",
-     "manchester",
-     "computer",
-     "science",
-     "api",
-     "database"
-    ],
-    "author": "UniCS <amish@unicsmcr.com>",
-    "license": "MIT",
-    "bugs": {
-     "url": "https://github.com/unicsmcr/unics_social_api/issues"
-    },
-    "homepage": "https://github.com/unicsmcr/unics_social_api#readme",
-    "devDependencies": {
-     "@types/jest": "^26.0.4",
-     "@types/multer": "^1.4.4",
-     "@types/node": "^14.0.22",
-     "@types/sharp": "^0.25.1",
-     "@types/supertest": "^2.0.10",
-     "@types/uuid": "^8.0.0",
-     "@typescript-eslint/eslint-plugin": "^3.8.0",
-     "@typescript-eslint/parser": "^3.8.0",
-     "@unicsmcr/eslint-config": "0.0.2",
-     "eslint": "^7.4.0",
-     "jest": "^26.1.0",
-     "supertest": "^4.0.2",
-     "ts-jest": "^26.1.1",
-     "ts-mockito": "^2.6.1",
-     "typescript": "^3.9.7",
-     "uuid": "^8.3.0"
-    },
-    "eslintConfig": {
-     "extends": "@unicsmcr",
-     "parserOptions": {
-      "project": "tsconfig.eslint.json"
-     },
-     "env": {
-      "jest": true
-     }
-    },
-    "jest": {
-     "preset": "ts-jest",
-     "testEnvironment": "node",
-     "testPathIgnorePatterns": [
-      "<rootDir>/tests/fixtures"
-     ],
-     "globals": {
-      "ts-jest": {
-       "tsConfig": "tsconfig.jest.json"
-      }
-     },
-     "collectCoverageFrom": [
-      "src/**/*.ts"
-     ],
-     "coveragePathIgnorePatterns": [
-      "src/app.ts"
-     ],
-     "setupFilesAfterEnv": [
-       "<rootDir>/tests/util/setup.ts"
-     ]
-    },
-    "dependencies": {
-     "@sendgrid/mail": "^7.2.1",
-     "@types/express": "^4.17.7",
-     "@types/jsonwebtoken": "^8.5.0",
-     "@types/ws": "^7.2.6",
-     "class-validator": "^0.12.2",
-     "dotenv": "^8.2.0",
-     "express": "^4.17.1",
-     "jsonwebtoken": "^8.5.1",
-     "multer": "^1.4.2",
-     "pg": "^8.3.0",
-     "reflect-metadata": "^0.1.13",
-     "sharp": "^0.25.4",
-     "tsyringe": "^4.3.0",
-     "typeorm": "^0.2.25",
-     "ws": "^7.3.1"
-    }
+ "name": "@unicsmcr/unics_social_api",
+ "version": "0.0.2",
+ "description": "networking for CS students at the University of Manchester",
+ "main": "dist/index.js",
+ "scripts": {
+  "build": "tsc",
+  "lint": "eslint src --ext .ts",
+  "lint:fix": "eslint src --ext .ts --fix",
+  "test": "make test"
+ },
+ "repository": {
+  "type": "git",
+  "url": "git+https://github.com/unicsmcr/unics_social_api.git"
+ },
+ "keywords": [
+  "social",
+  "network",
+  "manchester",
+  "computer",
+  "science",
+  "api",
+  "database"
+ ],
+ "author": "UniCS <amish@unicsmcr.com>",
+ "license": "MIT",
+ "bugs": {
+  "url": "https://github.com/unicsmcr/unics_social_api/issues"
+ },
+ "homepage": "https://github.com/unicsmcr/unics_social_api#readme",
+ "devDependencies": {
+  "@types/cors": "^2.8.7",
+  "@types/jest": "^26.0.4",
+  "@types/multer": "^1.4.4",
+  "@types/node": "^14.0.22",
+  "@types/sharp": "^0.25.1",
+  "@types/supertest": "^2.0.10",
+  "@types/uuid": "^8.0.0",
+  "@typescript-eslint/eslint-plugin": "^3.8.0",
+  "@typescript-eslint/parser": "^3.8.0",
+  "@unicsmcr/eslint-config": "0.0.2",
+  "eslint": "^7.4.0",
+  "jest": "^26.1.0",
+  "supertest": "^4.0.2",
+  "ts-jest": "^26.1.1",
+  "ts-mockito": "^2.6.1",
+  "typescript": "^3.9.7",
+  "uuid": "^8.3.0"
+ },
+ "eslintConfig": {
+  "extends": "@unicsmcr",
+  "parserOptions": {
+   "project": "tsconfig.eslint.json"
+  },
+  "env": {
+   "jest": true
+  }
+ },
+ "jest": {
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "testPathIgnorePatterns": [
+   "<rootDir>/tests/fixtures"
+  ],
+  "globals": {
+   "ts-jest": {
+    "tsConfig": "tsconfig.jest.json"
    }
+  },
+  "collectCoverageFrom": [
+   "src/**/*.ts"
+  ],
+  "coveragePathIgnorePatterns": [
+   "src/app.ts"
+  ],
+  "setupFilesAfterEnv": [
+   "<rootDir>/tests/util/setup.ts"
+  ]
+ },
+ "dependencies": {
+  "@sendgrid/mail": "^7.2.1",
+  "@types/express": "^4.17.7",
+  "@types/jsonwebtoken": "^8.5.0",
+  "@types/ws": "^7.2.6",
+  "class-validator": "^0.12.2",
+  "cors": "^2.8.5",
+  "dotenv": "^8.2.0",
+  "express": "^4.17.1",
+  "jsonwebtoken": "^8.5.1",
+  "multer": "^1.4.2",
+  "pg": "^8.3.0",
+  "reflect-metadata": "^0.1.13",
+  "sharp": "^0.25.4",
+  "tsyringe": "^4.3.0",
+  "twilio": "^3.48.2",
+  "typeorm": "^0.2.25",
+  "ws": "^7.3.1"
+ }
+}

@@ -83,7 +83,12 @@ export class UserController {
 
 	public async createDMChannel(req: Request & { params: { recipientID: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const channel = await this.channelService.createOrGetDMChannel([res.locals.user.id, req.params.recipientID]);
+			const channel = await this.channelService.createOrGetDMChannel({
+				recipientIDs: [res.locals.user.id, req.params.recipientID],
+				hasVideo: true,
+				wantAccessToken: true,
+				videoUsersFilter: videoUser => videoUser.user.id === res.locals.user.id
+			});
 			res.json({ channel });
 		} catch (error) {
 			next(error);

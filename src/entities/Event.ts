@@ -4,6 +4,7 @@ import { EventChannel } from './Channel';
 
 export interface APIEvent {
 	id: string;
+	image: boolean;
 	title: string;
 	startTime: string;
 	endTime: string;
@@ -16,6 +17,9 @@ export interface APIEvent {
 export class Event {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
+
+	@Column({ 'default': false })
+	public image!: boolean;
 
 	@Column()
 	@IsString()
@@ -44,9 +48,10 @@ export class Event {
 	public channel!: EventChannel;
 
 	public toJSON(): APIEvent {
-		const { id, title, startTime, endTime, description, external, channel } = this;
+		const { id, image, title, startTime, endTime, description, external, channel } = this;
 		return {
 			id,
+			image,
 			title,
 			startTime: startTime.toISOString(),
 			endTime: endTime.toISOString(),
