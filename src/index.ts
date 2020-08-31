@@ -5,6 +5,7 @@ import { config as loadEnv } from 'dotenv';
 loadEnv();
 
 import express, { Router, Response, Request, NextFunction } from 'express';
+import cors from 'cors';
 
 import { createConnection } from 'typeorm';
 import { getConfig } from './util/config';
@@ -20,6 +21,9 @@ import { ChannelRoutes } from './routes/ChannelRoutes';
 
 export function createExpress() {
 	const app = express();
+	app.use(cors({
+		origin: getConfig().host
+	}));
 	app.use(express.json());
 
 	const router = Router();

@@ -11,9 +11,9 @@ export class EventController {
 		this.eventService = eventService;
 	}
 
-	public async createEvent(req: Request, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async createEvent(req: Request & { file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const event = await this.eventService.createEvent(req.body);
+			const event = await this.eventService.createEvent(req.body, req.file);
 			res.json({ event });
 		} catch (error) {
 			next(error);
@@ -29,9 +29,9 @@ export class EventController {
 		}
 	}
 
-	public async editEvent(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+	public async editEvent(req: Request & { params: { id: string }; file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const event = await this.eventService.editEvent({ ...req.body, id: req.params.id });
+			const event = await this.eventService.editEvent({ ...req.body, id: req.params.id }, req.file);
 			res.json({ event });
 		} catch (error) {
 			next(error);

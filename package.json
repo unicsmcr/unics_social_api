@@ -29,6 +29,7 @@
  },
  "homepage": "https://github.com/unicsmcr/unics_social_api#readme",
  "devDependencies": {
+  "@types/cors": "^2.8.7",
   "@types/jest": "^26.0.4",
   "@types/multer": "^1.4.4",
   "@types/node": "^14.0.22",
@@ -82,6 +83,7 @@
   "@types/jsonwebtoken": "^8.5.0",
   "@types/ws": "^7.2.6",
   "class-validator": "^0.12.2",
+  "cors": "^2.8.5",
   "dotenv": "^8.2.0",
   "express": "^4.17.1",
   "jsonwebtoken": "^8.5.1",
