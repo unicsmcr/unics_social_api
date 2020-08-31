@@ -28,7 +28,7 @@ export default class EventService {
 		let processedImage: Buffer|undefined;
 		if (!unsetImage && file?.buffer && file.buffer.length > 0) {
 			processedImage = await sharp(file.buffer)
-				.resize({ width: 800, height: 800, fit: sharp.fit.contain })
+				.resize({ width: 800 })
 				.png()
 				.toBuffer()
 				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.InvalidImage)));
@@ -41,7 +41,7 @@ export default class EventService {
 		if (processedImage) {
 			await writeFile(`./assets/${event.id}.png`, processedImage);
 		}
-		return (event);
+		return event;
 	}
 
 
