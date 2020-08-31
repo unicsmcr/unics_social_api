@@ -29,10 +29,12 @@ export default class EventService {
 		return (await getRepository(Event).find()).map(event => event.toJSON());
 	}
 
-	public async editEvent(data: Pick<Event, 'id'> & Partial<Event>): Promise<APIEvent> {
+	public async editEvent(data: Pick<APIEvent, 'id'> & Partial<APIEvent>): Promise<APIEvent> {
 		return getConnection().transaction(async entityManager => {
 			if (!data.id) throw new APIError(HttpCode.BadRequest, PatchEventError.IdMissing);
 			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.EventNotFound)));
+			if (data.startTime) (data as any).startTime = new Date(data.startTime);
+			if (data.endTime) (data as any).endTime = new Date(data.endTime);
 			Object.assign(event, { ...data, channel: event.channel });
 			await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
 			return (await entityManager.save(event)).toJSON();
