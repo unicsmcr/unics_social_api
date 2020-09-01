@@ -22,7 +22,8 @@ enum RegistrationError {
 }
 
 enum EmailVerifyError {
-	UserNotFound = 'User not found'
+	UserNotFound = 'User not found',
+	AccountNotUnverified = 'Your account has already been verified'
 }
 
 enum AuthenticateError {
@@ -84,6 +85,7 @@ export class UserService {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound)));
+			if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
 			user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(user);
 			return user.toJSONPrivate();

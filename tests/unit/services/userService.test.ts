@@ -110,9 +110,15 @@ describe('UserService', () => {
 			await getRepository(User).save(user);
 		});
 
-		test('Successfully verifies a user email with a valid confirmation', async () => {
+		test('Successfully verifies a user', async () => {
 			const verifiedUser = await userService.verifyUserEmail(user.id);
 			expect(verifiedUser.accountStatus).toStrictEqual(AccountStatus.Verified);
+		});
+
+		test('Fails when trying to verify an already-verified user', async () => {
+			const verifiedUser = await userService.verifyUserEmail(user.id);
+			expect(verifiedUser.accountStatus).toStrictEqual(AccountStatus.Verified);
+			await expect(userService.verifyUserEmail(user.id)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 
 		test('Fails with invalid user ID', async () => {
