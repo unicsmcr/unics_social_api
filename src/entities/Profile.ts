@@ -1,6 +1,5 @@
 /* eslint-disable linebreak-style */
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { IsEnum, IsInt, Max } from 'class-validator';
 import { User } from './User';
 
 export interface APIProfile {
@@ -30,8 +29,12 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@IsEnum(Course)
-	public course!: Course;
+	@Column({
+		type: 'enum',
+		enum: Course,
+		default: Course.COMPUTER_SCIENCE
+	})
+	public course!: string;
 
 	@Column({ type: 'integer' })
 	public yearOfStudy!: number;

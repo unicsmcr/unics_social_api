@@ -2,7 +2,6 @@ import { createApp, createGateway } from '.';
 import { getConfig } from './util/config';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
-import 'reflect-metadata';
 
 createApp()
 	.then(app => {

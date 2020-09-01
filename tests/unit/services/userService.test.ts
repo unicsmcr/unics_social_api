@@ -203,7 +203,6 @@ describe('UserService', () => {
 		test('Fails to create user profile with invalid details', async () => {
 			await expect(userService.putUserProfile(userWithoutProfile.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'History' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.putUserProfile(userWithoutProfile.id, { yearOfStudy: 2 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'Computer Science', yearOfStudy: 2.5 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});
