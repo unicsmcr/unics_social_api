@@ -1,6 +1,6 @@
-/* eslint-disable linebreak-style */
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './User';
+import { IsString } from 'class-validator';
 
 export interface APIProfile {
 	id: string;
@@ -29,10 +29,10 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
+	@IsString()
 	@Column({
 		'type': 'enum',
-		'enum': Course,
-		'default': Course.COMPUTER_SCIENCE
+		'enum': Course
 	})
 	public course!: string;
 
