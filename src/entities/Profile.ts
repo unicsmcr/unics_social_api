@@ -5,7 +5,7 @@ import { IsString } from 'class-validator';
 export interface APIProfile {
 	id: string;
 	course: string;
-	yearOfStudy: number;
+	yearOfStudy: string;
 	profilePicture?: string;
 	instagram?: string;
 	facebook?: string;
@@ -19,6 +19,17 @@ export enum Course {
 	HUMAN_COMPUTER_INTERACTION = 'Human Computer Interaction',
 	COMPUTER_SYSTEMS_ENGINEERING = 'Computer Systems Engineering',
 	SOFTWARE_ENGINEERING = 'Software Engineering'
+}
+
+export enum Year {
+	ONE = 'First Year',
+	TWO = 'Second Year',
+	THREE = 'Final Year Bachelors',
+	FOUNDATION = 'Foundation Year',
+	PENULTIMATE_MASTERS = 'Third Year Masters',
+	MASTERS = 'Final Year Masters',
+	INDUSTRIAL = 'Industrial year',
+	PHD = 'PHD (Any Year)'
 }
 
 @Entity()
@@ -36,8 +47,12 @@ export default class Profile {
 	})
 	public course!: string;
 
-	@Column({ type: 'integer' })
-	public yearOfStudy!: number;
+	@IsString()
+	@Column({ 
+		'type': 'enum',
+		'enum': Year
+	})
+	public yearOfStudy!: string;
 
 	@Column({ 'default': false })
 	public avatar!: boolean;

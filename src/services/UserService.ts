@@ -132,7 +132,7 @@ export class UserService {
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
 			const { twitter, instagram, yearOfStudy, course, facebook } = options;
-			Object.assign(profile, { twitter, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
+			Object.assign(profile, { twitter, instagram, yearOfStudy, course, facebook });
 			profile.user = user;
 			user.profile = profile;
 
@@ -152,7 +152,7 @@ export class UserService {
 				profile.avatar = false;
 			}
 
-			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
+			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails))); 
 			if (processedAvatar) {
 				await writeFile(`./assets/${user.id}.png`, processedAvatar);
 			}
