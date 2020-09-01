@@ -47,6 +47,7 @@ export default class Profile {
 	public instagram?: string;
 
 	@Column({ nullable: true })
+	@Matches(/^[A-Za-z0-9\.]{5,}$/, { message: 'Not a valid facebook username' })
 	public facebook?: string;
 
 	@Column({ nullable: true })
