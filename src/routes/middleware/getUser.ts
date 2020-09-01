@@ -8,10 +8,8 @@ import { APIError, HttpCode } from '../../util/errors';
 enum GetUserError {
 	AuthorizationMissing = 'Missing authorization header',
 	InvalidToken = 'Authorization token is invalid',
-	UsedToken = 'Cannot use token twice',
-	UserNotVerified = 'User not verified',
 	UserNotFound = 'User not found',
-	TypeNotFound = 'token type not found'
+	TokenMismatch = 'Given token not privileged for this request'
 }
 
 export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User } };
@@ -30,11 +28,11 @@ export default function getUser(tokenType: TokenType) {
 		} catch (error) {
 			return next(new APIError(HttpCode.Unauthorized, GetUserError.InvalidToken));
 		}
+		if (tokenType !== type) return next(new APIError(HttpCode.Unauthorized, GetUserError.TokenMismatch));
 		if (!id) return next(new APIError(HttpCode.Unauthorized, GetUserError.InvalidToken));
 		const user = await userService.findOne({ id });
 		if (!user) return next(new APIError(HttpCode.Unauthorized, GetUserError.UserNotFound));
 		(res as AuthenticatedResponse).locals.user = user;
-		if (tokenType !== type) return next(new APIError(HttpCode.Unauthorized, GetUserError.InvalidToken));
 		next();
 	};
 }
