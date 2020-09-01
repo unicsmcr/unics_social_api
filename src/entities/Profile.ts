@@ -30,9 +30,9 @@ export default class Profile {
 	public user!: User;
 
 	@Column({
-		type: 'enum',
-		enum: Course,
-		default: Course.COMPUTER_SCIENCE
+		'type': 'enum',
+		'enum': Course,
+		'default': Course.COMPUTER_SCIENCE
 	})
 	public course!: string;
 
