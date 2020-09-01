@@ -12,6 +12,15 @@ export interface APIProfile {
 	twitter?: string;
 }
 
+export enum Course {
+	ARTIFICIAL_INTELLIGENCE = 'Artificial Intelligence',
+	COMPUTER_SCIENCE_AND_MATHEMATICS = 'Computer Science and Mathematics',
+	COMPUTER_SCIENCE = 'Computer Science',
+	HUMAN_COMPUTER_INTERACTION = 'Human Computer Interaction',
+	COMPUTER_SYSTEMS_ENGINEERING = 'Computer Systems Engineering',
+	SOFTWARE_ENGINEERING = 'Software Engineering'
+}
+
 @Entity()
 export default class Profile {
 	@PrimaryGeneratedColumn('uuid')
@@ -20,8 +29,11 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@Column()
 	@IsString()
+	@Column({
+		'type': 'enum',
+		'enum': Course
+	})
 	public course!: string;
 
 	@Column({ type: 'integer' })
