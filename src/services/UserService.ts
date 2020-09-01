@@ -8,7 +8,6 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
-import { verifyJWT } from '../util/auth';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -23,8 +22,7 @@ enum RegistrationError {
 }
 
 enum EmailVerifyError {
-	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown',
-	TokenNotFound = 'Unable to find JWT token'
+	UserNotFound = 'User not found'
 }
 
 enum AuthenticateError {
@@ -66,25 +64,29 @@ export class UserService {
 
 			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
 
-			return entityManager.save(user);
+			try {
+				return entityManager.save(user);
+			} catch (error) {
+				const code = String(error.code);
+				if (code === '23505') {
+					// 23505 is unique_violation
+					throw new APIError(HttpCode.BadRequest, RegistrationError.EmailAlreadyExists);
+				} else if (code === '23502') {
+					// 23502 is not_null_violation
+					throw new APIError(HttpCode.BadRequest, RegistrationError.MissingInfo);
+				}
+				throw error;
+			}
 		});
 	}
 
-	public async verifyUserEmail(jwt: string): Promise<APIPrivateUser> {
+	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
-			if (!jwt) {
-				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
-			}
-
-			try {
-				const jwtToken = await verifyJWT(jwt);
-				const user = await entityManager.findOneOrFail(User, jwtToken.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
-				user.accountStatus = AccountStatus.Verified;
-				await entityManager.save(user);
-				return user.toJSONPrivate();
-			} catch (error) {
-				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
-			}
+			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.UserNotFound)));
+			user.accountStatus = AccountStatus.Verified;
+			await entityManager.save(user);
+			return user.toJSONPrivate();
 		});
 	}
 
