@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable } from 'typeorm';
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile, { APIProfile } from './Profile';
