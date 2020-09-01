@@ -152,7 +152,7 @@ export class UserService {
 				profile.avatar = false;
 			}
 
-			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails))); 
+			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
 			if (processedAvatar) {
 				await writeFile(`./assets/${user.id}.png`, processedAvatar);
 			}

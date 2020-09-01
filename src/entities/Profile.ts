@@ -48,7 +48,7 @@ export default class Profile {
 	public course!: string;
 
 	@IsString()
-	@Column({ 
+	@Column({
 		'type': 'enum',
 		'enum': Year
 	})

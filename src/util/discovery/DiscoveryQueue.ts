@@ -6,7 +6,7 @@ import { DMChannel } from '../../entities/Channel';
 interface QueueUser {
 	user: {
 		id: string;
-		yearOfStudy: number;
+		yearOfStudy: string;
 	};
 	options: QueueOptions;
 }
