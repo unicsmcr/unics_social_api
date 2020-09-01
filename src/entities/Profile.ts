@@ -5,7 +5,7 @@ import { IsString } from 'class-validator';
 export interface APIProfile {
 	id: string;
 	course: string;
-	yearOfStudy: string;
+	yearOfStudy: Year;
 	profilePicture?: string;
 	instagram?: string;
 	facebook?: string;
@@ -52,7 +52,7 @@ export default class Profile {
 		'type': 'enum',
 		'enum': Year
 	})
-	public yearOfStudy!: string;
+	public yearOfStudy!: Year;
 
 	@Column({ 'default': false })
 	public avatar!: boolean;
