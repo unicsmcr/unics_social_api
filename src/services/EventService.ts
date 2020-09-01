@@ -66,10 +66,12 @@ export default class EventService {
 		return (await getRepository(Event).find()).map(event => event.toJSON());
 	}
 
-	public async editEvent(data: Pick<Event, 'id'> & Partial<Event> & { image: string|boolean }, file?: Express.Multer.File): Promise<APIEvent> {
+	public async editEvent(data: Pick<APIEvent, 'id'> & Partial<APIEvent> & { image: string|boolean }, file?: Express.Multer.File): Promise<APIEvent> {
 		return getConnection().transaction(async entityManager => {
 			if (!data.id) throw new APIError(HttpCode.BadRequest, PatchEventError.IdMissing);
 			const event = await entityManager.findOneOrFail(Event, data.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PatchEventError.EventNotFound)));
+			if (data.startTime) (data as any).startTime = new Date(data.startTime);
+			if (data.endTime) (data as any).endTime = new Date(data.endTime);
 			Object.assign(event, { ...data, image: event.image, channel: event.channel });
 			await validateOrReject(event).catch(e => Promise.reject(formatValidationErrors(e)));
 
