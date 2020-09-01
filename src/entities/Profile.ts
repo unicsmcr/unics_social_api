@@ -31,14 +31,14 @@ export default class Profile {
 	public avatar!: boolean;
 
 	@Column({ nullable: true })
-	@Matches(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/, {message: 'Not a valid instagram username'})
+	@Matches(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/, { message: 'Not a valid instagram username' })
 	public instagram?: string;
 
 	@Column({ nullable: true })
 	public facebook?: string;
 
 	@Column({ nullable: true })
-	@Matches(/^[^\W][\w]{1,15}?$/, {message: 'Not a valid twitter username'})
+	@Matches(/^[^\W][\w]{1,15}?$/, { message: 'Not a valid twitter username' })
 	public twitter?: string;
 
 	public toJSON() {
