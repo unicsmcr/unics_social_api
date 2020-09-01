@@ -65,7 +65,7 @@ export class UserService {
 			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
 
 			try {
-				return entityManager.save(user);
+				return await entityManager.save(user);
 			} catch (error) {
 				const code = String(error.code);
 				if (code === '23505') {

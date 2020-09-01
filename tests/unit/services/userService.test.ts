@@ -36,7 +36,7 @@ describe('UserService', () => {
 			});
 			expect(user.password).toStrictEqual('tlobrednuht');
 			// 2nd registration should fail
-			// await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 
 		test('Accepts Postgrad Email', async () => {
