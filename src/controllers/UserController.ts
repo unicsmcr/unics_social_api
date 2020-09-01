@@ -39,9 +39,9 @@ export class UserController {
 		}
 	}
 
-	public async verifyUserEmail(req: Request & { query: { token: string } }, res: Response, next: NextFunction): Promise<void> {
+	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			await this.userService.verifyUserEmail(req.query.token);
+			await this.userService.verifyUserEmail(res.locals.user.id);
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
