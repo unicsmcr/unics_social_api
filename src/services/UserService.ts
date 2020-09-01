@@ -76,14 +76,15 @@ export class UserService {
 				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
 			}
 
-			const jwtToken = await verifyJWT(jwt);
-			if (!jwtToken) {
+			try {
+				const jwtToken = await verifyJWT(jwt);
+				const user = await entityManager.findOneOrFail(User, jwtToken.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
+				user.accountStatus = AccountStatus.Verified;
+				await entityManager.save(user);
+				return user.toJSONPrivate();
+			} catch (error) {
 				throw new APIError(HttpCode.BadRequest, EmailVerifyError.TokenNotFound);
 			}
-			const user = await entityManager.findOneOrFail(User, jwtToken.id).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
-			user.accountStatus = AccountStatus.Verified;
-			await entityManager.save(user);
-			return user.toJSONPrivate();
 		});
 	}
 

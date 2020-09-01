@@ -30,21 +30,21 @@ beforeAll(() => {
 
 describe('getUser middleware', () => {
 	test('Resolves user with valid JWT', async () => {
-		const authorization = await generateJWT(fixture, type);
+		const authorization = await generateJWT({ ...fixture, tokenType: type });
 		const req: any = { headers: { authorization } };
 		const res: any = { locals: {} };
 		const next: any = jest.fn();
-		await getUser(req, res, next);
+		await getUser(type)(req, res, next);
 		expect(res.locals.user).toEqual(fixture);
 		expect(next).toHaveBeenCalledWith();
 	});
 
 	test('Errors when invalid authorization passed', async () => {
-		const authorization = `${await generateJWT(fixture, type)}123`;
+		const authorization = `${await generateJWT({ ...fixture, tokenType: type })}123`;
 		const req: any = { headers: { authorization } };
 		const res: any = { locals: {} };
 		const next = jest.fn();
-		await getUser(req, res, next);
+		await getUser(type)(req, res, next);
 		expect(res.locals.user).toBeUndefined();
 		expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
 	});
@@ -53,7 +53,7 @@ describe('getUser middleware', () => {
 		const req: any = { headers: {} };
 		const res: any = { locals: {} };
 		const next = jest.fn();
-		await getUser(req, res, next);
+		await getUser(type)(req, res, next);
 		expect(res.locals.user).toBeUndefined();
 		expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
 	});
@@ -64,17 +64,17 @@ describe('getUser middleware', () => {
 		const req: any = { headers: { authorization } };
 		const res: any = { locals: {} };
 		const next = jest.fn();
-		await getUser(req, res, next);
+		await getUser(type)(req, res, next);
 		expect(res.locals.user).toBeUndefined();
 		expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
 	});
 
 	test('Errors when user does not exist passed', async () => {
-		const authorization = await generateJWT({ id: '0123' }, type);
+		const authorization = await generateJWT({ id: '0123', tokenType: type });
 		const req: any = { headers: { authorization } };
 		const res: any = { locals: {} };
 		const next = jest.fn();
-		await getUser(req, res, next);
+		await getUser(type)(req, res, next);
 		expect(res.locals.user).toBeUndefined();
 		expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
 	});

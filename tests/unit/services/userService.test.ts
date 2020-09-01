@@ -109,7 +109,7 @@ describe('UserService', () => {
 		let token: string;
 		const user = users[0];
 		beforeEach(async () => {
-			token = await generateJWT(user, TokenType.Auth);
+			token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			await getRepository(User).save(user);
 		});
 

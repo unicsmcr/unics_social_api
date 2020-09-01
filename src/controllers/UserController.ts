@@ -27,7 +27,7 @@ export class UserController {
 	public async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const user = await this.userService.registerUser(req.body);
-			const token = await generateJWT(user, TokenType.EmailVerify);
+			const token = await generateJWT({ ...user, tokenType: TokenType.EmailVerify });
 			await this.emailService.sendEmail({
 				to: user.email,
 				subject: 'Verify your UniCS KB email',
@@ -51,7 +51,7 @@ export class UserController {
 	public async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const user = await this.userService.authenticate(req.body.email, req.body.password);
-			const token = await generateJWT(user, TokenType.Auth);
+			const token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			res.json({ token });
 		} catch (error) {
 			next(error);
