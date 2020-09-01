@@ -14,7 +14,23 @@ let app: Express.Application;
 let mockedUserService: UserService;
 let mockedEmailService: EmailService;
 
+const spiedGetUserReqs = {
+	authorization: '',
+	user: null
+};
+
+function setGetUserAllowed(authorization: string, user: User) {
+	Object.assign(spiedGetUserReqs, { authorization, user });
+}
+
 beforeAll(async () => {
+	const spiedGetUser = jest.spyOn(middleware, 'default');
+	spiedGetUser.mockImplementation(() => (req, res, next) => {
+		if (req.headers.authorization === spiedGetUserReqs.authorization) res.locals.user = spiedGetUserReqs.user as unknown as User;
+		next();
+		return Promise.resolve();
+	});
+
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
 	container.clearInstances();
@@ -25,6 +41,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
 });
@@ -45,16 +62,6 @@ function clean(obj: Record<string, any>) {
 
 describe('UserController', () => {
 	const spiedGetUser = jest.spyOn(middleware, 'default');
-
-	function setGetUserAllowed(tokenType: authUtils.TokenType, authorization: string, user: User) {
-		spiedGetUser.mockImplementation(tokenType => (req, res, next) => {
-			if (req.headers.authorization === authorization) {
-				res.locals.user = user;
-			}
-			next();
-			return Promise.resolve();
-		});
-	}
 
 	afterEach(() => {
 		spiedGetUser.mockReset();
@@ -104,22 +111,26 @@ describe('UserController', () => {
 	describe('verifyUserEmail', () => {
 		test('No content response for valid request', async () => {
 			const token = randomString();
+			const user = users[1];
+			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(token)).thenResolve(users[1]);
+			when(mockedUserService.verifyUserEmail(user.id)).thenResolve(users[1]);
 
-			const res = await supertest(app).get(`/api/v1/verify?token=${token}`);
-			verify(mockedUserService.verifyUserEmail(token)).called();
+			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
+			verify(mockedUserService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
 
 		test('Forwards errors from UserService', async () => {
 			const token = randomString();
+			const user = users[1];
+			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(token)).thenReject(testError400);
+			when(mockedUserService.verifyUserEmail(user.id)).thenReject(testError400);
 
-			const res = await supertest(app).get(`/api/v1/verify?token=${token}`);
-			verify(mockedUserService.verifyUserEmail(token)).called();
+			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
+			verify(mockedUserService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
@@ -176,7 +187,7 @@ describe('UserController', () => {
 		test('Ok response for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
 			const authorization = randomString();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, user!);
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.findOne(objectContaining({ id: user!.id }))).thenResolve(user);
 			const res = await supertest(app).get(`/api/v1/users/@me`).set('Authorization', authorization);
@@ -187,7 +198,7 @@ describe('UserController', () => {
 		test('Ok response for valid request (other user)', async () => {
 			const [userMe, userOther] = users.filter(user => user.profile);
 			const authorization = randomString();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, userMe);
+			setGetUserAllowed(authorization, userMe);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenResolve(userOther);
@@ -199,7 +210,7 @@ describe('UserController', () => {
 		test('Forwards errors from UserService', async () => {
 			const [userMe, userOther] = users.filter(user => user.profile);
 			const authorization = randomString();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, userMe);
+			setGetUserAllowed(authorization, userMe);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther.id }))).thenReject(testError400);
@@ -212,7 +223,7 @@ describe('UserController', () => {
 			const userMe = users.find(user => user.profile);
 			const userOther = users.find(user => !user.profile);
 			const authorization = randomString();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, userMe!);
+			setGetUserAllowed(authorization, userMe!);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: userOther!.id }))).thenResolve(userOther);
@@ -225,7 +236,7 @@ describe('UserController', () => {
 			const userMe = users.find(user => user.profile);
 			const authorization = randomString();
 			const userOther = randomString();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, userMe!);
+			setGetUserAllowed(authorization, userMe!);
 
 			when(mockedUserService.findOne(objectContaining({ id: userMe!.id }))).thenResolve(userMe);
 			when(mockedUserService.findOne(objectContaining({ id: randomString() }))).thenResolve(undefined);
@@ -239,7 +250,7 @@ describe('UserController', () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
 			const authorization = randomString();
 			const [randomInput, randomOutput] = [randomObject(), randomObject()];
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, user!);
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenResolve(randomOutput);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
@@ -254,7 +265,7 @@ describe('UserController', () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
 			const authorization = randomString();
 			const randomInput = randomObject();
-			setGetUserAllowed(authUtils.TokenType.Auth, authorization, user!);
+			setGetUserAllowed(authorization, user!);
 
 			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenReject(testError400);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)

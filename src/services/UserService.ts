@@ -83,7 +83,7 @@ export class UserService {
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
-			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.UserNotFound)));
+			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound)));
 			user.accountStatus = AccountStatus.Verified;
 			await entityManager.save(user);
 			return user.toJSONPrivate();

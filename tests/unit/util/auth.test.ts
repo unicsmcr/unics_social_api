@@ -7,6 +7,7 @@ describe('AuthUtil', () => {
 		const reformedPayload = await verifyJWT(token) as any;
 		expect(reformedPayload.id).toEqual(payload.id);
 		expect(reformedPayload.thisShouldBe).toBeUndefined();
+		expect(reformedPayload.tokenType).toEqual(payload.tokenType);
 	});
 
 	test('Throws when invalid JWT attempted to be verified', async () => {

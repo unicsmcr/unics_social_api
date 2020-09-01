@@ -6,7 +6,6 @@ import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { APIProfile } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
-import { TokenType, generateJWT } from '../../../src/util/auth';
 
 beforeAll(async () => {
 	await createDBConnection();
@@ -106,21 +105,19 @@ describe('UserService', () => {
 	});
 
 	describe('verifyUserEmail', () => {
-		let token: string;
 		const user = users[0];
 		beforeEach(async () => {
-			token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			await getRepository(User).save(user);
 		});
 
 		test('Successfully verifies a user email with a valid confirmation', async () => {
-			const user = await userService.verifyUserEmail(token);
-			expect(user.accountStatus).toStrictEqual(AccountStatus.Verified);
+			const verifiedUser = await userService.verifyUserEmail(user.id);
+			expect(verifiedUser.accountStatus).toStrictEqual(AccountStatus.Verified);
 		});
 
-		test('Fails with invalid token', async () => {
-			await expect(userService.verifyUserEmail('')).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.verifyUserEmail(user.id)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		test('Fails with invalid user ID', async () => {
+			await expect(userService.verifyUserEmail('')).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(userService.verifyUserEmail(`${user.id}123`)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 	});
 
