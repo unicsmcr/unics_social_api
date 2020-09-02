@@ -1,10 +1,10 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './User';
-import { IsString } from 'class-validator';
+import { IsEnum } from 'class-validator';
 
 export interface APIProfile {
 	id: string;
-	course: string;
+	course: Course;
 	yearOfStudy: Year;
 	profilePicture?: string;
 	instagram?: string;
@@ -26,10 +26,9 @@ export enum Year {
 	TWO = 'Second Year',
 	THREE = 'Final Year Bachelors',
 	FOUNDATION = 'Foundation Year',
-	PENULTIMATE_MASTERS = 'Third Year Masters',
-	MASTERS = 'Final Year Masters',
-	INDUSTRIAL = 'Industrial year',
-	PHD = 'PHD (Any Year)'
+	MASTERS = 'Masters Year',
+	INDUSTRIAL = 'Industrial Year',
+	PHD = 'PHD Student'
 }
 
 @Entity()
@@ -40,14 +39,14 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@IsString()
+	@IsEnum(Course)
 	@Column({
 		'type': 'enum',
 		'enum': Course
 	})
-	public course!: string;
+	public course!: Course;
 
-	@IsString()
+	@IsEnum(Year)
 	@Column({
 		'type': 'enum',
 		'enum': Year

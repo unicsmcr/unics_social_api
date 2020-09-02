@@ -5,7 +5,7 @@ import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
-import { APIProfile, Year } from '../../../src/entities/Profile';
+import { APIProfile, Year, Course } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
@@ -167,21 +167,21 @@ describe('UserService', () => {
 
 		test('User profile registered for valid request (new profile)', async () => {
 			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
-				course: 'Computer Science',
+				course: Course.COMPUTER_SCIENCE,
 				yearOfStudy: Year.TWO,
 				avatar: false
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
 			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
-			expect(savedUser.profile!.course).toStrictEqual('Computer Science');
+			expect(savedUser.profile!.course).toStrictEqual(Course.COMPUTER_SCIENCE);
 			expect(savedUser.profile!.yearOfStudy).toStrictEqual(Year.TWO);
 		});
 
 		test('User profile registered for valid request (existing profile)', async () => {
 			const initialProfile = userWithProfile.profile;
 			const savedUser = await userService.putUserProfile(userWithProfile.id, {
-				course: 'Software Engineering',
+				course: Course.SOFTWARE_ENGINEERING,
 				yearOfStudy: Year.ONE,
 				avatar: false
 			});
@@ -189,12 +189,12 @@ describe('UserService', () => {
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
 			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
 			expect(initialProfile).not.toMatchObject(savedUser.profile!);
-			expect(savedUser.profile!.course).toStrictEqual('Software Engineering');
+			expect(savedUser.profile!.course).toStrictEqual(Course.SOFTWARE_ENGINEERING);
 			expect(savedUser.profile!.yearOfStudy).toStrictEqual(Year.ONE);
 		});
 
 		test('Fails to create user profile for non-existent user', async () => {
-			const details = { course: 'Computer Science', yearOfStudy: Year.TWO, avatar: false };
+			const details = { course: Course.COMPUTER_SCIENCE, yearOfStudy: Year.TWO, avatar: false };
 			await expect(userService.putUserProfile('', details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithProfile.id}1`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithoutProfile.id}a`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
