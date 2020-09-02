@@ -169,7 +169,10 @@ describe('UserService', () => {
 			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
 				course: 'Computer Science',
 				yearOfStudy: 1,
-				avatar: false
+				avatar: false,
+				instagram:'',
+				facebook:'',
+				twitter:''
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
