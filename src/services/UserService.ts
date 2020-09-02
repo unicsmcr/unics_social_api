@@ -1,7 +1,6 @@
 import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/User';
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
-import { EmailConfirmation } from '../entities/EmailConfirmation';
 import { singleton } from 'tsyringe';
 import Profile from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
@@ -23,7 +22,8 @@ enum RegistrationError {
 }
 
 enum EmailVerifyError {
-	ConfirmationNotFound = 'Unable to verify your email, the given code was unknown'
+	UserNotFound = 'User not found',
+	AccountNotUnverified = 'Your account has already been verified'
 }
 
 enum AuthenticateError {
@@ -48,7 +48,7 @@ export class UserService {
 		return getRepository(User).findOne(findConditions, options);
 	}
 
-	public async registerUser(data: UserDataToCreate): Promise<EmailConfirmation> {
+	public async registerUser(data: UserDataToCreate): Promise<User> {
 		return getConnection().transaction(async entityManager => {
 			const user = new User();
 
@@ -65,9 +65,8 @@ export class UserService {
 
 			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
 
-			const emailConfirmation = new EmailConfirmation();
 			try {
-				emailConfirmation.user = await entityManager.save(user);
+				return await entityManager.save(user);
 			} catch (error) {
 				const code = String(error.code);
 				if (code === '23505') {
@@ -79,25 +78,17 @@ export class UserService {
 				}
 				throw error;
 			}
-
-			return entityManager.save(emailConfirmation);
 		});
 	}
 
-	public async verifyUserEmail(confirmationId: string): Promise<APIPrivateUser> {
+	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
-			// If an empty string has been passed, .findOne will return any confirmation which is definitely NOT wanted
-			if (!confirmationId) {
-				throw new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound);
-			}
-
-			const confirmation = await entityManager.findOneOrFail(EmailConfirmation, confirmationId)
-				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, EmailVerifyError.ConfirmationNotFound)));
-
-			confirmation.user.accountStatus = AccountStatus.Verified;
-			await entityManager.save(confirmation.user);
-			await entityManager.remove(confirmation);
-			return confirmation.user.toJSONPrivate();
+			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound)));
+			if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
+			user.accountStatus = AccountStatus.Verified;
+			await entityManager.save(user);
+			return user.toJSONPrivate();
 		});
 	}
 

@@ -7,12 +7,27 @@ import { APIError, HttpCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
 import EventService from '../../../src/services/EventService';
-import { send } from 'process';
 
 let app: Express.Application;
 let mockedEventService: EventService;
 
+const spiedGetUserReqs = {
+	authorization: '',
+	user: null
+};
+
+function setGetUserAllowed(authorization: string, user: User) {
+	Object.assign(spiedGetUserReqs, { authorization, user });
+}
+
 beforeAll(async () => {
+	const spiedGetUser = jest.spyOn(middleware, 'default');
+	spiedGetUser.mockImplementation(() => (req, res, next) => {
+		if (req.headers.authorization === spiedGetUserReqs.authorization) res.locals.user = spiedGetUserReqs.user as unknown as User;
+		next();
+		return Promise.resolve();
+	});
+
 	mockedEventService = mock(EventService);
 	container.clearInstances();
 	container.register<EventService>(EventService, { useValue: instance(mockedEventService) });
@@ -21,6 +36,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedEventService);
 });
 
@@ -30,22 +46,9 @@ const randomObject = () => ({ tag: randomString() }) as any;
 const testError400 = new APIError(HttpCode.BadRequest, 'EventController test error');
 
 describe('EventController', () => {
-	const spiedGetUser = jest.spyOn(middleware, 'default');
 	const adminUser = users.find(user => user.accountType === AccountType.Admin)!;
 	const normalUser = users.find(user => user.accountType === AccountType.User)!;
 	const verifiedUser = users.find(user => user.accountType === AccountType.User && user.accountStatus === AccountStatus.Verified)!;
-
-	function setGetUserAllowed(authorization: string, user: User) {
-		spiedGetUser.mockImplementation((req, res, next) => {
-			if (req.headers.authorization === authorization) res.locals.user = user;
-			next();
-			return Promise.resolve();
-		});
-	}
-
-	afterEach(() => {
-		spiedGetUser.mockReset();
-	});
 
 	describe('createEvent', () => {
 		test('Ok response for valid request', async () => {
