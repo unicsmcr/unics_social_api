@@ -1,5 +1,5 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { IsString, Matches } from 'class-validator';
+import { IsString, Matches, IsOptional } from 'class-validator';
 import { User } from './User';
 
 export interface APIProfile {
@@ -44,14 +44,17 @@ export default class Profile {
 
 	@Column({ nullable: true })
 	@Matches(/(^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$)|(^$)/, { message: 'Not a valid instagram username' })
+	@IsOptional()
 	public instagram?: string;
 
 	@Column({ nullable: true })
 	@Matches(/(^[A-Za-z0-9\.]{5,}$)|(^$)/, { message: 'Not a valid facebook username' })
+	@IsOptional()
 	public facebook?: string;
 
 	@Column({ nullable: true })
 	@Matches(/(^[^\W][\w]{1,15}$)|(^$)/, { message: 'Not a valid twitter username' })
+	@IsOptional()
 	public twitter?: string;
 
 	public toJSON() {
