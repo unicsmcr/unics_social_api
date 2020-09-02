@@ -27,8 +27,7 @@ enum EmailVerifyError {
 }
 
 enum AuthenticateError {
-	AccountNotFound = 'Account not found.',
-	PasswordIncorrect = 'Password incorrect.'
+	InvalidCredentials = 'Invalid Credentials'
 }
 
 enum PutProfileError {
@@ -103,7 +102,7 @@ export class UserService {
 
 	public async authenticate(email: string, password: string): Promise<APIPrivateUser> {
 		if (!email) {
-			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
+			throw new APIError(HttpCode.BadRequest, AuthenticateError.InvalidCredentials);
 		}
 
 		const user = await getRepository(User)
@@ -112,11 +111,11 @@ export class UserService {
 			.getOne();
 
 		if (!user) {
-			throw new APIError(HttpCode.BadRequest, AuthenticateError.AccountNotFound);
+			throw new APIError(HttpCode.BadRequest, AuthenticateError.InvalidCredentials);
 		}
 
 		if (!verifyPassword(password, user.password)) {
-			throw new APIError(HttpCode.Forbidden, AuthenticateError.PasswordIncorrect);
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
 		}
 
 		return user.toJSONPrivate();
