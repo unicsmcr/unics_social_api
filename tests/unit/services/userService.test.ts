@@ -140,8 +140,8 @@ describe('UserService', () => {
 		});
 
 		test('Authenticate fails with empty/invalid email', async () => {
-			await expect(userService.authenticate('', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.authenticate('random@student.manchester.ac.uk', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.authenticate('', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
+			await expect(userService.authenticate('random@student.manchester.ac.uk', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
 		});
 
 		test('Authenticate fails with invalid password', async () => {
