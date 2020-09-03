@@ -122,7 +122,7 @@ export class UserService {
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
 			const { twitter, instagram, yearOfStudy, course, facebook } = options;
-			Object.assign(profile, { twitter, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
+			Object.assign(profile, { twitter, instagram, yearOfStudy, course, facebook });
 			profile.user = user;
 			user.profile = profile;
 

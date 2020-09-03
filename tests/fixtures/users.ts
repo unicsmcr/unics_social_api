@@ -1,6 +1,7 @@
 import { User, AccountType, AccountStatus } from '../../src/entities/User';
-import Profile from '../../src/entities/Profile';
+import Profile, { Year, Course } from '../../src/entities/Profile';
 import { DMChannel } from '../../src/entities/Channel';
+
 
 /*
 	User 1
@@ -31,8 +32,8 @@ user2.accountStatus = AccountStatus.Verified;
 
 const user2Profile = new Profile();
 user2Profile.id = 'b1ea3e46-256c-471c-b7b3-aef75a2d5727';
-user2Profile.course = 'Computer Science';
-user2Profile.yearOfStudy = 2;
+user2Profile.course = Course.COMPUTER_SCIENCE;
+user2Profile.yearOfStudy = Year.PHD;
 user2Profile.instagram = 'testuser';
 user2Profile.user = user2;
 user2Profile.avatar = false;
@@ -54,8 +55,8 @@ user3.accountStatus = AccountStatus.Verified;
 
 const user3Profile = new Profile();
 user3Profile.id = '0a697716-86a4-4b44-81ad-3ae561bcc7b0';
-user3Profile.course = 'International Management';
-user3Profile.yearOfStudy = 2;
+user3Profile.course = Course.ARTIFICIAL_INTELLIGENCE;
+user3Profile.yearOfStudy = Year.ONE;
 user3Profile.instagram = 'randomstudent';
 user3Profile.twitter = 'random_handle';
 user3Profile.avatar = false;
