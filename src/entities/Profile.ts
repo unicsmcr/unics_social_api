@@ -28,7 +28,7 @@ export enum Year {
 	FOUNDATION = 'Foundation Year',
 	MASTERS = 'Masters Year',
 	INDUSTRIAL = 'Industrial Year',
-	PHD = 'PHD Student'
+	PHD = 'PhD Student'
 }
 
 @Entity()
