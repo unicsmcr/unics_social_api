@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
 import { getUser, isVerified, uploadImg } from './middleware';
+import { TokenType } from '../util/auth';
 
 @injectable()
 export class UserRoutes {
@@ -14,14 +15,14 @@ export class UserRoutes {
 	public routes(router: Router): void {
 		router.post('/register', this.userController.registerUser.bind(this.userController));
 
-		router.get('/verify', this.userController.verifyUserEmail.bind(this.userController));
+		router.get('/verify', getUser(TokenType.EmailVerify), this.userController.verifyUserEmail.bind(this.userController));
 
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 
-		router.get('/users/:id', getUser, isVerified, this.userController.getUser.bind(this.userController));
+		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
 
-		router.put('/users/@me/profile', getUser, isVerified, uploadImg('avatar'), this.userController.putUserProfile.bind(this.userController));
+		router.put('/users/@me/profile', getUser(TokenType.Auth), isVerified, uploadImg('avatar'), this.userController.putUserProfile.bind(this.userController));
 
-		router.post('/users/:recipientID/channel', getUser, isVerified, this.userController.createDMChannel.bind(this.userController));
+		router.post('/users/:recipientID/channel', getUser(TokenType.Auth), isVerified, this.userController.createDMChannel.bind(this.userController));
 	}
 }

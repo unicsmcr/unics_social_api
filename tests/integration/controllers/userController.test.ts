@@ -5,7 +5,6 @@ import { mock, instance, when, anything, verify, objectContaining, reset } from 
 import { container } from 'tsyringe';
 import supertest from 'supertest';
 import * as authUtils from '../../../src/util/auth';
-import emailConfirmations from '../../fixtures/emailConfirmations';
 import users from '../../fixtures/users';
 import { APIError, HttpCode } from '../../../src/util/errors';
 import * as middleware from '../../../src/routes/middleware/getUser';
@@ -15,7 +14,23 @@ let app: Express.Application;
 let mockedUserService: UserService;
 let mockedEmailService: EmailService;
 
+const spiedGetUserReqs = {
+	authorization: '',
+	user: null
+};
+
+function setGetUserAllowed(authorization: string, user: User) {
+	Object.assign(spiedGetUserReqs, { authorization, user });
+}
+
 beforeAll(async () => {
+	const spiedGetUser = jest.spyOn(middleware, 'default');
+	spiedGetUser.mockImplementation(() => (req, res, next) => {
+		if (req.headers.authorization === spiedGetUserReqs.authorization) res.locals.user = spiedGetUserReqs.user as unknown as User;
+		next();
+		return Promise.resolve();
+	});
+
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
 	container.clearInstances();
@@ -26,6 +41,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
 });
@@ -47,14 +63,6 @@ function clean(obj: Record<string, any>) {
 describe('UserController', () => {
 	const spiedGetUser = jest.spyOn(middleware, 'default');
 
-	function setGetUserAllowed(authorization: string, user: User) {
-		spiedGetUser.mockImplementation((req, res, next) => {
-			if (req.headers.authorization === authorization) res.locals.user = user;
-			next();
-			return Promise.resolve();
-		});
-	}
-
 	afterEach(() => {
 		spiedGetUser.mockReset();
 	});
@@ -63,7 +71,7 @@ describe('UserController', () => {
 		test('No content response for valid request', async () => {
 			const data = randomObject();
 
-			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
+			when(mockedUserService.registerUser(anything())).thenResolve(users[0]);
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
 
 			const res = await supertest(app).post('/api/v1/register').send(data);
@@ -89,7 +97,7 @@ describe('UserController', () => {
 		test('Forwards errors from EmailService', async () => {
 			const data = randomObject();
 
-			when(mockedUserService.registerUser(anything())).thenResolve(emailConfirmations[0]);
+			when(mockedUserService.registerUser(anything())).thenResolve(users[0]);
 			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
 
 			const res = await supertest(app).post('/api/v1/register').send(data);
@@ -102,23 +110,27 @@ describe('UserController', () => {
 
 	describe('verifyUserEmail', () => {
 		test('No content response for valid request', async () => {
-			const confirmationId = randomString();
+			const token = randomString();
+			const user = users[1];
+			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(confirmationId)).thenResolve(users[1]);
+			when(mockedUserService.verifyUserEmail(user.id)).thenResolve(users[1]);
 
-			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
-			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
+			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
+			verify(mockedUserService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
 
 		test('Forwards errors from UserService', async () => {
-			const confirmationId = randomString();
+			const token = randomString();
+			const user = users[1];
+			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(confirmationId)).thenReject(testError400);
+			when(mockedUserService.verifyUserEmail(user.id)).thenReject(testError400);
 
-			const res = await supertest(app).get(`/api/v1/verify?confirmationId=${confirmationId}`);
-			verify(mockedUserService.verifyUserEmail(confirmationId)).called();
+			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
+			verify(mockedUserService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
