@@ -125,7 +125,7 @@ describe('GatewayController', () => {
 				}
 			};
 
-			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456' });
+			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456', tokenType: auth.TokenType.Auth });
 			when(mockedUserService.findOne(objectContaining({ id: '456' }))).thenResolve({} as any);
 			await sockets[0].send(JSON.stringify(payload));
 			expect(JSON.parse(await sockets[0].nextMessage)).toMatchObject({ type: GatewayPacketType.Hello });
@@ -156,7 +156,7 @@ describe('GatewayController', () => {
 				}
 			};
 
-			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456' });
+			when(spiedVerifyJWT.verifyJWT('123')).thenResolve({ id: '456', tokenType: auth.TokenType.Auth });
 			when(mockedUserService.findOne(objectContaining({ id: '456' }))).thenReject(new Error('Test Error'));
 			await sockets[0].send(JSON.stringify(payload));
 			await expect(sockets[0].nextMessage).rejects.toThrow();

@@ -1,7 +1,7 @@
 import { getConfig } from '../config';
 
-export const VerifyEmailTemplate = (name: string, confirmationId: string) => {
-	const url = `${getConfig().host}/verify?confirmationId=${confirmationId}`;
+export const VerifyEmailTemplate = (name: string, token: string) => {
+	const url = `${getConfig().host}/verify?token=${token}`;
 	return `<b>Hi ${name}!</b>
 
 <p>We need you to activate your UniCS KB account.</p>

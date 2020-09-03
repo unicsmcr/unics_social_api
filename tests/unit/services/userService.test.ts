@@ -4,7 +4,6 @@ import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
-import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
 import { APIProfile } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
@@ -26,16 +25,16 @@ describe('UserService', () => {
 		test('Registers a user with valid details', async () => {
 			const { email, forename, surname } = users[0];
 			const details = { email, forename, surname, password: 'thunderbolt' };
-			const confirmation = await userService.registerUser(details);
-			expect(confirmation.id).toBeTruthy();
-			expect(confirmation.user).toMatchObject({
+			const user = await userService.registerUser(details);
+			expect(user.id).toBeTruthy();
+			expect(user).toMatchObject({
 				email,
 				forename,
 				surname,
 				accountType: AccountType.User,
 				accountStatus: AccountStatus.Unverified
 			});
-			expect(confirmation.user.password).toStrictEqual('tlobrednuht');
+			expect(user.password).toStrictEqual('tlobrednuht');
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
@@ -43,8 +42,8 @@ describe('UserService', () => {
 		test('Accepts Postgrad Email', async () => {
 			const { email, surname, forename } = users[1];
 			const details = { email, forename, surname, password: 'thunderbolt' };
-			const confirmation = await userService.registerUser(details);
-			expect(confirmation.user).toMatchObject({
+			const user = await userService.registerUser(details);
+			expect(user).toMatchObject({
 				email,
 				forename,
 				surname,
@@ -86,8 +85,8 @@ describe('UserService', () => {
 			const { email, surname } = users[0];
 			const forename = 'f'.repeat(20);
 			const details = { email, forename, surname, password: 'thunderbolt' };
-			const confirmation = await userService.registerUser(details);
-			expect(confirmation.user).toMatchObject({
+			const user = await userService.registerUser(details);
+			expect(user).toMatchObject({
 				email,
 				forename,
 				surname,
@@ -106,31 +105,25 @@ describe('UserService', () => {
 	});
 
 	describe('verifyUserEmail', () => {
-		let confirmation: EmailConfirmation;
 		const user = users[0];
 		beforeEach(async () => {
-			confirmation = new EmailConfirmation();
-			confirmation.id = '86e194ae-31c8-462b-894e-c1cca689837a';
-			confirmation.user = user;
 			await getRepository(User).save(user);
-			await getRepository(EmailConfirmation).save(confirmation);
 		});
 
-		test('Successfully verifies a user email with a valid confirmation', async () => {
-			const user = await userService.verifyUserEmail(confirmation.id);
-			expect(user).toMatchObject({
-				...user,
-				accountStatus: AccountStatus.Verified
-			});
-
-			// Second validation should fail
-			await expect(userService.verifyUserEmail(confirmation.id)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		test('Successfully verifies a user', async () => {
+			const verifiedUser = await userService.verifyUserEmail(user.id);
+			expect(verifiedUser.accountStatus).toStrictEqual(AccountStatus.Verified);
 		});
 
-		test('Fails with invalid confirmation id', async () => {
-			await expect(userService.verifyUserEmail('')).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		test('Fails when trying to verify an already-verified user', async () => {
+			const verifiedUser = await userService.verifyUserEmail(user.id);
+			expect(verifiedUser.accountStatus).toStrictEqual(AccountStatus.Verified);
 			await expect(userService.verifyUserEmail(user.id)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.verifyUserEmail(`${confirmation.id} `)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		});
+
+		test('Fails with invalid user ID', async () => {
+			await expect(userService.verifyUserEmail('')).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(userService.verifyUserEmail(`${user.id}123`)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 	});
 
@@ -169,7 +162,10 @@ describe('UserService', () => {
 			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
 				course: 'Computer Science',
 				yearOfStudy: 1,
-				avatar: false
+				avatar: false,
+				instagram:'',
+				facebook:'',
+				twitter:''
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -202,8 +198,7 @@ describe('UserService', () => {
 
 		test('Fails to create user profile with invalid details', async () => {
 			await expect(userService.putUserProfile(userWithoutProfile.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'History' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.putUserProfile(userWithoutProfile.id, { yearOfStudy: 2 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'History', yearOfStudy: 1 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(userWithoutProfile.id, { course: 'Computer Science', yearOfStudy: 2.5 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});

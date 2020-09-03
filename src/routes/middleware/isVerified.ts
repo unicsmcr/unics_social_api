@@ -14,3 +14,4 @@ export default function isVerified(req: Request, res: Response, next: NextFuncti
 	}
 	next();
 }
+
