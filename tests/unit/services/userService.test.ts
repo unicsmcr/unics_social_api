@@ -4,7 +4,6 @@ import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
-import { EmailConfirmation } from '../../../src/entities/EmailConfirmation';
 import { APIProfile, Year, Course } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
@@ -163,10 +162,10 @@ describe('UserService', () => {
 			const savedUser = await userService.putUserProfile(userWithoutProfile.id, {
 				course: Course.COMPUTER_SCIENCE,
 				yearOfStudy: Year.TWO,
-        avatar: false
-        instagram: '',
-        facebook:'',
-        twitter:'',
+				avatar: false,
+				instagram: '',
+				facebook: '',
+				twitter: ''
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
