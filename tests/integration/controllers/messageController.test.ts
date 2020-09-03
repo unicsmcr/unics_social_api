@@ -17,7 +17,19 @@ let app: Express.Application;
 let mockedMessageService: MessageService;
 let mockedGatewayController: GatewayController;
 
+const spiedGetUserReqs = {
+	authorization: '',
+	user: null
+};
+
 beforeAll(async () => {
+	const spiedGetUser = jest.spyOn(getUserMiddleware, 'default');
+	spiedGetUser.mockImplementation(() => (req, res, next) => {
+		if (req.headers.authorization === spiedGetUserReqs.authorization) res.locals.user = spiedGetUserReqs.user as unknown as User;
+		next();
+		return Promise.resolve();
+	});
+
 	mockedMessageService = mock(MessageService);
 	mockedGatewayController = mock(GatewayController);
 
@@ -31,6 +43,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedMessageService);
 	resetCalls(mockedGatewayController);
 });
@@ -41,18 +54,13 @@ const randomObject = () => ({ tag: randomString() }) as any;
 const testError400 = new APIError(HttpCode.BadRequest, 'EventController test error');
 
 describe('MessageController', () => {
-	const spiedGetUser = jest.spyOn(getUserMiddleware, 'default');
 	const spiedGetChannel = jest.spyOn(getChannelMiddleware, 'default');
 	const adminUser = users.find(user => user.accountType === AccountType.Admin)!;
 	const verifiedUser = users.find(user => user.accountType === AccountType.User && user.accountStatus === AccountStatus.Verified)!;
 	const eventChannel = events[0].channel;
 
 	function setGetUserAllowed(authorization: string, user: User) {
-		spiedGetUser.mockImplementation((req, res, next) => {
-			if (req.headers.authorization === authorization) res.locals.user = user;
-			next();
-			return Promise.resolve();
-		});
+		Object.assign(spiedGetUserReqs, { authorization, user });
 	}
 
 	function setChannelMiddleware(id: string, channel: Channel) {
@@ -65,10 +73,6 @@ describe('MessageController', () => {
 
 	setChannelMiddleware(eventChannel.id, eventChannel);
 
-	afterEach(() => {
-		spiedGetUser.mockReset();
-	});
-
 	describe('createMessage', () => {
 		test('Ok response for valid request', async () => {
 			const message = randomObject();
@@ -77,7 +81,8 @@ describe('MessageController', () => {
 			setGetUserAllowed(authorization, verifiedUser);
 			when(mockedMessageService.createMessage(expectedInput)).thenResolve(message);
 			const res = await supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
-				.set('Authorization', authorization);
+				.set('Authorization', authorization)
+				.catch(console.error) as any;
 			expect(res.body).toEqual({ message });
 			expect(res.status).toEqual(HttpCode.Ok);
 			verify(mockedMessageService.createMessage(expectedInput)).once();

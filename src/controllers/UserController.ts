@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
 import { VerifyEmailTemplate } from '../util/emails';
-import { generateJWT } from '../util/auth';
+import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
 import ChannelService from '../services/ChannelService';
@@ -26,11 +26,12 @@ export class UserController {
 
 	public async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const confirmation = await this.userService.registerUser(req.body);
+			const user = await this.userService.registerUser(req.body);
+			const token = await generateJWT({ ...user, tokenType: TokenType.EmailVerify });
 			await this.emailService.sendEmail({
-				to: confirmation.user.email,
+				to: user.email,
 				subject: 'Verify your UniCS KB email',
-				html: VerifyEmailTemplate(confirmation.user.forename, confirmation.id)
+				html: VerifyEmailTemplate(user.forename, token)
 			});
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {
@@ -38,9 +39,9 @@ export class UserController {
 		}
 	}
 
-	public async verifyUserEmail(req: Request & { query: { confirmationId: string } }, res: Response, next: NextFunction): Promise<void> {
+	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			await this.userService.verifyUserEmail(req.query.confirmationId);
+			await this.userService.verifyUserEmail(res.locals.user.id);
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
@@ -50,7 +51,7 @@ export class UserController {
 	public async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const user = await this.userService.authenticate(req.body.email, req.body.password);
-			const token = await generateJWT(user);
+			const token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			res.json({ token });
 		} catch (error) {
 			next(error);
