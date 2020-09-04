@@ -2,7 +2,7 @@ import { createApp, createGateway } from '.';
 import { getConfig } from './util/config';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
-import { logger } from './logger';
+import { logger } from './util/logger';
 
 createApp()
 	.then(app => {

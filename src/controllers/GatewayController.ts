@@ -6,7 +6,7 @@ import { verifyJWT } from '../util/auth';
 import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
 import { DiscoveryQueue, QueueMatchData } from '../util/discovery/DiscoveryQueue';
-import { logger } from '../logger';
+import { logger } from '../util/logger';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;

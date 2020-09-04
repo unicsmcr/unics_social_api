@@ -1,7 +1,7 @@
 import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
 import { getConfig } from '../util/config';
-import { logger } from '../logger';
+import { logger } from '../util/logger';
 
 interface GenerateAccessTokenOptions {
 	userId: string;

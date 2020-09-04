@@ -18,7 +18,7 @@ import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
 import { EventRoutes } from './routes/EventRoutes';
 import { ChannelRoutes } from './routes/ChannelRoutes';
-import { logger } from './logger';
+import { logger } from './util/logger';
 
 export function createExpress() {
 	const app = express();
