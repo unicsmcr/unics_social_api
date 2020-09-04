@@ -44,7 +44,7 @@ export class TwilioService {
 		this.timeouts.push(setTimeout(() => {
 			this.completeRoom(room.sid)
 				.then(() => null)
-				.catch(logger.error);
+				.catch(err => logger.error(err));
 		}, ROOM_TIME_LIMIT));
 
 		// We can use the given roomId (should be same as the uniqueName) to access the room in place of its actual SID

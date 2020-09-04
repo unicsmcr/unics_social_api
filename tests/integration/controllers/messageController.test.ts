@@ -83,7 +83,7 @@ describe('MessageController', () => {
 			when(mockedMessageService.createMessage(expectedInput)).thenResolve(message);
 			const res = await supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
 				.set('Authorization', authorization)
-				.catch(logger.error) as any;
+				.catch(err => logger.error(err)) as any;
 			expect(res.body).toEqual({ message });
 			expect(res.status).toEqual(HttpCode.Ok);
 			verify(mockedMessageService.createMessage(expectedInput)).once();
