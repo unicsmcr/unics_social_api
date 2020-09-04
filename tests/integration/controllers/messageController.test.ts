@@ -12,7 +12,7 @@ import { Channel } from '../../../src/entities/Channel';
 import events from '../../fixtures/events';
 import GatewayController from '../../../src/controllers/GatewayController';
 import { GatewayPacketType } from '../../../src/util/gateway';
-import { logger } from '../../../src/logger'
+import { logger } from '../../../src/util/logger';
 
 let app: Express.Application;
 let mockedMessageService: MessageService;
