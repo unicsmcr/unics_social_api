@@ -6,6 +6,7 @@ import { verifyJWT } from '../util/auth';
 import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
 import { DiscoveryQueue, QueueMatchData } from '../util/discovery/DiscoveryQueue';
+import { logger } from '../logger';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
@@ -27,7 +28,7 @@ export default class GatewayController {
 
 		this._heartbeatInterval = setInterval(() => {
 			this.checkHeartbeats()
-				.catch(console.error);
+				.catch(logger.error);
 		}, HEARTBEAT_INTERVAL);
 	}
 
@@ -59,7 +60,7 @@ export default class GatewayController {
 		this.wss.on('connection', ws => {
 			ws.on('message', data => void this.onMessage(ws, data).catch(error => {
 				if (!(error instanceof GatewayError) && getConfig().logErrors) {
-					console.error(error);
+					logger.error(error);
 				}
 				ws.close();
 			}));
