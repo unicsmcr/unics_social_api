@@ -2,11 +2,12 @@ import { UserService } from '../../services/UserService';
 import ChannelService from '../../services/ChannelService';
 import { inject, singleton } from 'tsyringe';
 import { DMChannel } from '../../entities/Channel';
+import { Year } from '../../entities/Profile';
 
 interface QueueUser {
 	user: {
 		id: string;
-		yearOfStudy: number;
+		yearOfStudy: Year;
 	};
 	options: QueueOptions;
 }
