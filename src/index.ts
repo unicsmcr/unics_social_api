@@ -54,7 +54,7 @@ export function createExpress() {
 			res.status(err.httpCode).send({ error: err.message });
 		} else {
 			if (getConfig().logErrors) {
-				logger.error(err.stack);
+				logger.error(err);
 			}
 			res.status(HttpCode.InternalError).send({ error: 'Something went wrong!' });
 		}

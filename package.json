@@ -8,7 +8,7 @@
   "lint": "eslint src --ext .ts",
   "lint:fix": "eslint src --ext .ts --fix",
   "test": "make test",
-  "start": "ts-node src/app | pino-pretty"
+  "start": "ts-node src/app | npx pino-pretty"
  },
  "repository": {
   "type": "git",

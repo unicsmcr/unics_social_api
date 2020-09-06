@@ -28,7 +28,7 @@ export default class GatewayController {
 
 		this._heartbeatInterval = setInterval(() => {
 			this.checkHeartbeats()
-				.catch(logger.error);
+				.catch(err => logger.error(err));
 		}, HEARTBEAT_INTERVAL);
 	}
 

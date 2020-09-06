@@ -12,7 +12,7 @@ import { Channel } from '../../../src/entities/Channel';
 import events from '../../fixtures/events';
 import GatewayController from '../../../src/controllers/GatewayController';
 import { GatewayPacketType } from '../../../src/util/gateway';
-import { logger } from '../../../src/util/logger'
+import { logger } from '../../../src/util/logger';
 
 let app: Express.Application;
 let mockedMessageService: MessageService;
@@ -83,7 +83,7 @@ describe('MessageController', () => {
 			when(mockedMessageService.createMessage(expectedInput)).thenResolve(message);
 			const res = await supertest(app).post(`/api/v1/channels/${eventChannel.id}/messages`).send(message)
 				.set('Authorization', authorization)
-				.catch(logger.error) as any;
+				.catch(err => logger.error(err)) as any;
 			expect(res.body).toEqual({ message });
 			expect(res.status).toEqual(HttpCode.Ok);
 			verify(mockedMessageService.createMessage(expectedInput)).once();

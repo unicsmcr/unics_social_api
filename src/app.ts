@@ -16,4 +16,4 @@ createApp()
 			logger.info(`Listening on port ${port}`);
 		});
 	})
-	.catch(logger.info);
+	.catch(err => logger.error(err));
