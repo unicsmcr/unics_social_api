@@ -18,6 +18,7 @@ import { Server as WebSocketServer } from 'ws';
 import GatewayController from './controllers/GatewayController';
 import { EventRoutes } from './routes/EventRoutes';
 import { ChannelRoutes } from './routes/ChannelRoutes';
+import { logger } from './util/logger';
 
 export function createExpress() {
 	const app = express();
@@ -53,7 +54,7 @@ export function createExpress() {
 			res.status(err.httpCode).send({ error: err.message });
 		} else {
 			if (getConfig().logErrors) {
-				console.error(err.stack);
+				logger.error(err);
 			}
 			res.status(HttpCode.InternalError).send({ error: 'Something went wrong!' });
 		}
