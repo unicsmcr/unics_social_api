@@ -45,4 +45,9 @@ export const ReportEmailTemplate = (user: User, report: APIReport) =>
 	Thanks,<br />
 	The UniCS Robot 🤖
 	</p>	
+
+	<br />
+	<br />
+
+	<img src="https://unicsmcr.com/assets/logo.png" />
 `;

@@ -84,8 +84,8 @@ export class UserController {
 			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			const report = await this.userService.reportUser(res.locals.user.id, user, req.body);
 			await this.emailService.sendEmail({
-				to: user.email,
-				subject: 'Verify your UniCS KB email',
+				to: 'team@unicsmcr.com',
+				subject: 'A Reported User',
 				html: ReportEmailTemplate(user, report)
 			});
 		} catch (error) {
