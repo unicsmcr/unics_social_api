@@ -6,6 +6,7 @@ import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { APIProfile, Year, Course } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
+import { report } from 'process';
 
 beforeAll(async () => {
 	await createDBConnection();
@@ -181,7 +182,7 @@ describe('UserService', () => {
 				yearOfStudy: Year.ONE,
 				avatar: false
 			});
-			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
+			expect({ ...userWithProfile, report: undefined }).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
 			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
 			expect(initialProfile).not.toMatchObject(savedUser.profile!);

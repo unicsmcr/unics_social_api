@@ -1,4 +1,6 @@
 import { getConfig } from '../config';
+import { APIReport } from '../../entities/Report';
+import { User } from '../../entities/User';
 
 export const VerifyEmailTemplate = (name: string, token: string) => {
 	const url = `${getConfig().host}/verify?token=${token}`;
@@ -26,3 +28,21 @@ The UniCS Robot 🤖
 <img src="https://unicsmcr.com/assets/logo.png" />
 `;
 };
+
+export const ReportEmailTemplate = (user: User, report: APIReport) =>
+	`<p>Dear UNICS team,</p>
+
+	<p>
+	The user with id: ${user.id} has been reported by ${report.reportingUserID}.
+	</p>
+	
+	<p>
+	The reason for the report is as follows:<br />
+	${report.description}
+	</p>
+	
+	<p>
+	Thanks,<br />
+	The UniCS Robot 🤖
+	</p>	
+`;

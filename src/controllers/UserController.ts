@@ -2,7 +2,7 @@ import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
-import { VerifyEmailTemplate } from '../util/emails';
+import { VerifyEmailTemplate, ReportEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
@@ -10,6 +10,10 @@ import ChannelService from '../services/ChannelService';
 
 enum GetUserError {
 	UserNotFound = 'User not found',
+}
+
+enum ReportUserError {
+	ReportInvalid = 'Report is not valid',
 }
 
 @injectable()
@@ -66,6 +70,23 @@ export class UserController {
 			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			res.json({
 				user: user.toJSON()
+			});
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async reportUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			if (!req.params.id) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
+			if (req.params.id === '@me') throw new APIError(HttpCode.NotFound, ReportUserError.ReportInvalid);
+			const user = await this.userService.findOne({ id: req.params.id });
+			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
+			const report = await this.userService.reportUser(res.locals.user.id, user, req.body);
+			await this.emailService.sendEmail({
+				to: user.email,
+				subject: 'Verify your UniCS KB email',
+				html: ReportEmailTemplate(user, report)
 			});
 		} catch (error) {
 			next(error);

@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMan
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
+import Report, { APIReport } from './Report';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -21,6 +22,7 @@ export interface APIUser {
 	accountStatus: AccountStatus;
 	accountType: AccountType;
 	profile?: APIProfile;
+	report?: APIReport;
 }
 
 export interface APIPrivateUser extends APIUser {
@@ -66,9 +68,13 @@ export class User {
 	@JoinColumn()
 	public profile?: Profile;
 
+	@OneToOne(() => Report, report => report.reportedUser, { nullable: true, eager: true, cascade: true })
+	@JoinColumn()
+	public report?: Report;
+
 	public toJSON(): APIUser {
-		const { id, forename, surname, accountStatus, accountType, profile } = this;
-		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON() };
+		const { id, forename, surname, accountStatus, accountType, profile, report } = this;
+		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON(), report: report?.toJSON() };
 	}
 
 	public toJSONPrivate(): APIPrivateUser {
