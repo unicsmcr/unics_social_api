@@ -6,7 +6,6 @@ import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
 import { APIProfile, Year, Course } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
-import { report } from 'process';
 
 beforeAll(async () => {
 	await createDBConnection();
