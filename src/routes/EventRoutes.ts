@@ -13,8 +13,8 @@ export class EventRoutes {
 	}
 
 	public routes(router: Router): void {
-		router.post('/events', getUser(TokenType.Auth), isAdmin, uploadImg('image'), this.eventController.createEvent.bind(this.eventController));
-		router.get('/events', getUser(TokenType.Auth), isVerified, this.eventController.getAllEvents.bind(this.eventController));
-		router.patch('/events/:id', getUser(TokenType.Auth), isAdmin, uploadImg('image'), this.eventController.editEvent.bind(this.eventController));
+		router.post('/events', getUser(TokenType.Auth), isAdmin, uploadImg('image'), this.eventController.createEvent.bind(this.eventController) as any);
+		router.get('/events', getUser(TokenType.Auth), isVerified, this.eventController.getAllEvents.bind(this.eventController) as any);
+		router.patch('/events/:id', getUser(TokenType.Auth), isAdmin, uploadImg('image'), this.eventController.editEvent.bind(this.eventController) as any);
 	}
 }

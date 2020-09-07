@@ -17,10 +17,10 @@ export class ChannelRoutes {
 	}
 
 	public routes(router: Router): void {
-		router.get('/channels', getUser(TokenType.Auth), isVerified, this.userController.getChannels.bind(this.userController));
-		router.post('/channels/:channelID/messages', getUser(TokenType.Auth), isVerified, getChannel, this.messageController.createMessage.bind(this.messageController));
-		router.get('/channels/:channelID/messages', getUser(TokenType.Auth), isVerified, getChannel, this.messageController.getMessages.bind(this.messageController));
-		router.get('/channels/:channelID/messages/:messageID', getUser(TokenType.Auth), isVerified, this.messageController.getMessage.bind(this.messageController));
-		router.delete('/channels/:channelID/messages/:messageID', getUser(TokenType.Auth), isVerified, getChannel, this.messageController.deleteMessage.bind(this.messageController));
+		router.get('/channels', getUser(TokenType.Auth), isVerified, this.userController.getChannels.bind(this.userController) as any);
+		router.post('/channels/:channelID/messages', getUser(TokenType.Auth), isVerified, getChannel as any, this.messageController.createMessage.bind(this.messageController) as any);
+		router.get('/channels/:channelID/messages', getUser(TokenType.Auth), isVerified, getChannel as any, this.messageController.getMessages.bind(this.messageController) as any);
+		router.get('/channels/:channelID/messages/:messageID', getUser(TokenType.Auth), isVerified, this.messageController.getMessage.bind(this.messageController) as any);
+		router.delete('/channels/:channelID/messages/:messageID', getUser(TokenType.Auth), isVerified, getChannel as any, this.messageController.deleteMessage.bind(this.messageController) as any);
 	}
 }
