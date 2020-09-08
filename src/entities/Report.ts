@@ -18,9 +18,7 @@ export default class Report {
 	@ManyToOne(() => User)
 	public reportedUser!: User;
 
-	@Column({
-		type: 'uuid'
-	})
+	@ManyToOne(() => User)
 	public reportingUser!: User;
 
 	@Column('timestamp')

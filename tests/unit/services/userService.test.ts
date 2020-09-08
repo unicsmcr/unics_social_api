@@ -173,7 +173,7 @@ describe('UserService', () => {
 
 		test('Fails to create report user with invalid details', async () => {
 			await expect(userService.reportUser(reportingUser.id, reportedUser.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(userService.reportUser(reportingUser.id, reportedUser.id, { currentTime: new Date(), description: 1 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.reportUser(reportingUser.id, reportedUser.id, { currentTime: new Date(), description: null } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.reportUser(reportingUser.id, reportedUser.id, { currentTime: 'hello', description: 'hi' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});
