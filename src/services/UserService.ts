@@ -8,8 +8,7 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
-import Report, { APIReport } from '../entities/Report';
-import { v4 } from 'uuid';
+import Report from '../entities/Report';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -17,7 +16,7 @@ const unlink = promisify(_unlink);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
-export type ReportDataToCreate = Omit<Profile, 'id' | 'reportedUser' | 'toJSON' >;
+export type ReportDataToCreate = Omit<Report, 'id' | 'reportedUser' | 'reportingUser' | 'toJSON' >;
 
 enum RegistrationError {
 	EmailAlreadyExists = 'Email address already registered.',
@@ -31,6 +30,11 @@ enum EmailVerifyError {
 
 enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
+}
+
+enum ReporttUserError {
+	UserNotFound = 'User not found',
+	InvalidEntryDetails = 'Invalid user details.'
 }
 
 enum PutProfileError {
@@ -115,22 +119,27 @@ export class UserService {
 		return user.toJSONPrivate();
 	}
 
-	public async reportUser(id: string, user: User, options: APIReport) {
+	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
 		return getConnection().transaction(async entityManager => {
+			if (!reportingID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { id: reportedID })
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
+			// if (!user) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+
 			const report = new Report();
-			report.id = v4();
 			const { currentTime, description } = options;
 			Object.assign(report, { currentTime, description });
 			report.reportedUser = user;
-			report.reportingUser = await entityManager.findOneOrFail(User, { id });
-			user.report = report;
-			await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, PutProfileError.InvalidEntryDetails)));
+			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
+			user.report?.push(report);
+			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
 	}
 
 
-	public async putUserProfile(id: string, options: ProfileDataToCreate, File?: Express.Multer.File) {
+	public async putUserProfile(id: string, options: ProfileDataToCreate, file?: Express.Multer.File) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound);
 			const user = await entityManager.findOneOrFail(User, { id })
@@ -148,8 +157,8 @@ export class UserService {
 
 			// If there is an avatar, try to process it
 			let processedAvatar: Buffer|undefined;
-			if (!unsetAvatar && File?.buffer && File.buffer.length > 0) {
-				processedAvatar = await sharp(File.buffer)
+			if (!unsetAvatar && file?.buffer && file.buffer.length > 0) {
+				processedAvatar = await sharp(file.buffer)
 					.resize({ width: 150, height: 150, fit: sharp.fit.contain })
 					.png()
 					.toBuffer()

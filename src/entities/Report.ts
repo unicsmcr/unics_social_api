@@ -1,9 +1,10 @@
-import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { IsDate, MaxLength, IsString } from 'class-validator';
 import { User } from './User';
 
 export interface APIReport {
 	id: string;
+	reportedUserID: string;
 	reportingUserID: string;
 	currentTime: string;
 	description: string;
@@ -14,7 +15,7 @@ export default class Report {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@OneToOne(() => User, user => user.report)
+	@ManyToOne(() => User)
 	public reportedUser!: User;
 
 	@Column({
@@ -34,6 +35,7 @@ export default class Report {
 	public toJSON() {
 		return {
 			id: this.id,
+			reportedUserID: this.reportedUser.id,
 			reportingUserID: this.reportingUser.id,
 			currentTime: this.currentTime.toISOString(),
 			description: this.description

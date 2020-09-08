@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
-import Report, { APIReport } from './Report';
+import Report from './Report';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -22,7 +22,6 @@ export interface APIUser {
 	accountStatus: AccountStatus;
 	accountType: AccountType;
 	profile?: APIProfile;
-	report?: APIReport;
 }
 
 export interface APIPrivateUser extends APIUser {
@@ -68,13 +67,13 @@ export class User {
 	@JoinColumn()
 	public profile?: Profile;
 
-	@OneToOne(() => Report, report => report.reportedUser, { nullable: true, eager: true, cascade: true })
+	@OneToMany(() => Report, report => report.reportedUser)
 	@JoinColumn()
-	public report?: Report;
+	public report?: Report[];
 
 	public toJSON(): APIUser {
-		const { id, forename, surname, accountStatus, accountType, profile, report } = this;
-		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON(), report: report?.toJSON() };
+		const { id, forename, surname, accountStatus, accountType, profile } = this;
+		return { id, forename, surname, accountStatus, accountType, profile: profile?.toJSON() };
 	}
 
 	public toJSONPrivate(): APIPrivateUser {

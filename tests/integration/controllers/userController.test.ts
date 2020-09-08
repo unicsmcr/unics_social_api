@@ -114,7 +114,7 @@ describe('UserController', () => {
 			const user = users[1];
 			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(user.id)).thenResolve({ ...users[1], report: undefined });
+			when(mockedUserService.verifyUserEmail(user.id)).thenResolve({ ...users[1] });
 
 			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
 			verify(mockedUserService.verifyUserEmail(user.id)).called();
@@ -140,7 +140,7 @@ describe('UserController', () => {
 		test('No content response for valid request', async () => {
 			const [email, password, token] = [randomString(), randomString(), randomString()];
 
-			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1], report: undefined });
+			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1] });
 			const spy = jest.spyOn(authUtils, 'generateJWT');
 			spy.mockImplementation(() => Promise.resolve(token));
 
@@ -170,7 +170,7 @@ describe('UserController', () => {
 		test('Forwards errors from generateJWT', async () => {
 			const [email, password] = [randomString(), randomString()];
 
-			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1], report: undefined });
+			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1] });
 			const spy = jest.spyOn(authUtils, 'generateJWT');
 			spy.mockImplementation(() => Promise.reject(testError400));
 
@@ -242,6 +242,71 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: randomString() }))).thenResolve(undefined);
 			const res = await supertest(app).get(`/api/v1/users/${userOther}`).set('Authorization', authorization);
 			expect(res.status).toEqual(HttpCode.NotFound);
+		});
+	});
+
+	describe('reportUser', () => {
+		test('No content response for valid request', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user!);
+
+			const data = randomObject();
+			const userMe = users[1];
+			const userOther = users.find(user => user.report);
+
+			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.report![0].toJSON());
+			when(mockedEmailService.sendEmail(anything())).thenResolve();
+
+			const res = await supertest(app).post(`/api/v1/users/${userOther!.id}/report`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedUserService.reportUser(userMe.id, userOther!.id, objectContaining(data))).called();
+			verify(mockedEmailService.sendEmail(anything())).called();
+			expect(res.status).toEqual(HttpCode.NoContent);
+			expect(res.body).toEqual({});
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user!);
+
+			const data = randomObject();
+			const userMe = users[1];
+			const userOther = users.find(user => user.report);
+
+			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenReject(testError400);
+			when(mockedEmailService.sendEmail(anything())).thenResolve();
+
+			const res = await supertest(app).post(`/api/v1/users/${userOther!.id}/report`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedUserService.reportUser(userMe.id, userOther!.id, objectContaining(data))).called();
+			verify(mockedEmailService.sendEmail(anything())).never();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+
+		test('Forwards errors from EmailService', async () => {
+			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user!);
+
+			const data = randomObject();
+			const userMe = users[1];
+			const userOther = users.find(user => user.report);
+
+			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.report![0].toJSON());
+			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
+
+			const res = await supertest(app).post(`/api/v1/users/${userOther!.id}/report`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedUserService.reportUser(userMe.id, userOther!.id, objectContaining(data))).called();
+			verify(mockedEmailService.sendEmail(anything())).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 

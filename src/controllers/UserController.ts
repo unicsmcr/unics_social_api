@@ -12,9 +12,6 @@ enum GetUserError {
 	UserNotFound = 'User not found',
 }
 
-enum ReportUserError {
-	ReportInvalid = 'Report is not valid',
-}
 
 @injectable()
 export class UserController {
@@ -78,16 +75,13 @@ export class UserController {
 
 	public async reportUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			if (!req.params.id) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
-			if (req.params.id === '@me') throw new APIError(HttpCode.NotFound, ReportUserError.ReportInvalid);
-			const user = await this.userService.findOne({ id: req.params.id });
-			if (!user) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
-			const report = await this.userService.reportUser(res.locals.user.id, user, req.body);
+			const report = await this.userService.reportUser(res.locals.user.id, req.params.id, req.body);
 			await this.emailService.sendEmail({
 				to: 'team@unicsmcr.com',
 				subject: 'A Reported User',
-				html: ReportEmailTemplate(user, report)
+				html: ReportEmailTemplate(report)
 			});
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
