@@ -69,7 +69,7 @@ export class User {
 
 	@OneToMany(() => Report, report => report.reportedUser)
 	@JoinColumn()
-	public report?: Report[];
+	public reports?: Report[];
 
 	public toJSON(): APIUser {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;

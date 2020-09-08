@@ -75,7 +75,7 @@ report1.reportedUser = user3;
 report1.reportingUser = user2;
 report1.currentTime = new Date();
 report1.description = 'this is a report';
-user3.report = [report1];
+user3.reports = [report1];
 
 export default [
 	user1, user2, user3

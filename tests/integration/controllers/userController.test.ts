@@ -253,9 +253,9 @@ describe('UserController', () => {
 
 			const data = randomObject();
 			const userMe = users[1];
-			const userOther = users.find(user => user.report);
+			const userOther = users.find(user => user.reports);
 
-			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.report![0].toJSON());
+			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.reports![0].toJSON());
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
 
 			const res = await supertest(app).post(`/api/v1/users/${userOther!.id}/report`)
@@ -274,7 +274,7 @@ describe('UserController', () => {
 
 			const data = randomObject();
 			const userMe = users[1];
-			const userOther = users.find(user => user.report);
+			const userOther = users.find(user => user.reports);
 
 			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenReject(testError400);
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
@@ -295,9 +295,9 @@ describe('UserController', () => {
 
 			const data = randomObject();
 			const userMe = users[1];
-			const userOther = users.find(user => user.report);
+			const userOther = users.find(user => user.reports);
 
-			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.report![0].toJSON());
+			when(mockedUserService.reportUser(userMe.id, userOther!.id, anything())).thenResolve(userOther!.reports![0].toJSON());
 			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
 
 			const res = await supertest(app).post(`/api/v1/users/${userOther!.id}/report`)

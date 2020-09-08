@@ -158,7 +158,7 @@ describe('UserService', () => {
 			await getRepository(User).save([reportingUser, reportedUser]);
 		});
 
-		test('Reports a User for valid request', async () => {
+		test.only('Reports a User for valid request', async () => {
 			const savedReport = await userService.reportUser(reportingUser.id, reportedUser.id, {
 				currentTime: new Date(),
 				description: 'hello world'
