@@ -67,7 +67,7 @@ export default class ChannelService {
 			const recipients = await entityManager.findByIds(User, recipientIDs);
 
 			// Ensure that all the recipients are verified
-			if (recipients.some(recipient => recipient.accountStatus !== AccountStatus.Verified)) {
+			if (recipients.some(recipient => recipient.accountStatus !== AccountStatus.Verified) || recipients.length !== recipientIDs.length) {
 				throw new APIError(400, CreateDMChannelError.UsersNotVerified);
 			}
 
