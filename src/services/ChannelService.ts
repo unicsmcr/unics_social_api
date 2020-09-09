@@ -99,17 +99,34 @@ export default class ChannelService {
 		});
 	}
 
-	public async getChannelsForUser(id: string): Promise<APIChannel[]> {
+	public async getChannelsForUser(id: string, wantAccessToken = true): Promise<APIChannel[]> {
 		// Sort the dmChannels within the query for speed
 		const [eventChannels, dmChannels] = await Promise.all([
 			getRepository(EventChannel).find({ relations: ['event'], order: { lastUpdated: 'DESC' } }),
 			(await getConnection()
 				.createQueryBuilder(DMChannel, 'dmChannel')
-				.select(['dmChannel', 'user.id'])
+				.select(['dmChannel', 'user.id', 'videoIntegration'])
 				.leftJoin('dmChannel.users', 'user')
+				.leftJoin('dmChannel.videoIntegration', 'videoIntegration')
 				.orderBy('dmChannel.lastUpdated', 'DESC')
 				.getMany()).filter(channel => channel.users.some(user => user.id === id))
 		]);
+
+		for (const channel of dmChannels) {
+			if (channel.videoIntegration) {
+				channel.videoIntegration.videoUsers = []; // undefined at this point since was not fetched by queryBuilder
+				if (wantAccessToken && new Date() <= new Date(channel.videoIntegration.endTime)) {
+					channel.videoIntegration.videoUsers = await getConnection()
+						.createQueryBuilder(VideoUser, 'videoUser')
+						.select(['videoUser', 'user.id'])
+						.leftJoin('videoUser.user', 'user')
+						.innerJoin('videoUser.videoIntegration', 'videoIntegration')
+						.where('videoIntegration.id = :id AND user.id = :userID', { id: channel.videoIntegration.id, userID: id })
+						.getMany();
+				}
+			}
+		}
+
 		return [
 			...eventChannels,
 			...dmChannels
