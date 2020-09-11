@@ -125,14 +125,15 @@ export class UserService {
 			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, { id: reportedID })
 				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
-			// if (!user) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
 
 			const report = new Report();
 			const { currentTime, description } = options;
 			Object.assign(report, { currentTime, description });
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
-			user.reports?.push(report);
+			const reportNew = user.reports ?? [];
+			reportNew.push(report);
+			user.reports = reportNew;
 			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});

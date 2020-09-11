@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { IsDate, MaxLength, IsString } from 'class-validator';
 import { User } from './User';
 
@@ -16,9 +16,11 @@ export default class Report {
 	public id!: string;
 
 	@ManyToOne(() => User)
+	@JoinColumn()
 	public reportedUser!: User;
 
 	@ManyToOne(() => User)
+	@JoinColumn()
 	public reportingUser!: User;
 
 	@Column('timestamp')

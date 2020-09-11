@@ -159,10 +159,24 @@ describe('UserService', () => {
 		});
 
 		test.only('Reports a User for valid request', async () => {
-			const savedReport = await userService.reportUser(reportingUser.id, reportedUser.id, {
-				currentTime: new Date(),
-				description: 'hello world'
+			const timeNow = new Date();
+			const currentTime = timeNow.toISOString();
+			const description = 'hello world';
+			const reportingUserID = reportingUser.id;
+			const reportedUserID = reportedUser.id;
+			const savedReport = await userService.reportUser(reportingUserID, reportedUserID, {
+				currentTime: timeNow,
+				description: description
 			});
+
+			expect(savedReport).toMatchObject({
+				reportingUserID,
+				reportedUserID,
+				currentTime,
+				description
+			});
+			expect(savedReport.currentTime).toStrictEqual(currentTime);
+			expect(savedReport.description).toStrictEqual(description);
 		});
 
 		test('reportUser fails when reportedUser is empty/does not exist', async () => {
