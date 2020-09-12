@@ -161,16 +161,15 @@ export default class GatewayController {
 		const userConfig = this.authenticatedClients.get(ws);
 		if (!userConfig) throw new GatewayError('Not authenticated');
 
-		const { id } = packet.data.channel;
-		const channel = await this.channelService.findOne({ id });
+		const { channelID } = packet.data;
+		const channel = await this.channelService.findOne({ id: channelID });
 		if (!channel) throw new GatewayError('Channel does not exist');
 
-		const user = await this.userService.findOne({ id: userConfig.id });
-		if (!user) throw new GatewayError('User not found');
 		const gatewayTypingPacket: GatewayTypingPacket = {
 			type: GatewayPacketType.GatewayTyping,
 			data: {
-				user
+				userID: userConfig.id,
+				channelID
 			}
 		};
 

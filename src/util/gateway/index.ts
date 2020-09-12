@@ -1,7 +1,6 @@
 import { APIMessage } from '../../entities/Message';
 import { QueueOptions } from '../discovery/DiscoveryQueue';
-import { APIDMChannel, APIChannel } from '../../entities/Channel';
-import { APIUser } from '../../entities/User';
+import { APIDMChannel } from '../../entities/Channel';
 
 export class GatewayError extends Error { }
 
@@ -89,13 +88,14 @@ export interface DiscoveryQueueMatchPacket extends GatewayPacket {
 export interface ClientTypingPacket extends GatewayPacket {
 	type: GatewayPacketType.ClientTyping;
 	data: {
-		channel: APIChannel;
+		channelID: string;
 	};
 }
 
 export interface GatewayTypingPacket extends GatewayPacket {
 	type: GatewayPacketType.GatewayTyping;
 	data: {
-		user: APIUser;
+		userID: string;
+		channelID: string;
 	};
 }
