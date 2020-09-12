@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validator';
 import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
+import Report from './Report';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -65,6 +66,10 @@ export class User {
 	@OneToOne(() => Profile, profile => profile.user, { nullable: true, eager: true, cascade: true })
 	@JoinColumn()
 	public profile?: Profile;
+
+	@OneToMany(() => Report, report => report.reportedUser)
+	@JoinColumn()
+	public reports?: Report[];
 
 	public toJSON(): APIUser {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;

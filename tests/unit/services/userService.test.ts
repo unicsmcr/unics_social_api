@@ -151,6 +151,42 @@ describe('UserService', () => {
 		});
 	});
 
+	describe('reportUser', () => {
+		const reportingUser = users[0];
+		const reportedUser = users[1];
+		beforeEach(async () => {
+			await getRepository(User).save([reportingUser, reportedUser]);
+		});
+
+		test('Reports a User for valid request', async () => {
+			const description = 'hello world';
+			const reportingUserID = reportingUser.id;
+			const reportedUserID = reportedUser.id;
+			const savedReport = await userService.reportUser(reportingUserID, reportedUserID, {
+				description: description
+			});
+
+			expect(savedReport).toMatchObject({
+				reportingUserID,
+				reportedUserID,
+				description
+			});
+			expect(savedReport.currentTime).toBeTruthy();
+			expect(savedReport.description).toStrictEqual(description);
+		});
+
+		test('reportUser fails when reportedUser is empty/does not exist', async () => {
+			const details = { description: 'hello world' };
+			await expect(userService.reportUser(reportingUser.id, '', details)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(userService.reportUser(reportingUser.id, `${reportedUser.id}1`, details)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+		});
+
+		test('Fails to create report user with invalid details', async () => {
+			await expect(userService.reportUser(reportingUser.id, reportedUser.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.reportUser(reportingUser.id, reportedUser.id, { description: null } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.reportUser(reportingUser.id, reportedUser.id, { description: 'hi' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		});
+	});
 	describe('putUserProfile', () => {
 		const userWithoutProfile = users.find(user => !user.profile)!;
 		const userWithProfile = users.find(user => user.profile)!;
