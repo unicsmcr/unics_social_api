@@ -58,6 +58,13 @@ export class UserController {
 		}
 	}
 
+	public async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+		
+	}
+
+	public async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+	}
+
 	public async getUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
 			if (!req.params.id) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
