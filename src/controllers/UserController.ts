@@ -2,7 +2,7 @@ import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
-import { VerifyEmailTemplate } from '../util/emails';
+import { VerifyEmailTemplate, ReportEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
@@ -11,6 +11,7 @@ import ChannelService from '../services/ChannelService';
 enum GetUserError {
 	UserNotFound = 'User not found',
 }
+
 
 @injectable()
 export class UserController {
@@ -67,6 +68,20 @@ export class UserController {
 			res.json({
 				user: user.toJSON()
 			});
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async reportUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const report = await this.userService.reportUser(res.locals.user.id, req.params.id, req.body);
+			await this.emailService.sendEmail({
+				to: 'team@unicsmcr.com',
+				subject: 'A Reported User',
+				html: ReportEmailTemplate(report)
+			});
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
