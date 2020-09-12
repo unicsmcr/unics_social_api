@@ -221,7 +221,7 @@ describe('UserService', () => {
 				yearOfStudy: Year.ONE,
 				avatar: false
 			});
-			expect({ ...userWithProfile, report: undefined }).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
+			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
 			expect(nonNullishProperties).toEqual(expect.arrayContaining(['id', 'course', 'yearOfStudy']));
 			expect(initialProfile).not.toMatchObject(savedUser.profile!);

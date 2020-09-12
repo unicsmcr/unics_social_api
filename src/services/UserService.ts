@@ -131,9 +131,6 @@ export class UserService {
 			Object.assign(report, { currentTime, description });
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
-			const reportNew = user.reports ?? [];
-			reportNew.push(report);
-			user.reports = reportNew;
 			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
