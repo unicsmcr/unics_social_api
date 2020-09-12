@@ -16,7 +16,7 @@ const unlink = promisify(_unlink);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
-export type ReportDataToCreate = Omit<Report, 'id' | 'reportedUser' | 'reportingUser' | 'toJSON' >;
+export type ReportDataToCreate = Pick<Report, 'description' >;
 
 enum RegistrationError {
 	EmailAlreadyExists = 'Email address already registered.',
@@ -127,10 +127,11 @@ export class UserService {
 				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
 
 			const report = new Report();
-			const { currentTime, description } = options;
-			Object.assign(report, { currentTime, description });
+			const { description } = options;
+			Object.assign(report, { currentTime: new Date(), description });
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
+			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
 			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
