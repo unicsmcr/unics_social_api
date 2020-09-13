@@ -162,6 +162,7 @@ export default class GatewayController {
 		if (!userConfig) throw new GatewayError('Not authenticated');
 
 		const { channelID } = packet.data;
+		if (!channelID) throw new GatewayError('Channel ID not provided');
 		const channel = await this.channelService.findOne({ id: channelID });
 		if (!channel) throw new GatewayError('Channel does not exist');
 
