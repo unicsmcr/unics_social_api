@@ -91,6 +91,22 @@ export class UserService {
 		});
 	}
 
+	public async resendEmail(email: string): Promise<APIPrivateUser> {
+		if (!email) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		const user = await getRepository(User)
+			.createQueryBuilder('user').where('user.email= :email', { email })
+			.getOne();
+
+		if (!user) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
+
+		return user.toJSONPrivate();
+	}
+
 	public async authenticate(email: string, password: string): Promise<APIPrivateUser> {
 		if (!email) {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
