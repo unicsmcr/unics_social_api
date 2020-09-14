@@ -7,7 +7,8 @@
   "build": "tsc",
   "lint": "eslint src --ext .ts",
   "lint:fix": "eslint src --ext .ts --fix",
-  "test": "make test"
+  "test": "make test",
+  "start": "ts-node src/app | npx pino-pretty"
  },
  "repository": {
   "type": "git",
@@ -41,9 +42,11 @@
   "@unicsmcr/eslint-config": "0.0.2",
   "eslint": "^7.4.0",
   "jest": "^26.1.0",
+  "pino-pretty": "^4.2.0",
   "supertest": "^4.0.2",
   "ts-jest": "^26.1.1",
   "ts-mockito": "^2.6.1",
+  "ts-node": "^9.0.0",
   "typescript": "^3.9.7",
   "uuid": "^8.3.0"
  },
@@ -81,6 +84,7 @@
   "@sendgrid/mail": "^7.2.1",
   "@types/express": "^4.17.7",
   "@types/jsonwebtoken": "^8.5.0",
+  "@types/pino": "^6.3.0",
   "@types/ws": "^7.2.6",
   "class-validator": "^0.12.2",
   "cors": "^2.8.5",
@@ -89,6 +93,7 @@
   "jsonwebtoken": "^8.5.1",
   "multer": "^1.4.2",
   "pg": "^8.3.0",
+  "pino": "^6.5.1",
   "reflect-metadata": "^0.1.13",
   "sharp": "^0.25.4",
   "tsyringe": "^4.3.0",

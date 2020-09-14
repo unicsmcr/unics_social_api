@@ -1,15 +1,16 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { IsString, Matches, IsOptional } from 'class-validator';
+import { Matches, IsOptional, IsEnum } from 'class-validator';
 import { User } from './User';
 
 export interface APIProfile {
 	id: string;
-	course: string;
-	yearOfStudy: number;
+	course: Course;
+	yearOfStudy: Year;
 	profilePicture?: string;
 	instagram?: string;
 	facebook?: string;
 	twitter?: string;
+	linkedin?: string;
 }
 
 export enum Course {
@@ -21,6 +22,16 @@ export enum Course {
 	SOFTWARE_ENGINEERING = 'Software Engineering'
 }
 
+export enum Year {
+	ONE = 'First Year',
+	TWO = 'Second Year',
+	THREE = 'Final Year Bachelors',
+	FOUNDATION = 'Foundation Year',
+	MASTERS = 'Masters Year',
+	INDUSTRIAL = 'Industrial Year',
+	PHD = 'PhD Student'
+}
+
 @Entity()
 export default class Profile {
 	@PrimaryGeneratedColumn('uuid')
@@ -29,15 +40,19 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@IsString()
+	@IsEnum(Course)
 	@Column({
 		'type': 'enum',
 		'enum': Course
 	})
-	public course!: string;
+	public course!: Course;
 
-	@Column({ type: 'integer' })
-	public yearOfStudy!: number;
+	@IsEnum(Year)
+	@Column({
+		'type': 'enum',
+		'enum': Year
+	})
+	public yearOfStudy!: Year;
 
 	@Column({ 'default': false })
 	public avatar!: boolean;
@@ -57,8 +72,13 @@ export default class Profile {
 	@IsOptional()
 	public twitter?: string;
 
+	@Column({ nullable: true })
+	@Matches(/(^(https|http)?(www\.)?linkedin.com\/in\/(\w-?){0,29}$)|(^$)/, { message: 'Not a valid linkedin URL' })
+	@IsOptional()
+	public linkedin?: string;
+
 	public toJSON() {
-		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter } = this;
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin } = this;
 		return {
 			id,
 			course,
@@ -66,7 +86,8 @@ export default class Profile {
 			avatar,
 			instagram,
 			facebook,
-			twitter
+			twitter,
+			linkedin
 		};
 	}
 }

@@ -2,7 +2,7 @@ import { APIMessage } from '../../entities/Message';
 import { QueueOptions } from '../discovery/DiscoveryQueue';
 import { APIDMChannel } from '../../entities/Channel';
 
-export class GatewayError extends Error {}
+export class GatewayError extends Error { }
 
 export enum GatewayPacketType {
 	Identify = 'IDENTIFY',
@@ -16,7 +16,11 @@ export enum GatewayPacketType {
 	// Sent by the client to leave a Discovery queue
 	LeaveDiscoveryQueue = 'LEAVE_DISCOVERY_QUEUE',
 	// Sent by the gateway once a match has been made
-	DiscoveryQueueMatch = 'DISCOVERY_QUEUE_MATCH'
+	DiscoveryQueueMatch = 'DISCOVERY_QUEUE_MATCH',
+	// Sent by the client when starting to type
+	ClientTyping = 'CLIENT_TYPING',
+	// Sent by the gateway to indicate someone has started typing
+	GatewayTyping = 'GATEWAY_TYPING'
 }
 
 export interface GatewayPacket {
@@ -78,5 +82,20 @@ export interface DiscoveryQueueMatchPacket extends GatewayPacket {
 	type: GatewayPacketType.DiscoveryQueueMatch;
 	data: {
 		channel: APIDMChannel;
+	};
+}
+
+export interface ClientTypingPacket extends GatewayPacket {
+	type: GatewayPacketType.ClientTyping;
+	data: {
+		channelID: string;
+	};
+}
+
+export interface GatewayTypingPacket extends GatewayPacket {
+	type: GatewayPacketType.GatewayTyping;
+	data: {
+		userID: string;
+		channelID: string;
 	};
 }

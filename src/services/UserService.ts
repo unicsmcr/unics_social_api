@@ -8,6 +8,7 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import Report from '../entities/Report';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -15,6 +16,7 @@ const unlink = promisify(_unlink);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
+export type ReportDataToCreate = Pick<Report, 'description' >;
 
 enum RegistrationError {
 	EmailAlreadyExists = 'Email address already registered.',
@@ -28,6 +30,11 @@ enum EmailVerifyError {
 
 enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
+}
+
+enum ReporttUserError {
+	UserNotFound = 'User not found',
+	InvalidEntryDetails = 'Invalid user details.'
 }
 
 enum PutProfileError {
@@ -128,6 +135,25 @@ export class UserService {
 		return user.toJSONPrivate();
 	}
 
+	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
+		return getConnection().transaction(async entityManager => {
+			if (!reportingID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { id: reportedID })
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
+
+			const report = new Report();
+			const { description } = options;
+			Object.assign(report, { currentTime: new Date(), description });
+			report.reportedUser = user;
+			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
+			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
+			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
+			return report.toJSON();
+		});
+	}
+
+
 	public async putUserProfile(id: string, options: ProfileDataToCreate, file?: Express.Multer.File) {
 		return getConnection().transaction(async entityManager => {
 			if (!id) throw new APIError(HttpCode.BadRequest, PutProfileError.AccountNotFound);
@@ -137,8 +163,8 @@ export class UserService {
 
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
-			const { twitter, instagram, yearOfStudy, course, facebook } = options;
-			Object.assign(profile, { twitter, instagram, yearOfStudy: Number(yearOfStudy), course, facebook });
+			const { twitter, instagram, yearOfStudy, course, facebook, linkedin } = options;
+			Object.assign(profile, { twitter, instagram, yearOfStudy, course, facebook, linkedin });
 			profile.user = user;
 			user.profile = profile;
 
