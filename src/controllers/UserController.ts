@@ -50,7 +50,7 @@ export class UserController {
 
 	public async resendEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.registerUser(req.body);
+			const user = await this.userService.resendEmail(req.body);
 			const token = await generateJWT({ ...user, tokenType: TokenType.EmailVerify });
 			await this.emailService.sendEmail({
 				to: user.email,
