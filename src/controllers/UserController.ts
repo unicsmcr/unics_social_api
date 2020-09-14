@@ -65,7 +65,7 @@ export class UserController {
 
 	public async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.resendEmail(req.body.email);
+			const user = await this.userService.authenticate(req.body.email, req.body.password);
 			const token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			res.json({ token });
 		} catch (error) {
