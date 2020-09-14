@@ -10,6 +10,7 @@ export interface APIProfile {
 	instagram?: string;
 	facebook?: string;
 	twitter?: string;
+	linkedin?: string;
 }
 
 export enum Course {
@@ -71,8 +72,13 @@ export default class Profile {
 	@IsOptional()
 	public twitter?: string;
 
+	@Column({ nullable: true })
+	@Matches(/https?:\/\/(www\.)?linkedin.com\/in\/(\w-?)+|(^$)/, { message: 'Not a valid linkedin URL' })
+	@IsOptional()
+	public linkedin?: string;
+
 	public toJSON() {
-		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter } = this;
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin } = this;
 		return {
 			id,
 			course,
@@ -80,7 +86,8 @@ export default class Profile {
 			avatar,
 			instagram,
 			facebook,
-			twitter
+			twitter,
+			linkedin
 		};
 	}
 }
