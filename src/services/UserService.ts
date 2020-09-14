@@ -32,7 +32,7 @@ enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
 }
 
-enum ReporttUserError {
+enum ReportUserError {
 	UserNotFound = 'User not found',
 	InvalidEntryDetails = 'Invalid user details.'
 }
@@ -98,7 +98,7 @@ export class UserService {
 		});
 	}
 
-	public async resendEmail(email: string): Promise<APIPrivateUser> {
+	public async getUserByEmail(email: string): Promise<APIPrivateUser> {
 		if (!email) {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
 		}

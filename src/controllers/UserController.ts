@@ -49,9 +49,9 @@ export class UserController {
 		}
 	}
 
-	public async resendEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+	public async getUserByEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.resendEmail(req.body);
+			const user = await this.userService.getUserByEmail(req.body);
 			const token = await generateJWT({ ...user, tokenType: TokenType.EmailVerify });
 			await this.emailService.sendEmail({
 				to: user.email,
