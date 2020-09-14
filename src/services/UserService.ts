@@ -137,10 +137,10 @@ export class UserService {
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!reportingID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
-			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			if (!reportingID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			if (!reportedID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, { id: reportedID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
 
 			const report = new Report();
 			const { description } = options;
@@ -148,7 +148,7 @@ export class UserService {
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
 			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
-			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
+			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
 	}
