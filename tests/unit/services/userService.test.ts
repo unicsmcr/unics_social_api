@@ -201,7 +201,8 @@ describe('UserService', () => {
 				avatar: false,
 				instagram: '',
 				facebook: '',
-				twitter: ''
+				twitter: '',
+				linkedin: ''
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
