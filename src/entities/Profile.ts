@@ -77,8 +77,11 @@ export default class Profile {
 	@IsOptional()
 	public linkedin?: string;
 
+	@Column({ 'default': true })
+	public accountStatus!: boolean;
+
 	public toJSON() {
-		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin } = this;
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin, accountStatus } = this;
 		return {
 			id,
 			course,
@@ -87,7 +90,8 @@ export default class Profile {
 			instagram,
 			facebook,
 			twitter,
-			linkedin
+			linkedin,
+			accountStatus
 		};
 	}
 }

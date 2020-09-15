@@ -87,6 +87,14 @@ export class UserService {
 		});
 	}
 
+	public async findAllPublic(): Promise<APIPrivateUser[]> {
+		const users = await getRepository(User)
+			.createQueryBuilder('user').where('user.profile.accountStatus = :status', { status: true })
+			.getMany();
+		const usersJSON = users.map(user => user.toJSONPrivate());
+		return (usersJSON);
+	}
+
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
