@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from 'express';
 import { container } from 'tsyringe';
 import { UserService } from '../../services/UserService';
 import { User } from '../../entities/User';
-import { verifyJWT, TokenType, CombinedEnum } from '../../util/auth';
+import { verifyJWT, TokenType } from '../../util/auth';
 import { APIError, HttpCode } from '../../util/errors';
 
 enum GetUserError {
