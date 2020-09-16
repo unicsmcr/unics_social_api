@@ -27,7 +27,7 @@ export class Channel {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@Column('timestamp', { 'default': () => 'CURRENT_TIMESTAMP' })
+	@Column('timestamptz', { 'default': () => 'CURRENT_TIMESTAMP' })
 	@IsDate()
 	public lastUpdated!: Date;
 
