@@ -9,7 +9,7 @@ interface GenerateAccessTokenOptions {
 }
 
 // Room time limit is 5 minutes
-const ROOM_TIME_LIMIT = 60 * 5;
+const ROOM_TIME_LIMIT = 60 * 5000;
 
 // Allow JWTs to live for 10% longer than the room time limit
 const ROOM_TIME_LIMIT_TTL = Math.floor(ROOM_TIME_LIMIT * 1.10);
