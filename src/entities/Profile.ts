@@ -33,8 +33,8 @@ export enum Year {
 }
 
 export enum Visibility {
-	PRIVATE = 0,
-	PUBLIC = 1
+	Private = 0,
+	Public = 1
 }
 
 @Entity()
@@ -85,7 +85,7 @@ export default class Profile {
 	@Column({
 		'type': 'enum',
 		'enum': Visibility,
-		'default': Visibility.PUBLIC
+		'default': Visibility.Public
 	})
 	public visibility!: Visibility;
 

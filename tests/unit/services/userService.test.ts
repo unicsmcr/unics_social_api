@@ -203,7 +203,7 @@ describe('UserService', () => {
 				facebook: '',
 				twitter: '',
 				linkedin: '',
-				visibility: Visibility.PUBLIC
+				visibility: Visibility.Public
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -218,7 +218,7 @@ describe('UserService', () => {
 				course: Course.SOFTWARE_ENGINEERING,
 				yearOfStudy: Year.ONE,
 				avatar: false,
-				visibility: Visibility.PUBLIC
+				visibility: Visibility.Public
 			});
 			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -229,7 +229,7 @@ describe('UserService', () => {
 		});
 
 		test('Fails to create user profile for non-existent user', async () => {
-			const details = { course: Course.COMPUTER_SCIENCE, yearOfStudy: Year.TWO, avatar: false, visibility: Visibility.PUBLIC };
+			const details = { course: Course.COMPUTER_SCIENCE, yearOfStudy: Year.TWO, avatar: false, visibility: Visibility.Public };
 			await expect(userService.putUserProfile('', details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithProfile.id}1`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithoutProfile.id}a`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });

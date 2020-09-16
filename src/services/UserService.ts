@@ -89,7 +89,7 @@ export class UserService {
 
 	public async findAllPublic(): Promise<APIPrivateUser[]> {
 		const users = await getRepository(User)
-			.createQueryBuilder('user').where('user.profile.visbility = :status', { status: Visibility.PUBLIC })
+			.createQueryBuilder('user').where('user.profile.visbility = :status', { status: Visibility.Public })
 			.getMany();
 		const usersJSON = users.map(user => user.toJSONPrivate());
 		return (usersJSON);
