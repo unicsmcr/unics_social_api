@@ -17,10 +17,10 @@ export class VideoIntegration {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@Column('timestamp')
+	@Column('timestamptz')
 	public creationTime!: Date;
 
-	@Column('timestamp')
+	@Column('timestamptz')
 	public endTime!: Date;
 
 	@OneToMany(() => VideoUser, videoUser => videoUser.videoIntegration, { eager: true, cascade: true })
