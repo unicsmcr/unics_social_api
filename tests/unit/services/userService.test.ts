@@ -4,7 +4,7 @@ import { AccountStatus, AccountType, User } from '../../../src/entities/User';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
-import { APIProfile, Year, Course } from '../../../src/entities/Profile';
+import { APIProfile, Year, Course, Visibility } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
 beforeAll(async () => {
@@ -203,7 +203,7 @@ describe('UserService', () => {
 				facebook: '',
 				twitter: '',
 				linkedin: '',
-				accountStatus: true
+				visibility: Visibility.PUBLIC
 			});
 			expect({ ...savedUser, profile: undefined }).toMatchObject(userWithoutProfile.toJSONPrivate());
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -218,7 +218,7 @@ describe('UserService', () => {
 				course: Course.SOFTWARE_ENGINEERING,
 				yearOfStudy: Year.ONE,
 				avatar: false,
-				accountStatus: true
+				visibility: Visibility.PUBLIC
 			});
 			expect(userWithProfile).toMatchObject({ ...savedUser, profile: userWithProfile.profile });
 			const nonNullishProperties = [...Object.keys(savedUser.profile!)].filter(prop => savedUser.profile![prop as keyof APIProfile]);
@@ -229,7 +229,7 @@ describe('UserService', () => {
 		});
 
 		test('Fails to create user profile for non-existent user', async () => {
-			const details = { course: Course.COMPUTER_SCIENCE, yearOfStudy: Year.TWO, avatar: false, accountStatus: true };
+			const details = { course: Course.COMPUTER_SCIENCE, yearOfStudy: Year.TWO, avatar: false, visibility: Visibility.PUBLIC };
 			await expect(userService.putUserProfile('', details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithProfile.id}1`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(userService.putUserProfile(`${userWithoutProfile.id}a`, details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });

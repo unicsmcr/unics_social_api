@@ -2,7 +2,7 @@ import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/Us
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { singleton } from 'tsyringe';
-import Profile from '../entities/Profile';
+import Profile, { Visibility } from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
@@ -89,7 +89,7 @@ export class UserService {
 
 	public async findAllPublic(): Promise<APIPrivateUser[]> {
 		const users = await getRepository(User)
-			.createQueryBuilder('user').where('user.profile.accountStatus = :status', { status: true })
+			.createQueryBuilder('user').where('user.profile.visbility = :status', { status: Visibility.PUBLIC })
 			.getMany();
 		const usersJSON = users.map(user => user.toJSONPrivate());
 		return (usersJSON);
