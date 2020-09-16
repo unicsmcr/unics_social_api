@@ -2,17 +2,12 @@ import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
+import { ROOM_TIME_LIMIT_TTL, ROOM_TIME_LIMIT_CONV } from '../util/config/video';
 
 interface GenerateAccessTokenOptions {
 	userId: string;
 	roomId: string;
 }
-
-// Room time limit is 5 minutes
-const ROOM_TIME_LIMIT = 60 * 5;
-
-// Allow JWTs to live for 10% longer than the room time limit
-const ROOM_TIME_LIMIT_TTL = Math.floor(ROOM_TIME_LIMIT * 1.10);
 
 @singleton()
 export class TwilioService {
@@ -45,7 +40,7 @@ export class TwilioService {
 			this.completeRoom(room.sid)
 				.then(() => null)
 				.catch(err => logger.error(err));
-		}, ROOM_TIME_LIMIT * 1000));
+		}, ROOM_TIME_LIMIT_CONV));
 
 		// We can use the given roomId (should be same as the uniqueName) to access the room in place of its actual SID
 		return room.uniqueName;
