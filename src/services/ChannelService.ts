@@ -6,7 +6,7 @@ import { APIError } from '../util/errors';
 import { TwilioService } from './TwilioService';
 import { VideoIntegration } from '../entities/VideoIntegration';
 import { VideoUser } from '../entities/VideoUser';
-import { ROOM_TIME_LIMIT_CONV } from '../util/config/video';
+import { ROOM_TIME_LIMIT_MS } from '../util/config/video';
 
 enum CreateDMChannelError {
 	InvalidUserCount = 'Exactly 2 users can be in a DM channel at the moment',
@@ -79,7 +79,7 @@ export default class ChannelService {
 				let videoIntegration = entityManager.create(VideoIntegration, {
 					dmChannel: channel,
 					creationTime: new Date(),
-					endTime: new Date(Date.now() + (ROOM_TIME_LIMIT_CONV)),
+					endTime: new Date(Date.now() + (ROOM_TIME_LIMIT_MS)),
 					videoUsers: []
 				});
 				videoIntegration = await entityManager.save(videoIntegration);

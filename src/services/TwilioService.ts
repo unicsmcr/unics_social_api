@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
-import { ROOM_TIME_LIMIT_TTL, ROOM_TIME_LIMIT_CONV } from '../util/config/video';
+import { ROOM_TIME_LIMIT_TTL, ROOM_TIME_LIMIT_MS } from '../util/config/video';
 
 interface GenerateAccessTokenOptions {
 	userId: string;
@@ -40,7 +40,7 @@ export class TwilioService {
 			this.completeRoom(room.sid)
 				.then(() => null)
 				.catch(err => logger.error(err));
-		}, ROOM_TIME_LIMIT_CONV));
+		}, ROOM_TIME_LIMIT_MS));
 
 		// We can use the given roomId (should be same as the uniqueName) to access the room in place of its actual SID
 		return room.uniqueName;
