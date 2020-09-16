@@ -9,7 +9,7 @@ interface GenerateAccessTokenOptions {
 }
 
 // Room time limit is 5 minutes
-const ROOM_TIME_LIMIT = 60 * 5000;
+const ROOM_TIME_LIMIT = 60 * 5;
 
 // Allow JWTs to live for 10% longer than the room time limit
 const ROOM_TIME_LIMIT_TTL = Math.floor(ROOM_TIME_LIMIT * 1.10);
@@ -45,7 +45,7 @@ export class TwilioService {
 			this.completeRoom(room.sid)
 				.then(() => null)
 				.catch(err => logger.error(err));
-		}, ROOM_TIME_LIMIT));
+		}, ROOM_TIME_LIMIT * 1000));
 
 		// We can use the given roomId (should be same as the uniqueName) to access the room in place of its actual SID
 		return room.uniqueName;
