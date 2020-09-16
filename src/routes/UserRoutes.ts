@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
 import { getUser, isVerified, uploadImg } from './middleware';
-import { TokenType } from '../util/auth';
+import { TokenType, CombinedEnum } from '../util/auth';
 
 @injectable()
 export class UserRoutes {
@@ -21,7 +21,7 @@ export class UserRoutes {
 
 		router.post('/forgot_password', getUser(TokenType.Auth), this.userController.forgotPassword.bind(this.userController));
 
-		router.get('/reset_password', getUser(TokenType.Auth), this.userController.resetPassword.bind(this.userController));
+		router.get('/reset_password', getUser(CombinedEnum), this.userController.resetPassword.bind(this.userController));
 
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
 

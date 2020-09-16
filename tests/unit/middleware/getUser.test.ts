@@ -5,7 +5,7 @@ import { UserService } from '../../../src/services/UserService';
 import { container } from 'tsyringe';
 import { mock, instance, when, objectContaining } from 'ts-mockito';
 import { User, AccountType, AccountStatus } from '../../../src/entities/User';
-import { generateJWT, TokenType } from '../../../src/util/auth';
+import { generateJWT, TokenType, CombinedEnum } from '../../../src/util/auth';
 import { sign } from 'jsonwebtoken';
 import { getConfig } from '../../../src/util/config';
 

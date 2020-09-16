@@ -4,11 +4,13 @@ import { promisify } from 'util';
 import { User } from '../entities/User';
 import { APIError, HttpCode } from './errors';
 
+
 export enum TokenType {
 	Auth,
 	PasswordReset,
 	EmailVerify
 }
+export const CombinedEnum = TokenType.Auth | TokenType.PasswordReset;
 
 enum AuthError {
 	InvalidToken = 'Authorization token is invalid'

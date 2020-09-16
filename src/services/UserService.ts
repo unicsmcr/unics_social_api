@@ -8,12 +8,14 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
+import { TokenType } from '../util/auth';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
 
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
+export interface PasswordResetDataToCreate {password: string; currentpassword?: string}
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 
 enum RegistrationError {
@@ -24,6 +26,17 @@ enum RegistrationError {
 enum EmailVerifyError {
 	UserNotFound = 'User not found',
 	AccountNotUnverified = 'Your account has already been verified'
+}
+
+enum ForgotPasswordError {
+	UserNotFound = 'User not found',
+	AccountUnverified = 'Your account has not been verified yet'
+}
+
+enum ResetPasswordError {
+	UserNotFound = 'User not found',
+	CurrentPasswordRequired = 'YYou should provide your current password',
+	InvalidCredentials = 'Invalid Credentials'
 }
 
 enum AuthenticateError {
@@ -110,6 +123,32 @@ export class UserService {
 		}
 
 		return user.toJSONPrivate();
+	}
+
+	public async forgotPassword(userEmail: string): Promise<APIPrivateUser> {
+		return getConnection().transaction(async entityManager => {
+			if (!userEmail) throw new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, userEmail).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
+			if (user.accountStatus === AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, ForgotPasswordError.AccountUnverified);
+			return user.toJSONPrivate();
+		});
+	}
+
+	public async resetPassword(tokenType: TokenType, userID: string, data: PasswordResetDataToCreate): Promise<APIPrivateUser> {
+		return getConnection().transaction(async entityManager => {
+			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
+			if (tokenType === TokenType.Auth) {
+				if (!data.currentpassword) throw new APIError(HttpCode.BadRequest, ResetPasswordError.CurrentPasswordRequired);
+				if (!verifyPassword(data.currentpassword, user.password)) {
+					throw new APIError(HttpCode.Forbidden, ResetPasswordError.InvalidCredentials);
+				}
+			}
+			Object.assign(user, {
+				password: await hashPassword(data.password)
+			});
+			return user.toJSONPrivate();
+		});
 	}
 
 	public async putUserProfile(id: string, options: ProfileDataToCreate, file?: Express.Multer.File) {

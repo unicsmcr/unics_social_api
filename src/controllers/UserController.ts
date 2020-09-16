@@ -2,7 +2,7 @@ import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
-import { VerifyEmailTemplate } from '../util/emails';
+import { VerifyEmailTemplate, PassowrdEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
@@ -59,10 +59,27 @@ export class UserController {
 	}
 
 	public async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-		
+		try {
+			const user = await this.userService.forgotPassword(req.body);
+			const token = await generateJWT({ ...user, tokenType: TokenType.PasswordReset });
+			await this.emailService.sendEmail({
+				to: user.email,
+				subject: 'Reset your KB password',
+				html: PassowrdEmailTemplate(user.forename, token)
+			});
+			res.status(HttpCode.NoContent).end();
+		} catch (error) {
+			next(error);
+		}
 	}
 
 	public async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const user = await this.userService.resetPassword(res.locals.type, res.locals.user.id, req.body);
+			res.json({ user });
+		} catch (error) {
+			next(error);
+		}
 	}
 
 	public async getUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {

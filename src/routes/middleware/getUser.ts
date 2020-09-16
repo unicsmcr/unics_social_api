@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from 'express';
 import { container } from 'tsyringe';
 import { UserService } from '../../services/UserService';
 import { User } from '../../entities/User';
-import { verifyJWT, TokenType } from '../../util/auth';
+import { verifyJWT, TokenType, CombinedEnum } from '../../util/auth';
 import { APIError, HttpCode } from '../../util/errors';
 
 enum GetUserError {
@@ -12,7 +12,7 @@ enum GetUserError {
 	TokenMismatch = 'Given token not privileged for this request'
 }
 
-export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User } };
+export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User; type: TokenType } };
 
 export default function getUser(tokenType: TokenType) {
 	return async (req: Request, res: Response, next: NextFunction) => {
@@ -33,6 +33,7 @@ export default function getUser(tokenType: TokenType) {
 		const user = await userService.findOne({ id });
 		if (!user) return next(new APIError(HttpCode.Unauthorized, GetUserError.UserNotFound));
 		(res as AuthenticatedResponse).locals.user = user;
+		(res as AuthenticatedResponse).locals.type = tokenType;
 		next();
 	};
 }
