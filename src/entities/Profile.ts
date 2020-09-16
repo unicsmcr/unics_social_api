@@ -82,7 +82,11 @@ export default class Profile {
 	@IsOptional()
 	public linkedin?: string;
 
-	@Column({ 'default': Visibility.PUBLIC })
+	@Column({
+		'type': 'enum',
+		'enum': Visibility,
+		'default': Visibility.PUBLIC
+	})
 	public visibility!: Visibility;
 
 	public toJSON() {
