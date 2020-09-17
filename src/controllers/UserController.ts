@@ -1,4 +1,5 @@
 import { UserService } from '../services/UserService';
+import { ProfileService } from '../services/ProfileService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
@@ -16,11 +17,13 @@ enum GetUserError {
 @injectable()
 export class UserController {
 	private readonly userService: UserService;
+	private readonly profileService: ProfileService;
 	private readonly emailService: EmailService;
 	private readonly channelService: ChannelService;
 
-	public constructor(@inject(UserService) userService: UserService, @inject(EmailService) emailService: EmailService, @inject(ChannelService) channelService: ChannelService) {
+	public constructor(@inject(UserService) userService: UserService, @inject(ProfileService) profileService: ProfileService, @inject(EmailService) emailService: EmailService, @inject(ChannelService) channelService: ChannelService) {
 		this.userService = userService;
+		this.profileService = profileService;
 		this.emailService = emailService;
 		this.channelService = channelService;
 	}
@@ -89,7 +92,7 @@ export class UserController {
 
 	public async putUserProfile(req: Request & { file?: Express.Multer.File }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.putUserProfile(res.locals.user.id, req.body, req.file);
+			const user = await this.profileService.putUserProfile(res.locals.user.id, req.body, req.file);
 			res.json({ user });
 		} catch (error) {
 			next(error);
