@@ -28,7 +28,6 @@ The UniCS Robot 🤖
 `;
 };
 
-<<<<<<< HEAD
 export const PassowrdEmailTemplate = (name: string, token: string) => {
 	const url = `${getConfig().host}/reset_password?token=${token}`;
 	return `<b>Hi ${name}!</b>
@@ -55,7 +54,6 @@ The UniCS Robot 🤖
 <img src="https://unicsmcr.com/assets/logo.png" />
 `;
 };
-=======
 export const ReportEmailTemplate = (report: APIReport) =>
 	`<p>Dear UNICS team,</p>
 
@@ -78,4 +76,3 @@ export const ReportEmailTemplate = (report: APIReport) =>
 
 	<img src="https://unicsmcr.com/assets/logo.png" />
 `;
->>>>>>> main
