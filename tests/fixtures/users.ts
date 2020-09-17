@@ -38,7 +38,7 @@ user2Profile.yearOfStudy = Year.PHD;
 user2Profile.instagram = 'testuser';
 user2Profile.user = user2;
 user2Profile.avatar = false;
-user2Profile.visibility = Visibility.PUBLIC;
+user2Profile.visibility = Visibility.Public;
 user2.profile = user2Profile;
 
 
@@ -63,7 +63,7 @@ user3Profile.instagram = 'randomstudent';
 user3Profile.twitter = 'random_handle';
 user3Profile.linkedin = 'https://www.linkedin.com/in/random-handle';
 user3Profile.avatar = false;
-user3Profile.visibility = Visibility.PUBLIC;
+user3Profile.visibility = Visibility.Public;
 user3Profile.user = user3;
 user3.profile = user3Profile;
 
