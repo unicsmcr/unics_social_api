@@ -18,7 +18,7 @@ export interface APIEventChannel extends APIChannel {
 export interface APIDMChannel extends APIChannel {
 	users: string[];
 	type: 'dm';
-	video?: APIVideoIntegration & { accessToken?: string };
+	video?: APIVideoIntegration;
 }
 
 @Entity()
@@ -27,7 +27,7 @@ export class Channel {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@Column('timestamp', { 'default': () => 'CURRENT_TIMESTAMP' })
+	@Column('timestamptz', { 'default': () => 'CURRENT_TIMESTAMP' })
 	@IsDate()
 	public lastUpdated!: Date;
 

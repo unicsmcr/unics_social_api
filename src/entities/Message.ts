@@ -28,7 +28,7 @@ export default class Message {
 	@MaxLength(400, { message: 'A message can be 400 characters at most' })
 	public content!: string;
 
-	@Column('timestamp')
+	@Column('timestamptz')
 	@IsDate()
 	public time!: Date;
 

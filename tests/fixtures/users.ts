@@ -1,6 +1,7 @@
 import { User, AccountType, AccountStatus } from '../../src/entities/User';
 import Profile, { Year, Course } from '../../src/entities/Profile';
 import { DMChannel } from '../../src/entities/Channel';
+import Report from '../../src/entities/Report';
 
 
 /*
@@ -59,6 +60,7 @@ user3Profile.course = Course.ARTIFICIAL_INTELLIGENCE;
 user3Profile.yearOfStudy = Year.ONE;
 user3Profile.instagram = 'randomstudent';
 user3Profile.twitter = 'random_handle';
+user3Profile.linkedin = 'https://www.linkedin.com/in/random-handle';
 user3Profile.avatar = false;
 user3Profile.user = user3;
 user3.profile = user3Profile;
@@ -67,6 +69,14 @@ const dmChannel1 = new DMChannel();
 dmChannel1.users = [user3];
 dmChannel1.id = 'df8m32ie-1023-8576-ofu0-5502bj49c704';
 user3.dmChannels = [dmChannel1];
+
+const report1 = new Report();
+report1.id = '4jgo0565-24f8-34lf-45to-34tji04856';
+report1.reportedUser = user3;
+report1.reportingUser = user2;
+report1.currentTime = new Date();
+report1.description = 'this is a report';
+user3.reports = [report1];
 
 export default [
 	user1, user2, user3

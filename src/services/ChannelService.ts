@@ -6,6 +6,7 @@ import { APIError } from '../util/errors';
 import { TwilioService } from './TwilioService';
 import { VideoIntegration } from '../entities/VideoIntegration';
 import { VideoUser } from '../entities/VideoUser';
+import { ROOM_TIME_LIMIT_MS } from '../util/config/video';
 
 enum CreateDMChannelError {
 	InvalidUserCount = 'Exactly 2 users can be in a DM channel at the moment',
@@ -67,7 +68,7 @@ export default class ChannelService {
 			const recipients = await entityManager.findByIds(User, recipientIDs);
 
 			// Ensure that all the recipients are verified
-			if (recipients.some(recipient => recipient.accountStatus !== AccountStatus.Verified)) {
+			if (recipients.some(recipient => recipient.accountStatus !== AccountStatus.Verified) || recipients.length !== recipientIDs.length) {
 				throw new APIError(400, CreateDMChannelError.UsersNotVerified);
 			}
 
@@ -78,7 +79,7 @@ export default class ChannelService {
 				let videoIntegration = entityManager.create(VideoIntegration, {
 					dmChannel: channel,
 					creationTime: new Date(),
-					endTime: new Date(Date.now() + (1000 * 60 * 5)),
+					endTime: new Date(Date.now() + (ROOM_TIME_LIMIT_MS)),
 					videoUsers: []
 				});
 				videoIntegration = await entityManager.save(videoIntegration);
@@ -99,17 +100,34 @@ export default class ChannelService {
 		});
 	}
 
-	public async getChannelsForUser(id: string): Promise<APIChannel[]> {
+	public async getChannelsForUser(id: string, wantAccessToken = true): Promise<APIChannel[]> {
 		// Sort the dmChannels within the query for speed
 		const [eventChannels, dmChannels] = await Promise.all([
 			getRepository(EventChannel).find({ relations: ['event'], order: { lastUpdated: 'DESC' } }),
 			(await getConnection()
 				.createQueryBuilder(DMChannel, 'dmChannel')
-				.select(['dmChannel', 'user.id'])
+				.select(['dmChannel', 'user.id', 'videoIntegration'])
 				.leftJoin('dmChannel.users', 'user')
+				.leftJoin('dmChannel.videoIntegration', 'videoIntegration')
 				.orderBy('dmChannel.lastUpdated', 'DESC')
 				.getMany()).filter(channel => channel.users.some(user => user.id === id))
 		]);
+
+		for (const channel of dmChannels) {
+			if (channel.videoIntegration) {
+				channel.videoIntegration.videoUsers = []; // undefined at this point since was not fetched by queryBuilder
+				if (wantAccessToken && new Date() <= new Date(channel.videoIntegration.endTime)) {
+					channel.videoIntegration.videoUsers = await getConnection()
+						.createQueryBuilder(VideoUser, 'videoUser')
+						.select(['videoUser', 'user.id'])
+						.leftJoin('videoUser.user', 'user')
+						.innerJoin('videoUser.videoIntegration', 'videoIntegration')
+						.where('videoIntegration.id = :id AND user.id = :userID', { id: channel.videoIntegration.id, userID: id })
+						.getMany();
+				}
+			}
+		}
+
 		return [
 			...eventChannels,
 			...dmChannels

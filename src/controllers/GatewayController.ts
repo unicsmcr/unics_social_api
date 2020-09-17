@@ -3,10 +3,12 @@ import GatewayService from '../services/GatewayService';
 import WebSocket, { Server as WebSocketServer, Data } from 'ws';
 import { UserService } from '../services/UserService';
 import { verifyJWT } from '../util/auth';
-import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket } from '../util/gateway';
+import { GatewayPacket, GatewayPacketType, HelloGatewayPacket, IdentifyGatewayPacket, GatewayError, PingGatewayPacket, JoinDiscoveryQueuePacket, DiscoveryQueueMatchPacket, ClientTypingPacket, GatewayTypingPacket } from '../util/gateway';
 import { getConfig } from '../util/config';
 import { DiscoveryQueue, QueueMatchData } from '../util/discovery/DiscoveryQueue';
 import { logger } from '../util/logger';
+import ChannelService from '../services/ChannelService';
+import { EventChannel, DMChannel } from '../entities/Channel';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
@@ -19,12 +21,14 @@ export default class GatewayController {
 	private wss?: WebSocketServer;
 	public readonly authenticatedClients: Map<WebSocket, { id: string; lastPong: number }>;
 	private readonly _heartbeatInterval: NodeJS.Timeout;
+	private readonly channelService: ChannelService;
 
-	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(UserService) userService: UserService, @inject(DiscoveryQueue) discoveryQueue: DiscoveryQueue) {
+	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(ChannelService) channelService: ChannelService, @inject(UserService) userService: UserService, @inject(DiscoveryQueue) discoveryQueue: DiscoveryQueue) {
 		this.authenticatedClients = new Map();
 		this.gatewayService = gatewayService;
 		this.userService = userService;
 		this.discoveryQueue = discoveryQueue;
+		this.channelService = channelService;
 
 		this._heartbeatInterval = setInterval(() => {
 			this.checkHeartbeats()
@@ -93,6 +97,8 @@ export default class GatewayController {
 				return this.onJoinDiscoveryQueue(ws, packet as JoinDiscoveryQueuePacket);
 			case GatewayPacketType.LeaveDiscoveryQueue:
 				return this.onLeaveDiscoveryQueue(ws);
+			case GatewayPacketType.ClientTyping:
+				return this.onTyping(ws, packet as ClientTypingPacket);
 			default:
 				throw new GatewayError(`Received invalid packet type ${packet.type}`);
 		}
@@ -103,7 +109,7 @@ export default class GatewayController {
 	}
 
 	public async sendMessage<T extends GatewayPacket>(to: string[], message: T) {
-		const recipients = [...this.authenticatedClients.entries()].filter(([,{ id }]) => to.includes(id)).map(entry => entry[0]);
+		const recipients = [...this.authenticatedClients.entries()].filter(([, { id }]) => to.includes(id)).map(entry => entry[0]);
 		await this.gatewayService.send(recipients, message);
 	}
 
@@ -128,7 +134,7 @@ export default class GatewayController {
 	public async onJoinDiscoveryQueue(ws: WebSocket, packet: JoinDiscoveryQueuePacket) {
 		const userConfig = this.authenticatedClients.get(ws);
 		if (!userConfig) throw new GatewayError('Not authenticated');
-		let matchData: QueueMatchData|undefined;
+		let matchData: QueueMatchData | undefined;
 		try {
 			matchData = await this.discoveryQueue.addToQueue(userConfig.id, packet.data.options);
 		} catch (error) {
@@ -149,5 +155,31 @@ export default class GatewayController {
 		const userConfig = this.authenticatedClients.get(ws);
 		if (!userConfig) throw new GatewayError('Not authenticated');
 		this.discoveryQueue.removeFromQueue(userConfig.id);
+	}
+
+	public async onTyping(ws: WebSocket, packet: ClientTypingPacket) {
+		const userConfig = this.authenticatedClients.get(ws);
+		if (!userConfig) throw new GatewayError('Not authenticated');
+
+		const { channelID } = packet.data;
+		if (!channelID) throw new GatewayError('Channel ID not provided');
+		const channel = await this.channelService.findOne({ id: channelID });
+		if (!channel) throw new GatewayError('Channel does not exist');
+
+		const gatewayTypingPacket: GatewayTypingPacket = {
+			type: GatewayPacketType.GatewayTyping,
+			data: {
+				userID: userConfig.id,
+				channelID
+			}
+		};
+
+		if (channel instanceof EventChannel) {
+			// Send packet to everyone connected
+			await this.broadcast<GatewayTypingPacket>(gatewayTypingPacket);
+		} else if (channel instanceof DMChannel) {
+			// Send packet to the users in the dm channel
+			await this.sendMessage(channel.users.map(user => user.id), gatewayTypingPacket);
+		}
 	}
 }
