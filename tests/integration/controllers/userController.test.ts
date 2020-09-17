@@ -1,6 +1,7 @@
 import { UserService } from '../../../src/services/UserService';
-import { ProfileService } from '../../../src/services/ProfileService'; 
+import { ProfileService } from '../../../src/services/ProfileService';
 import EmailService from '../../../src/services/email/EmailService';
+import EmailConfirmationService from '../../../src/services/email/EmailConfirmationService';
 import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
 import { container } from 'tsyringe';
@@ -15,6 +16,7 @@ let app: Express.Application;
 let mockedUserService: UserService;
 let mockedProfileService: ProfileService;
 let mockedEmailService: EmailService;
+let mockedEmailConfirmationService: EmailConfirmationService;
 
 const spiedGetUserReqs = {
 	authorization: '',
@@ -36,10 +38,12 @@ beforeAll(async () => {
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
 	mockedProfileService = mock(ProfileService);
+	mockedEmailConfirmationService = mock(EmailConfirmationService);
 	container.clearInstances();
 	container.register<UserService>(UserService, { useValue: instance(mockedUserService) });
 	container.register<ProfileService>(ProfileService, { useValue: instance(mockedProfileService) });
 	container.register<EmailService>(EmailService, { useValue: instance(mockedEmailService) });
+	container.register<EmailConfirmationService>(EmailConfirmationService, { useValue: instance(mockedEmailConfirmationService) });
 
 	app = await createApp();
 });
@@ -48,6 +52,7 @@ beforeEach(() => {
 	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
+	reset(mockedEmailConfirmationService);
 	reset(mockedProfileService);
 });
 
@@ -119,10 +124,10 @@ describe('UserController', () => {
 			const user = users[1];
 			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(user.id)).thenResolve({ ...users[1] });
+			when(mockedEmailConfirmationService.verifyUserEmail(user.id)).thenResolve({ ...users[1] });
 
 			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
-			verify(mockedUserService.verifyUserEmail(user.id)).called();
+			verify(mockedEmailConfirmationService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(HttpCode.NoContent);
 			expect(res.body).toEqual({});
 		});
@@ -132,10 +137,10 @@ describe('UserController', () => {
 			const user = users[1];
 			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(user.id)).thenReject(testError400);
+			when(mockedEmailConfirmationService.verifyUserEmail(user.id)).thenReject(testError400);
 
 			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
-			verify(mockedUserService.verifyUserEmail(user.id)).called();
+			verify(mockedEmailConfirmationService.verifyUserEmail(user.id)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});

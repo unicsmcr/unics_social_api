@@ -3,6 +3,7 @@ import { ProfileService } from '../services/ProfileService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
+import EmailConfirmationService from '../services/email/EmailConfirmationService';
 import { VerifyEmailTemplate, ReportEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
@@ -19,12 +20,14 @@ export class UserController {
 	private readonly userService: UserService;
 	private readonly profileService: ProfileService;
 	private readonly emailService: EmailService;
+	private readonly emailConfirmationService: EmailConfirmationService;
 	private readonly channelService: ChannelService;
 
-	public constructor(@inject(UserService) userService: UserService, @inject(ProfileService) profileService: ProfileService, @inject(EmailService) emailService: EmailService, @inject(ChannelService) channelService: ChannelService) {
+	public constructor(@inject(UserService) userService: UserService, @inject(ProfileService) profileService: ProfileService, @inject(EmailService) emailService: EmailService, @inject(EmailConfirmationService) emailConfirmationService: EmailConfirmationService, @inject(ChannelService) channelService: ChannelService) {
 		this.userService = userService;
 		this.profileService = profileService;
 		this.emailService = emailService;
+		this.emailConfirmationService = emailConfirmationService;
 		this.channelService = channelService;
 	}
 
@@ -45,7 +48,7 @@ export class UserController {
 
 	public async verifyUserEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			await this.userService.verifyUserEmail(res.locals.user.id);
+			await this.emailConfirmationService.verifyUserEmail(res.locals.user.id);
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
