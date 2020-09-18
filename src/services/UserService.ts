@@ -16,6 +16,11 @@ enum RegistrationError {
 	MissingInfo = 'Registration data incomplete'
 }
 
+enum EmailVerifyError {
+	UserNotFound = 'User not found',
+	AccountNotUnverified = 'Your account has already been verified'
+}
+
 enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
 }
@@ -66,6 +71,17 @@ export class UserService {
 				}
 				throw error;
 			}
+		});
+	}
+
+	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
+		return getConnection().transaction(async entityManager => {
+			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound)));
+			if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
+			user.accountStatus = AccountStatus.Verified;
+			await entityManager.save(user);
+			return user.toJSONPrivate();
 		});
 	}
 
