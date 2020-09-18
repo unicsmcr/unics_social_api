@@ -21,6 +21,8 @@ export class UserRoutes {
 
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 
+		router.get('/users', getUser(TokenType.Auth), isVerified, this.userController.getPublicUsers.bind(this.userController));
+
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
 
 		router.post('/users/:id/report', getUser(TokenType.Auth), isVerified, this.userController.reportUser.bind(this.userController));
