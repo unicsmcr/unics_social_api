@@ -23,7 +23,7 @@ export default class Report {
 	@JoinColumn()
 	public reportingUser!: User;
 
-	@Column('timestamp')
+	@Column('timestamptz')
 	@IsDate()
 	public currentTime!: Date;
 
