@@ -32,7 +32,7 @@ enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
 }
 
-enum ReporttUserError {
+enum ReportUserError {
 	UserNotFound = 'User not found',
 	InvalidEntryDetails = 'Invalid user details.'
 }
@@ -108,6 +108,22 @@ export class UserService {
 		});
 	}
 
+	public async getUserByEmail(email: string): Promise<APIPrivateUser> {
+		if (!email) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		const user = await getRepository(User)
+			.createQueryBuilder('user').where('user.email= :email', { email })
+			.getOne();
+
+		if (!user) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
+
+		return user.toJSONPrivate();
+	}
+
 	public async authenticate(email: string, password: string): Promise<APIPrivateUser> {
 		if (!email) {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
@@ -131,10 +147,10 @@ export class UserService {
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!reportingID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
-			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			if (!reportingID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			if (!reportedID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, { id: reportedID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
 
 			const report = new Report();
 			const { description } = options;
@@ -142,7 +158,7 @@ export class UserService {
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
 			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
-			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
+			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
 	}

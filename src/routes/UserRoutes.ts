@@ -17,6 +17,8 @@ export class UserRoutes {
 
 		router.get('/verify', getUser(TokenType.EmailVerify), this.userController.verifyUserEmail.bind(this.userController));
 
+		router.post('/resendVerificationEmail', this.userController.resendVerificationEmail.bind(this.userController));
+
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 
 		router.get('/users', getUser(TokenType.Auth), isVerified, this.userController.getPublicUsers.bind(this.userController));
