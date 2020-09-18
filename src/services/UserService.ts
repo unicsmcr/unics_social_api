@@ -1,4 +1,4 @@
-import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/User';
+import { User, AccountStatus, AccountType, APIPrivateUser, APIUser } from '../entities/User';
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { singleton } from 'tsyringe';
@@ -87,12 +87,14 @@ export class UserService {
 		});
 	}
 
-	public async findAllPublic(): Promise<APIPrivateUser[]> {
+	public async findAllPublic(): Promise<APIUser[]> {
 		const users = await getRepository(User)
-			.createQueryBuilder('user').where('user.profile.visbility = :status', { status: Visibility.Public })
+			.createQueryBuilder('user')
+			.select(['user', 'profile'])
+			.leftJoin('user.profile', 'profile')
+			.where('profile.visibility = :status', { status: Visibility.Public })
 			.getMany();
-		const usersJSON = users.map(user => user.toJSONPrivate());
-		return (usersJSON);
+		return users.map(user => user.toJSON());
 	}
 
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
@@ -155,8 +157,8 @@ export class UserService {
 
 			// If a profile doesn't exist, create it
 			const profile = user.profile ?? new Profile();
-			const { twitter, instagram, yearOfStudy, course, facebook, linkedin } = options;
-			Object.assign(profile, { twitter, instagram, yearOfStudy, course, facebook, linkedin });
+			const { twitter, instagram, yearOfStudy, course, facebook, linkedin, visibility } = options;
+			Object.assign(profile, { twitter, instagram, yearOfStudy, course, facebook, linkedin, visibility: Number(visibility) });
 			profile.user = user;
 			user.profile = profile;
 
