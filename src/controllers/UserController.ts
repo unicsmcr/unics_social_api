@@ -73,6 +73,15 @@ export class UserController {
 		}
 	}
 
+	public async getPublicUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const users = await this.userService.findAllPublic();
+			res.json({ users });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	public async reportUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
 			const report = await this.userService.reportUser(res.locals.user.id, req.params.id, req.body);
