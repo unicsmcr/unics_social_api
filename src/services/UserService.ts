@@ -159,9 +159,9 @@ export class UserService {
 
 	public async forgotPassword(userEmail: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
-			if (!userEmail) throw new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound);
-			const user = await entityManager.findOneOrFail(User, userEmail).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
-			if (user.accountStatus === AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, ForgotPasswordError.AccountUnverified);
+			if (!userEmail) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { email: userEmail }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
+			if (user.accountStatus === AccountStatus.Unverified) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.AccountUnverified);
 			return user.toJSONPrivate();
 		});
 	}
@@ -169,7 +169,7 @@ export class UserService {
 	public async resetPassword(userID: string, data: PasswordResetDataToCreate): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
-			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
+			const user = await entityManager.findOneOrFail(User, { id: userID }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
 			if (!data.password) {
 				throw new APIError(HttpCode.BadRequest, ResetPasswordError.NewPasswordRequired);
 			}

@@ -151,6 +151,29 @@ describe('UserService', () => {
 		});
 	});
 
+	describe('forgotPassword', () => {
+		const unverifiedUser = users[0];
+		const verifiedUser = users[1];
+
+		beforeEach(async () => {
+			await getRepository(User).save([unverifiedUser, verifiedUser]);
+		});
+
+		test('foget password for a verified exisiting user', async () => {
+			const resolvedUser = await userService.forgotPassword(verifiedUser.email);
+			expect(resolvedUser).toMatchObject(verifiedUser.toJSONPrivate());
+		});
+
+		test('forgotPassword fails with empty/invalid email', async () => {
+			await expect(userService.forgotPassword('')).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
+			await expect(userService.forgotPassword('random@student.manchester.ac.uk')).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+		});
+
+		test('forgotPassword fails with unverified users', async () => {
+			await expect(userService.forgotPassword(unverifiedUser.email)).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
+		});
+	});
+
 	describe('reportUser', () => {
 		const reportingUser = users[0];
 		const reportedUser = users[1];
