@@ -32,6 +32,11 @@ export enum Year {
 	PHD = 'PhD Student'
 }
 
+export enum Visibility {
+	Private = 0,
+	Public = 1
+}
+
 @Entity()
 export default class Profile {
 	@PrimaryGeneratedColumn('uuid')
@@ -77,8 +82,15 @@ export default class Profile {
 	@IsOptional()
 	public linkedin?: string;
 
+	@Column({
+		'type': 'enum',
+		'enum': Visibility,
+		'default': Visibility.Public
+	})
+	public visibility!: Visibility;
+
 	public toJSON() {
-		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin } = this;
+		const { id, course, yearOfStudy, avatar, instagram, facebook, twitter, linkedin, visibility } = this;
 		return {
 			id,
 			course,
@@ -87,7 +99,8 @@ export default class Profile {
 			instagram,
 			facebook,
 			twitter,
-			linkedin
+			linkedin,
+			visibility
 		};
 	}
 }

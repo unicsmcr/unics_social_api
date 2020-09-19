@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import Message, { APIMessage } from '../entities/Message';
-import { getRepository, getConnection } from 'typeorm';
+import { getRepository, getConnection, LessThan } from 'typeorm';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import { Channel } from '../entities/Channel';
@@ -42,13 +42,15 @@ export default class MessageService {
 		return message.toJSON();
 	}
 
-	public async getMessages(data: { channel: Channel; page?: number; count: number }): Promise<APIMessage[]> {
-		if (!data.page || isNaN(data.page)) data.page = 0;
+	public async getMessages(data: { channel: Channel; before?: Date; count: number }): Promise<APIMessage[]> {
+		const before = data.before ? (isNaN(data.before.getTime()) ? new Date() : data.before) : new Date();
 		const messages = await getRepository(Message)
 			.find({
-				where: { channel: data.channel },
+				where: {
+					channel: data.channel,
+					time: LessThan(before)
+				},
 				order: { time: 'DESC' },
-				skip: data.count * data.page,
 				take: data.count
 			});
 		return messages.map(message => message.toJSON());

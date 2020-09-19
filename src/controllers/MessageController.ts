@@ -48,11 +48,11 @@ export class MessageController {
 		}
 	}
 
-	public async getMessages(req: Request & { params: { channelID: string; page: number } }, res: ChannelResponse, next: NextFunction): Promise<void> {
+	public async getMessages(req: Request & { params: { channelID: string }; query: { before: string } }, res: ChannelResponse, next: NextFunction): Promise<void> {
 		try {
 			const messages = await this.messageService.getMessages({
 				channel: res.locals.channel,
-				page: Number(req.query.page),
+				before: new Date(req.query.before),
 				count: 50
 			});
 			res.json({ messages });
