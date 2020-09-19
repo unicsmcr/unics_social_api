@@ -78,7 +78,7 @@ export default class Profile {
 	public twitter?: string;
 
 	@Column({ nullable: true })
-	@Matches(/(^(https|http)?(www\.)?linkedin.com\/in\/(\w-?){0,29}$)|(^$)/, { message: 'Not a valid linkedin URL' })
+	@Matches(/(^(\w-?){0,29}$)|(^$)/, { message: 'Not a valid linkedin URL' })
 	@IsOptional()
 	public linkedin?: string;
 
