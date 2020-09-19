@@ -8,7 +8,6 @@ import { validateOrReject } from 'class-validator';
 import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
-import { TokenType } from '../util/auth';
 import Report from '../entities/Report';
 
 const writeFile = promisify(_writeFile);
@@ -16,7 +15,7 @@ const unlink = promisify(_unlink);
 
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
-export interface PasswordResetDataToCreate {password: string; currentpassword?: string}
+export interface PasswordResetDataToCreate { password: string }
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 export type ReportDataToCreate = Pick<Report, 'description' >;
 
@@ -37,8 +36,8 @@ enum ForgotPasswordError {
 
 enum ResetPasswordError {
 	UserNotFound = 'User not found',
-	CurrentPasswordRequired = 'YYou should provide your current password',
-	InvalidCredentials = 'Invalid Credentials'
+	NewPasswordRequired = 'You should provide a new password',
+	InvalidEntryDetails = 'Invalid user details.'
 }
 
 enum AuthenticateError {
@@ -167,19 +166,17 @@ export class UserService {
 		});
 	}
 
-	public async resetPassword(tokenType: TokenType, userID: string, data: PasswordResetDataToCreate): Promise<APIPrivateUser> {
+	public async resetPassword(userID: string, data: PasswordResetDataToCreate): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, userID).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
-			if (tokenType === TokenType.Auth) {
-				if (!data.currentpassword) throw new APIError(HttpCode.BadRequest, ResetPasswordError.CurrentPasswordRequired);
-				if (!verifyPassword(data.currentpassword, user.password)) {
-					throw new APIError(HttpCode.Forbidden, ResetPasswordError.InvalidCredentials);
-				}
+			if (!data.password) {
+				throw new APIError(HttpCode.BadRequest, ResetPasswordError.NewPasswordRequired);
 			}
 			Object.assign(user, {
 				password: await hashPassword(data.password)
 			});
+			await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
 			return user.toJSONPrivate();
 		});
 	}

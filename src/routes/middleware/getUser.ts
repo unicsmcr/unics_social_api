@@ -12,7 +12,7 @@ enum GetUserError {
 	TokenMismatch = 'Given token not privileged for this request'
 }
 
-export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User; type: TokenType } };
+export type AuthenticatedResponse = Omit<Response, 'locals'> & { locals: { user: User } };
 
 export default function getUser(tokenType: TokenType) {
 	return async (req: Request, res: Response, next: NextFunction) => {
@@ -33,7 +33,6 @@ export default function getUser(tokenType: TokenType) {
 		const user = await userService.findOne({ id });
 		if (!user) return next(new APIError(HttpCode.Unauthorized, GetUserError.UserNotFound));
 		(res as AuthenticatedResponse).locals.user = user;
-		(res as AuthenticatedResponse).locals.type = tokenType;
 		next();
 	};
 }

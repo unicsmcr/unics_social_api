@@ -91,7 +91,7 @@ export class UserController {
 
 	public async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.resetPassword(res.locals.type, res.locals.user.id, req.body);
+			const user = await this.userService.resetPassword(res.locals.user.id, req.body);
 			res.json({ user });
 		} catch (error) {
 			next(error);
