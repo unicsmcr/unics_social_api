@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
 import { getUser, isVerified, uploadImg } from './middleware';
-import { TokenType, CombinedEnum } from '../util/auth';
+import { TokenType } from '../util/auth';
 
 @injectable()
 export class UserRoutes {
