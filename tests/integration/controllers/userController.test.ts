@@ -246,7 +246,7 @@ describe('UserController', () => {
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
-			when(mockedUserService.resetPassword(user.id, anything())).thenResolve({ ...users[1] });
+			when(mockedUserService.resetPassword(user.id, anything())).thenResolve(users[1]);
 
 			const res = await supertest(app).get('/api/v1/reset_password')
 				.send(data)
