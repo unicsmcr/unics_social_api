@@ -28,7 +28,7 @@ The UniCS Robot 🤖
 `;
 };
 
-export const PassowrdEmailTemplate = (name: string, token: string) => {
+export const PasswordEmailTemplate = (name: string, token: string) => {
 	const url = `${getConfig().host}/reset_password?token=${token}`;
 	return `<b>Hi ${name}!</b>
 

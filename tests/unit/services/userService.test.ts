@@ -174,6 +174,31 @@ describe('UserService', () => {
 		});
 	});
 
+	describe('resetPassword', () => {
+		const user = users[1];
+
+		beforeEach(async () => {
+			await getRepository(User).save(user);
+		});
+
+		test('reset password for an exisiting user with new password', async () => {
+			const details = { password: 'superwoman' };
+			const resolvedUser = await userService.resetPassword(user.id, details);
+			expect(resolvedUser.password).toStrictEqual('namowrepus');
+		});
+
+		test('resetPassword fails with empty/invalid ID', async () => {
+			const details = { password: 'superwoman' };
+			await expect(userService.resetPassword('', details)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(userService.resetPassword('r23fr-20ur-2048f-forhfuho3', details)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+		});
+
+		test('resetPassword fails with null/empty password', async () => {
+			await expect(userService.resetPassword(user.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(userService.resetPassword(user.id, { password: '' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+		});
+	});
+
 	describe('reportUser', () => {
 		const reportingUser = users[0];
 		const reportedUser = users[1];

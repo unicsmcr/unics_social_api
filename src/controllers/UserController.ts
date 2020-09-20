@@ -2,7 +2,7 @@ import { UserService } from '../services/UserService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
-import { VerifyEmailTemplate, PassowrdEmailTemplate, ReportEmailTemplate } from '../util/emails';
+import { VerifyEmailTemplate, PasswordEmailTemplate, ReportEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
@@ -81,7 +81,7 @@ export class UserController {
 			await this.emailService.sendEmail({
 				to: user.email,
 				subject: 'Reset your KB password',
-				html: PassowrdEmailTemplate(user.forename, token)
+				html: PasswordEmailTemplate(user.forename, token)
 			});
 			res.status(HttpCode.NoContent).end();
 		} catch (error) {

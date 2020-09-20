@@ -15,7 +15,7 @@ const unlink = promisify(_unlink);
 
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
-export interface PasswordResetDataToCreate { password: string }
+export interface PasswordResetData { password: string }
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 export type ReportDataToCreate = Pick<Report, 'description' >;
 
@@ -166,18 +166,19 @@ export class UserService {
 		});
 	}
 
-	public async resetPassword(userID: string, data: PasswordResetDataToCreate): Promise<APIPrivateUser> {
+	public async resetPassword(userID: string, data: PasswordResetData): Promise<User> {
 		return getConnection().transaction(async entityManager => {
-			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
-			const user = await entityManager.findOneOrFail(User, { id: userID }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
 			if (!data.password) {
 				throw new APIError(HttpCode.BadRequest, ResetPasswordError.NewPasswordRequired);
 			}
+			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { id: userID }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
 			Object.assign(user, {
 				password: await hashPassword(data.password)
 			});
-			await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
-			return user.toJSONPrivate();
+			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
+			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ResetPasswordError.InvalidEntryDetails)));
+			return savedUser;
 		});
 	}
 
