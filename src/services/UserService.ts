@@ -151,6 +151,7 @@ export class UserService {
 		const notes = await getRepository(Note)
 			.createQueryBuilder('note')
 			.leftJoinAndSelect('note.owner', 'user')
+			.leftJoinAndSelect('note.targetUser', 'targetUser')
 			.where('user.id = :id', { id: userID })
 			.getMany();
 		return notes.map(note => note.toJSON());
@@ -167,7 +168,7 @@ export class UserService {
 
 			const note = new Note();
 			const { description } = options;
-			Object.assign(note, { time: new Date(), description });
+			Object.assign(note, { time: new Date(), description: description });
 			note.owner = owner;
 			note.targetUser = targetUser;
 			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
