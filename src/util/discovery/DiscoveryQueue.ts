@@ -87,6 +87,15 @@ export class DiscoveryQueue {
 				return this.matchUsers(user.id, queueUser.user.id);
 			}
 		}
+		this.queue.add({
+			user: {
+				id: user.id,
+				yearOfStudy: user.profile.yearOfStudy
+			},
+			options: {
+				sameYear: options.sameYear
+			}
+		});
 	}
 
 	public removeFromQueue(userId: string): void {
