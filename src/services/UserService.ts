@@ -9,6 +9,7 @@ import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import Report from '../entities/Report';
+import Note, { APINote } from '../entities/Note';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -87,16 +88,6 @@ export class UserService {
 		});
 	}
 
-	public async findAllPublic(): Promise<APIUser[]> {
-		const users = await getRepository(User)
-			.createQueryBuilder('user')
-			.select(['user', 'profile'])
-			.leftJoin('user.profile', 'profile')
-			.where('profile.visibility = :status', { status: Visibility.Public })
-			.getMany();
-		return users.map(user => user.toJSON());
-	}
-
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
@@ -143,6 +134,25 @@ export class UserService {
 		}
 
 		return user.toJSONPrivate();
+	}
+
+	public async findAllPublic(): Promise<APIUser[]> {
+		const users = await getRepository(User)
+			.createQueryBuilder('user')
+			.select(['user', 'profile'])
+			.leftJoin('user.profile', 'profile')
+			.where('profile.visibility = :status', { status: Visibility.Public })
+			.getMany();
+		return users.map(user => user.toJSON());
+	}
+
+	public async getNotes(userID: string): Promise<APINote[]> {
+		const notes = await getRepository(Note)
+			.createQueryBuilder('note')
+			.leftJoinAndSelect('note.owner', 'user')
+			.where('user.id = :id', { id: userID })
+			.getMany();
+		return notes.map(note => note.toJSON());
 	}
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {

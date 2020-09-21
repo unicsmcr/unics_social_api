@@ -1,6 +1,6 @@
 import { User } from './User';
-import { IsDate } from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { IsDate, IsOptional, MaxLength } from 'class-validator';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 
 export interface APINote {
 	id: string;
@@ -21,10 +21,12 @@ export default class Note {
 	public id!: string;
 
 	@ManyToOne(() => User)
+	@PrimaryColumn()
 	@JoinColumn()
 	public owner!: User;
 
 	@ManyToOne(() => User)
+	@PrimaryColumn()
 	@JoinColumn()
 	public targetUser!: User;
 
@@ -33,6 +35,11 @@ export default class Note {
 		'enum': NoteType
 	})
 	public noteType!: NoteType;
+
+	@Column({ nullable: true })
+	@MaxLength(100, { message: 'A note description must be 100 characters at most' })
+	@IsOptional()
+	public description?: string;
 
 	@Column('timestamptz')
 	@IsDate()

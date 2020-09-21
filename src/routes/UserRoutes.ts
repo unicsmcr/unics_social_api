@@ -25,6 +25,8 @@ export class UserRoutes {
 
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
 
+		router.get('/users/@me/notes', getUser(TokenType.Auth), isVerified, this.userController.getNotes.bind(this.userController));
+
 		router.post('/users/:id/report', getUser(TokenType.Auth), isVerified, this.userController.reportUser.bind(this.userController));
 
 		router.put('/users/@me/profile', getUser(TokenType.Auth), isVerified, uploadImg('avatar'), this.userController.putUserProfile.bind(this.userController));
