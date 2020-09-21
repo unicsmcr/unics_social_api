@@ -3,6 +3,7 @@ import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validato
 import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
 import Report from './Report';
+import Note from './Note';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -70,6 +71,10 @@ export class User {
 	@OneToMany(() => Report, report => report.reportedUser)
 	@JoinColumn()
 	public reports?: Report[];
+
+	@OneToMany(() => Note, note => note.owner)
+	@JoinColumn()
+	public notes?: Note[];
 
 	public toJSON(): APIUser {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;
