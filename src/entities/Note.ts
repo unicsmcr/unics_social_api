@@ -1,6 +1,6 @@
 import { User } from './User';
 import { IsDate } from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 
 export interface APINote {
 	id: string;
@@ -21,11 +21,19 @@ export default class Note {
 
 	@ManyToOne(() => User)
 	@JoinColumn()
+	@PrimaryColumn()
 	public owner!: User;
 
 	@ManyToOne(() => User)
 	@JoinColumn()
+	@PrimaryColumn()
 	public targetUser!: User;
+
+	@Column({
+		'type': 'enum',
+		'enum': NoteType
+	})
+	public noteType!: NoteType;
 
 	@Column('timestamptz')
 	@IsDate()
