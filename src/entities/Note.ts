@@ -1,6 +1,6 @@
 import { User } from './User';
 import { IsDate, IsOptional, MaxLength } from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 
 export interface APINote {
 	id: string;
@@ -20,13 +20,11 @@ export default class Note {
 	@PrimaryGeneratedColumn('uuid')
 	public id!: string;
 
-	@ManyToOne(() => User)
-	@PrimaryColumn()
+	@ManyToOne(() => User, { primary: true })
 	@JoinColumn()
 	public owner!: User;
 
-	@ManyToOne(() => User)
-	@PrimaryColumn()
+	@ManyToOne(() => User, { primary: true })
 	@JoinColumn()
 	public targetUser!: User;
 
