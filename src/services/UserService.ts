@@ -17,6 +17,7 @@ const unlink = promisify(_unlink);
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
+export interface NoteDataToCreate { description: Pick<Note, 'description'> | null }
 export type ReportDataToCreate = Pick<Report, 'description' >;
 
 enum RegistrationError {
@@ -153,6 +154,26 @@ export class UserService {
 			.where('user.id = :id', { id: userID })
 			.getMany();
 		return notes.map(note => note.toJSON());
+	}
+
+	public async createNote(userID: string, targetUserID: string, options: NoteDataToCreate): Promise<APINote> {
+		return getConnection().transaction(async entityManager => {
+			if (!userID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			if (!targetUserID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			const owner = await entityManager.findOneOrFail(User, { id: userID })
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
+			const targetUser = await entityManager.findOneOrFail(User, { id: targetUserID })
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
+
+			const note = new Note();
+			const { description } = options;
+			Object.assign(note, { time: new Date(), description });
+			note.owner = owner;
+			note.targetUser = targetUser;
+			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
+			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
+			return note.toJSON();
+		});
 	}
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {

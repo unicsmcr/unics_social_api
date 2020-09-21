@@ -106,6 +106,15 @@ export class UserController {
 		}
 	}
 
+	public async createNote(req: Request & { params: { id: string } }, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const note = await this.userService.createNote(res.locals.user.id, req.params.id, req.body);
+			res.json({ note });
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	public async reportUser(req: Request & { params: { id: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
 			const report = await this.userService.reportUser(res.locals.user.id, req.params.id, req.body);
