@@ -6,12 +6,13 @@ export interface APINote {
 	id: string;
 	ownerID: string;
 	targetUserID: string;
+	noteType: NoteType;
 	time: string;
 }
 
 export enum NoteType {
-	BLOCKED = 0,
-	LIKED = 1
+	Blocked = 0,
+	Liked = 1
 }
 
 @Entity()
@@ -44,6 +45,7 @@ export default class Note {
 			id: this.id,
 			ownerID: this.owner.id,
 			targetUserID: this.targetUser.id,
+			noteType: this.noteType,
 			time: this.time.toISOString()
 		};
 	}
