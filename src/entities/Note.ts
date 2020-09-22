@@ -17,9 +17,6 @@ export enum NoteType {
 
 @Entity()
 export default class Note {
-	@PrimaryGeneratedColumn('uuid')
-	public id!: string;
-
 	@ManyToOne(() => User, { primary: true })
 	@JoinColumn()
 	public owner!: User;
