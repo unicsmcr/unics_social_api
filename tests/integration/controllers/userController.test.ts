@@ -245,6 +245,37 @@ describe('UserController', () => {
 		});
 	});
 
+	describe('getNotes', () => {
+		test('Notes returned for valid request', async () => {
+			const user = users[2];
+			const output = [user.notes![0].toJSON()];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.getNotes(user.id)).thenResolve(output);
+
+			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
+				.set('Authorization', authorization);
+			verify(mockedUserService.getNotes(user.id)).called();
+			expect(res.status).toEqual(HttpCode.Ok);
+			expect(res.body).toEqual({ notes: output });
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users[2];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.getNotes(user.id)).thenReject(testError400);
+
+			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
+				.set('Authorization', authorization);
+			verify(mockedUserService.getNotes(user.id)).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
 	describe('createNote', () => {
 		test('Note returned for valid request', async () => {
 			const data = randomObject();
