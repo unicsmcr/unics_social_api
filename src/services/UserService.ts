@@ -165,7 +165,17 @@ export class UserService {
 			const targetUser = await entityManager.findOneOrFail(User, { id: targetUserID })
 				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
 
-			const note = new Note();
+			let note: Note | undefined;
+			note = await getRepository(Note)
+				.createQueryBuilder('note')
+				.leftJoinAndSelect('note.owner', 'user')
+				.where('user.id = :id', { id: userID })
+				.leftJoinAndSelect('note.targetUser', 'targetUser')
+				.where('user.id = :id', { id: userID })
+				.getOne();
+			if (!note) {
+				note = new Note();
+			}
 			Object.assign(note, { time: new Date() });
 			note.owner = owner;
 			note.targetUser = targetUser;
