@@ -151,8 +151,8 @@ export class UserService {
 		const notes = await getRepository(Note)
 			.createQueryBuilder('note')
 			.leftJoinAndSelect('note.owner', 'user')
-			.leftJoinAndSelect('note.targetUser', 'targetUser')
 			.where('user.id = :id', { id: userID })
+			.leftJoinAndSelect('note.targetUser', 'targetUser')
 			.getMany();
 		return notes.map(note => note.toJSON());
 	}
