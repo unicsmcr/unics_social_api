@@ -9,7 +9,7 @@ import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import Report from '../entities/Report';
-import Note, { APINote } from '../entities/Note';
+import Note, { APINote, NoteType } from '../entities/Note';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -156,7 +156,7 @@ export class UserService {
 		return notes.map(note => note.toJSON());
 	}
 
-	public async createNote(userID: string, targetUserID: string): Promise<APINote> {
+	public async createNote(userID: string, targetUserID: string, data: NoteType): Promise<APINote> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
 			if (!targetUserID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
@@ -171,14 +171,19 @@ export class UserService {
 				.leftJoinAndSelect('note.owner', 'user')
 				.where('user.id = :id', { id: userID })
 				.leftJoinAndSelect('note.targetUser', 'targetUser')
-				.where('user.id = :id', { id: userID })
+				.where('targetUser.id = :id', { id: targetUserID })
 				.getOne();
-			if (!note) {
+			if (note) {
+				if (note.noteType === data) {
+					return note.toJSON();
+				}
+			} else {
 				note = new Note();
+				note.owner = owner;
+				note.targetUser = targetUser;
 			}
-			Object.assign(note, { time: new Date() });
-			note.owner = owner;
-			note.targetUser = targetUser;
+			const noteType = data;
+			Object.assign(note, { time: new Date(), noteType: noteType });
 			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
 			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
 			return note.toJSON();

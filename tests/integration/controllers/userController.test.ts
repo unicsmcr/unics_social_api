@@ -245,6 +245,43 @@ describe('UserController', () => {
 		});
 	});
 
+	describe('createNote', () => {
+		test('Note returned for valid request', async () => {
+			const data = randomObject();
+			const user = users[2];
+			const target = users[1];
+			const output = user.notes![0].toJSON();
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.createNote(user.id, target.id, anything())).thenResolve(output);
+
+			const res = await supertest(app).post(`/api/v1/users/${target.id}/note`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedUserService.createNote(user.id, target.id, objectContaining(data))).called();
+			expect(res.status).toEqual(HttpCode.Ok);
+			expect(res.body).toEqual({ note: output });
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const data = randomObject();
+			const user = users[2];
+			const target = users[1];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.createNote(user.id, target.id, anything())).thenReject(testError400);
+
+			const res = await supertest(app).post(`/api/v1/users/${target.id}/note`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedUserService.createNote(user.id, target.id, objectContaining(data))).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
 	describe('reportUser', () => {
 		test('No content response for valid request', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
