@@ -1,6 +1,6 @@
 import { User } from './User';
 import { IsDate, IsOptional, MaxLength } from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 export interface APINote {
 	id: string;
@@ -42,7 +42,6 @@ export default class Note {
 
 	public toJSON() {
 		return {
-			id: this.id,
 			ownerID: this.owner.id,
 			targetUserID: this.targetUser.id,
 			noteType: this.noteType,
