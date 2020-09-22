@@ -2,6 +2,7 @@ import { User, AccountType, AccountStatus } from '../../src/entities/User';
 import Profile, { Year, Course, Visibility } from '../../src/entities/Profile';
 import { DMChannel } from '../../src/entities/Channel';
 import Report from '../../src/entities/Report';
+import Note from '../../src/entities/Note';
 
 
 /*
@@ -79,6 +80,12 @@ report1.reportingUser = user2;
 report1.currentTime = new Date();
 report1.description = 'this is a report';
 user3.reports = [report1];
+
+const user3note = new Note();
+user3note.owner = user3;
+user3note.targetUser = user2;
+user3note.time = new Date();
+user3.notes = [user3note];
 
 export default [
 	user1, user2, user3
