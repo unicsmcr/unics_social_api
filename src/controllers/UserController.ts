@@ -108,7 +108,7 @@ export class UserController {
 
 	public async createNote(req: Request & { params: { id: string } }, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const note = await this.userService.createNote(res.locals.user.id, req.params.id, req.body);
+			const note = await this.userService.createNote(res.locals.user.id, req.params.id);
 			res.json({ note });
 		} catch (error) {
 			next(error);

@@ -1,5 +1,5 @@
 import { User } from './User';
-import { IsDate, IsOptional, MaxLength } from 'class-validator';
+import { IsDate } from 'class-validator';
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 export interface APINote {
@@ -29,11 +29,6 @@ export default class Note {
 		'enum': NoteType
 	})
 	public noteType!: NoteType;
-
-	@Column({ nullable: true })
-	@MaxLength(100, { message: 'A note description must be 100 characters at most' })
-	@IsOptional()
-	public description?: string;
 
 	@Column('timestamptz')
 	@IsDate()
