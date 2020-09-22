@@ -1,4 +1,5 @@
 import { UserService } from '../../../src/services/UserService';
+import { NoteService } from '../../../src/services/NoteService';
 import EmailService from '../../../src/services/email/EmailService';
 import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
@@ -13,6 +14,7 @@ import { AccountStatus, User } from '../../../src/entities/User';
 let app: Express.Application;
 let mockedUserService: UserService;
 let mockedEmailService: EmailService;
+let mockedNoteService: NoteService;
 
 const spiedGetUserReqs = {
 	authorization: '',
@@ -33,9 +35,12 @@ beforeAll(async () => {
 
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
+	mockedNoteService = mock(NoteService);
+
 	container.clearInstances();
 	container.register<UserService>(UserService, { useValue: instance(mockedUserService) });
 	container.register<EmailService>(EmailService, { useValue: instance(mockedEmailService) });
+	container.register<NoteService>(NoteService, { useValue: instance(mockedNoteService) });
 
 	app = await createApp();
 });
@@ -44,6 +49,7 @@ beforeEach(() => {
 	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
+	reset(mockedNoteService);
 });
 
 const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
@@ -252,11 +258,11 @@ describe('UserController', () => {
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
-			when(mockedUserService.getNotes(user.id)).thenResolve(output);
+			when(mockedNoteService.getNotes(user.id)).thenResolve(output);
 
 			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
 				.set('Authorization', authorization);
-			verify(mockedUserService.getNotes(user.id)).called();
+			verify(mockedNoteService.getNotes(user.id)).called();
 			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ notes: output });
 		});
@@ -266,11 +272,11 @@ describe('UserController', () => {
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
-			when(mockedUserService.getNotes(user.id)).thenReject(testError400);
+			when(mockedNoteService.getNotes(user.id)).thenReject(testError400);
 
 			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
 				.set('Authorization', authorization);
-			verify(mockedUserService.getNotes(user.id)).called();
+			verify(mockedNoteService.getNotes(user.id)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
@@ -285,12 +291,12 @@ describe('UserController', () => {
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
-			when(mockedUserService.createNote(user.id, target.id, anything())).thenResolve(output);
+			when(mockedNoteService.createNote(user.id, target.id, anything())).thenResolve(output);
 
 			const res = await supertest(app).post(`/api/v1/users/${target.id}/note`)
 				.set('Authorization', authorization)
 				.send(data);
-			verify(mockedUserService.createNote(user.id, target.id, objectContaining(data))).called();
+			verify(mockedNoteService.createNote(user.id, target.id, objectContaining(data))).called();
 			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ note: output });
 		});
@@ -302,12 +308,12 @@ describe('UserController', () => {
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
-			when(mockedUserService.createNote(user.id, target.id, anything())).thenReject(testError400);
+			when(mockedNoteService.createNote(user.id, target.id, anything())).thenReject(testError400);
 
 			const res = await supertest(app).post(`/api/v1/users/${target.id}/note`)
 				.set('Authorization', authorization)
 				.send(data);
-			verify(mockedUserService.createNote(user.id, target.id, objectContaining(data))).called();
+			verify(mockedNoteService.createNote(user.id, target.id, objectContaining(data))).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});

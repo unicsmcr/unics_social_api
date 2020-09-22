@@ -9,7 +9,6 @@ import { writeFile as _writeFile, unlink as _unlink } from 'fs';
 import { promisify } from 'util';
 import sharp from 'sharp';
 import Report from '../entities/Report';
-import Note, { APINote, NoteType } from '../entities/Note';
 
 const writeFile = promisify(_writeFile);
 const unlink = promisify(_unlink);
@@ -144,50 +143,6 @@ export class UserService {
 			.where('profile.visibility = :status', { status: Visibility.Public })
 			.getMany();
 		return users.map(user => user.toJSON());
-	}
-
-	public async getNotes(userID: string): Promise<APINote[]> {
-		const notes = await getRepository(Note)
-			.createQueryBuilder('note')
-			.leftJoinAndSelect('note.owner', 'user')
-			.where('user.id = :id', { id: userID })
-			.leftJoinAndSelect('note.targetUser', 'targetUser')
-			.getMany();
-		return notes.map(note => note.toJSON());
-	}
-
-	public async createNote(userID: string, targetUserID: string, data: NoteType): Promise<APINote> {
-		return getConnection().transaction(async entityManager => {
-			if (!userID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
-			if (!targetUserID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
-			const owner = await entityManager.findOneOrFail(User, { id: userID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
-			const targetUser = await entityManager.findOneOrFail(User, { id: targetUserID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
-
-			let note: Note | undefined;
-			note = await getRepository(Note)
-				.createQueryBuilder('note')
-				.leftJoinAndSelect('note.owner', 'user')
-				.where('user.id = :id', { id: userID })
-				.leftJoinAndSelect('note.targetUser', 'targetUser')
-				.where('targetUser.id = :id', { id: targetUserID })
-				.getOne();
-			if (note) {
-				if (note.noteType === data) {
-					return note.toJSON();
-				}
-			} else {
-				note = new Note();
-				note.owner = owner;
-				note.targetUser = targetUser;
-			}
-			const noteType = data;
-			Object.assign(note, { time: new Date(), noteType: noteType });
-			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
-			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
-			return note.toJSON();
-		});
 	}
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
