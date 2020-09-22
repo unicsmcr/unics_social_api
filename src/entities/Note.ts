@@ -3,7 +3,6 @@ import { IsDate, IsOptional, MaxLength } from 'class-validator';
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 export interface APINote {
-	id: string;
 	ownerID: string;
 	targetUserID: string;
 	noteType: NoteType;
