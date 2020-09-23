@@ -80,4 +80,20 @@ describe('NoteService', () => {
 			await expect(noteService.createNote('', user1.id, NoteType.Blocked)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
 		});
 	});
+
+	describe('deleteNote()', () => {
+		beforeEach(async () => {
+			await getRepository(User).save([user2, user1]);
+			await getRepository(Note).save(user2.notes!);
+		});
+
+		test('Deletes note correctly', async () => {
+			await expect(noteService.deleteNote(user2.id, user1.id)).resolves.not.toThrow();
+		});
+
+		test('Fails with missing id\'s', async () => {
+			await expect(noteService.deleteNote(user2.id, '')).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(noteService.deleteNote('', user1.id)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+		});
+	});
 });
