@@ -2,6 +2,7 @@ import { NextFunction, Request } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import DiscordService from '../services/DiscordService';
+import { HttpCode } from '../util/errors';
 
 @injectable()
 export class DiscordController {
@@ -24,10 +25,8 @@ export class DiscordController {
 
 	public async linkAccount(req: Omit<Request, 'body'> & { body: { code: string; state: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
 		try {
-			const url = await this.discordService.finaliseAccountLink(req.body.state, req.body.code);
-			res.json({
-				url
-			});
+			await this.discordService.finaliseAccountLink(req.body.state, req.body.code);
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}
