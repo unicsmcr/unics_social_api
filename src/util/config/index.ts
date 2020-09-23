@@ -29,7 +29,7 @@ export interface EnvConfig {
 		apiKey: string;
 	};
 	discord: {
-		oauthSecret: string;
+		oauth2Secret: string;
 		clientID: string;
 		clientSecret: string;
 		guildID: string;
@@ -63,7 +63,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		discord: {
 			clientID: getEnv(source, 'DISCORD_CLIENT_ID'),
 			clientSecret: getEnv(source, 'DISCORD_CLIENT_SECRET'),
-			oauthSecret: getEnv(source, 'DISCORD_OAUTH_SECRET'),
+			oauth2Secret: getEnv(source, 'DISCORD_OAUTH2_SECRET'),
 			guildID: getEnv(source, 'DISCORD_GUILD_ID')
 		}
 	};

@@ -22,7 +22,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		TWILIO_SECRET: 'asecret123',
 		DISCORD_CLIENT_ID: 'a',
 		DISCORD_CLIENT_SECRET: 'b',
-		DISCORD_OAUTH_SECRET: 'c',
+		DISCORD_OAUTH2_SECRET: 'c',
 		DISCORD_GUILD_ID: 'd'
 	},
 	{
@@ -50,7 +50,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		discord: {
 			clientID: 'a',
 			clientSecret: 'b',
-			oauthSecret: 'c',
+			oauth2Secret: 'c',
 			guildID: 'd'
 		},
 		jwtSecret: 'test123test'
@@ -78,7 +78,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		TWILIO_SECRET: 'secretabc123',
 		DISCORD_CLIENT_ID: 'abc',
 		DISCORD_CLIENT_SECRET: '123',
-		DISCORD_OAUTH_SECRET: 'def',
+		DISCORD_OAUTH2_SECRET: 'def',
 		DISCORD_GUILD_ID: '456'
 	},
 	{
@@ -106,7 +106,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		discord: {
 			clientID: 'abc',
 			clientSecret: '123',
-			oauthSecret: 'def',
+			oauth2Secret: 'def',
 			guildID: '456'
 		},
 		jwtSecret: 'asecret'
