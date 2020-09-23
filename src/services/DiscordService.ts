@@ -4,12 +4,20 @@ import { getConfig } from '../util/config';
 import { APIError } from '../util/errors';
 import qs from 'querystring';
 import axios, { AxiosResponse } from 'axios';
-import { User } from '../entities/User';
 import { getConnection } from 'typeorm';
+import { Rest, TokenType } from '@spectacles/rest';
+import { DiscordLink } from '../entities/DiscordLink';
+import { Agent } from 'https';
+import { logger } from '../util/logger';
 
 enum OAuth2StateError {
 	BadState = 'Invalid OAuth2 state',
 	NotGenuine = 'OAuth2 state is not genuine'
+}
+
+enum LinkError {
+	DiscordLinked = 'This discord account is linked to another user.',
+	FailedToAdd = 'Something went wrong when adding you to the Discord server.'
 }
 
 interface TokenResponse {
@@ -22,6 +30,16 @@ interface TokenResponse {
 
 @singleton()
 export default class DiscordService {
+	private readonly agent: Agent;
+	private readonly client: Rest;
+	public constructor() {
+		this.agent = new Agent({ keepAlive: true });
+		this.client = new Rest(getConfig().discord.botToken, {
+			tokenType: TokenType.BOT,
+			agent: this.agent
+		});
+	}
+
 	public generateOAuth2State(userID: string) {
 		const hmac = createHmac('sha256', getConfig().discord.oauth2Secret)
 			.update(userID)
@@ -67,7 +85,37 @@ export default class DiscordService {
 	}
 
 	public async finaliseAccountLink(state: string, oauth2Code: string): Promise<void> {
-		const userID = await this.parseOAuth2State(state);
-		const accessToken = await this.getToken(oauth2Code);
+		const userID = this.parseOAuth2State(state);
+		const token = await this.getToken(oauth2Code);
+
+		const client = new Rest({
+			token,
+			tokenType: TokenType.BEARER
+		});
+		const { id: discordID } = await client.get('/users/@me') as { id: string };
+
+		return getConnection().transaction(async entityManager => {
+			// Link the accounts
+			await entityManager.createQueryBuilder()
+				.insert()
+				.into(DiscordLink)
+				.values({
+					discordID,
+					user: { id: userID }
+				})
+				.onConflict(`("userId") DO UPDATE SET "discordID" = :discordID`)
+				.setParameter('discordID', discordID)
+				.execute()
+				.catch(() => Promise.reject(new APIError(400, LinkError.DiscordLinked)));
+
+			// Add the user to the Discord server
+			await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
+				access_token: token
+			}).catch(error => {
+				logger.warn('Discord error:');
+				logger.warn(error);
+				return Promise.reject(new APIError(500, LinkError.FailedToAdd));
+			});
+		});
 	}
 }

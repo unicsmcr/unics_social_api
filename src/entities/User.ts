@@ -73,7 +73,6 @@ export class User {
 	public reports?: Report[];
 
 	@OneToOne(() => DiscordLink, link => link.user, { eager: true })
-	@JoinColumn()
 	public discord?: DiscordLink;
 
 	public toJSON(): APIUser {

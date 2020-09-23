@@ -23,7 +23,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DISCORD_CLIENT_ID: 'a',
 		DISCORD_CLIENT_SECRET: 'b',
 		DISCORD_OAUTH2_SECRET: 'c',
-		DISCORD_GUILD_ID: 'd'
+		DISCORD_GUILD_ID: 'd',
+		DISCORD_BOT_TOKEN: 'e'
 	},
 	{
 		port: 8000,
@@ -51,7 +52,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			clientID: 'a',
 			clientSecret: 'b',
 			oauth2Secret: 'c',
-			guildID: 'd'
+			guildID: 'd',
+			botToken: 'e'
 		},
 		jwtSecret: 'test123test'
 	}
@@ -79,7 +81,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DISCORD_CLIENT_ID: 'abc',
 		DISCORD_CLIENT_SECRET: '123',
 		DISCORD_OAUTH2_SECRET: 'def',
-		DISCORD_GUILD_ID: '456'
+		DISCORD_GUILD_ID: '456',
+		DISCORD_BOT_TOKEN: 'ghi'
 	},
 	{
 		port: 25565,
@@ -107,7 +110,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			clientID: 'abc',
 			clientSecret: '123',
 			oauth2Secret: 'def',
-			guildID: '456'
+			guildID: '456',
+			botToken: 'ghi'
 		},
 		jwtSecret: 'asecret'
 	}
