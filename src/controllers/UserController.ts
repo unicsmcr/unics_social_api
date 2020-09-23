@@ -52,6 +52,21 @@ export class UserController {
 		}
 	}
 
+	public async resendVerificationEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const user = await this.userService.getUserByEmail(req.body.email);
+			const token = await generateJWT({ ...user, tokenType: TokenType.EmailVerify });
+			await this.emailService.sendEmail({
+				to: user.email,
+				subject: 'Verify your UniCS KB email',
+				html: VerifyEmailTemplate(user.forename, token)
+			});
+			res.status(HttpCode.NoContent).end();
+		} catch (error) {
+			next(error);
+		}
+	}
+
 	public async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const user = await this.userService.authenticate(req.body.email, req.body.password);
@@ -71,6 +86,15 @@ export class UserController {
 			res.json({
 				user: user.toJSON()
 			});
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async getPublicUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const users = await this.userService.findAllPublic();
+			res.json({ users });
 		} catch (error) {
 			next(error);
 		}

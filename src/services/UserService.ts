@@ -1,8 +1,8 @@
-import { User, AccountStatus, AccountType, APIPrivateUser } from '../entities/User';
+import { User, AccountStatus, AccountType, APIPrivateUser, APIUser } from '../entities/User';
 import { getConnection, getRepository, FindConditions, FindOneOptions } from 'typeorm';
 import { hashPassword, verifyPassword } from '../util/password';
 import { singleton } from 'tsyringe';
-import Profile from '../entities/Profile';
+import Profile, { Visibility } from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import Report from '../entities/Report';
@@ -25,7 +25,7 @@ enum AuthenticateError {
 	InvalidCredentials = 'Invalid Credentials'
 }
 
-enum ReporttUserError {
+enum ReportUserError {
 	UserNotFound = 'User not found',
 	InvalidEntryDetails = 'Invalid user details.'
 }
@@ -74,6 +74,16 @@ export class UserService {
 		});
 	}
 
+	public async findAllPublic(): Promise<APIUser[]> {
+		const users = await getRepository(User)
+			.createQueryBuilder('user')
+			.select(['user', 'profile'])
+			.leftJoin('user.profile', 'profile')
+			.where('profile.visibility = :status', { status: Visibility.Public })
+			.getMany();
+		return users.map(user => user.toJSON());
+	}
+
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
@@ -83,6 +93,22 @@ export class UserService {
 			await entityManager.save(user);
 			return user.toJSONPrivate();
 		});
+	}
+
+	public async getUserByEmail(email: string): Promise<APIPrivateUser> {
+		if (!email) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		const user = await getRepository(User)
+			.createQueryBuilder('user').where('user.email= :email', { email })
+			.getOne();
+
+		if (!user) {
+			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+		if (user.accountStatus !== AccountStatus.Unverified) throw new APIError(HttpCode.BadRequest, EmailVerifyError.AccountNotUnverified);
+
+		return user.toJSONPrivate();
 	}
 
 	public async authenticate(email: string, password: string): Promise<APIPrivateUser> {
@@ -108,10 +134,10 @@ export class UserService {
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {
 		return getConnection().transaction(async entityManager => {
-			if (!reportingID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
-			if (!reportedID) throw new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound);
+			if (!reportingID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			if (!reportedID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, { id: reportedID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReporttUserError.UserNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
 
 			const report = new Report();
 			const { description } = options;
@@ -119,7 +145,7 @@ export class UserService {
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
 			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
-			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReporttUserError.InvalidEntryDetails)));
+			await entityManager.save(report).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
 			return report.toJSON();
 		});
 	}

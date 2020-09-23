@@ -1,6 +1,6 @@
 {
  "name": "@unicsmcr/unics_social_api",
- "version": "0.0.4",
+ "version": "0.0.5",
  "description": "networking for CS students at the University of Manchester",
  "main": "dist/index.js",
  "scripts": {
@@ -82,10 +82,13 @@
  },
  "dependencies": {
   "@sendgrid/mail": "^7.2.1",
+  "@spectacles/rest": "^0.8.3",
+  "@types/axios": "^0.14.0",
   "@types/express": "^4.17.7",
   "@types/jsonwebtoken": "^8.5.0",
   "@types/pino": "^6.3.0",
   "@types/ws": "^7.2.6",
+  "axios": "^0.20.0",
   "class-validator": "^0.12.2",
   "cors": "^2.8.5",
   "dotenv": "^8.2.0",

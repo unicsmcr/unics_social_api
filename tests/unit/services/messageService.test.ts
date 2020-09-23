@@ -82,8 +82,9 @@ describe('MessageService', () => {
 		});
 
 		test('Pagination works as expected', async () => {
+			const originalTime = timeCounter + baseMessages.length;
 			for (let i = 0; i < 5; i++) {
-				const page = await messageService.getMessages({ channel, count: 2, page: i });
+				const page = await messageService.getMessages({ channel, count: 2, before: new Date((originalTime - (i * 2)) + 1) });
 				expect(page).toEqual(baseMessages.slice(i * 2, (i + 1) * 2).map(m => m.toJSON()));
 			}
 		});
