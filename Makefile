@@ -14,6 +14,10 @@ test: export TWILIO_ACCOUNT_SID=AC123
 test: export TWILIO_AUTH_TOKEN=token123
 test: export TWILIO_API_KEY=SKxxxx
 test: export TWILIO_SECRET=randomstringggg123
+test: export DISCORD_CLIENT_ID=abc
+test: export DISCORD_CLIENT_SECRET=abc
+test: export DISCORD_OAUTH_SECRET=abc
+test: export DISCORD_GUILD_ID=abc
 test:
 	docker-compose -f tests/docker-compose.yml up -d db
 	@node scripts/waitForPort $(DB_PORT)

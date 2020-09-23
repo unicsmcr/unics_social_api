@@ -28,6 +28,12 @@ export interface EnvConfig {
 		secret: string;
 		apiKey: string;
 	};
+	discord: {
+		oauthSecret: string;
+		clientID: string;
+		clientSecret: string;
+		guildID: string;
+	};
 }
 
 export function load(source: Record<string, string | undefined> = process.env): EnvConfig {
@@ -53,6 +59,12 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			token: getEnv(source, 'TWILIO_AUTH_TOKEN'),
 			apiKey: getEnv(source, 'TWILIO_API_KEY'),
 			secret: getEnv(source, 'TWILIO_SECRET')
+		},
+		discord: {
+			clientID: getEnv(source, 'DISCORD_CLIENT_ID'),
+			clientSecret: getEnv(source, 'DISCORD_CLIENT_SECRET'),
+			oauthSecret: getEnv(source, 'DISCORD_OAUTH_SECRET'),
+			guildID: getEnv(source, 'DISCORD_GUILD_ID')
 		}
 	};
 }
