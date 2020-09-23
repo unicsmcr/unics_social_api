@@ -253,7 +253,7 @@ describe('UserController', () => {
 
 	describe('getNotes', () => {
 		test('Notes returned for valid request', async () => {
-			const user = users[2];
+			const user = users[1];
 			const output = [user.notes![0].toJSON()];
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
@@ -268,7 +268,7 @@ describe('UserController', () => {
 		});
 
 		test('Forwards errors from UserService', async () => {
-			const user = users[2];
+			const user = users[1];
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 
@@ -285,8 +285,8 @@ describe('UserController', () => {
 	describe('createNote', () => {
 		test('Note returned for valid request', async () => {
 			const data = randomObject();
-			const user = users[2];
-			const target = users[1];
+			const user = users[1];
+			const target = users[0];
 			const output = user.notes![0].toJSON();
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
@@ -303,8 +303,8 @@ describe('UserController', () => {
 
 		test('Forwards errors from UserService', async () => {
 			const data = randomObject();
-			const user = users[2];
-			const target = users[1];
+			const user = users[1];
+			const target = users[0];
 			const authorization = randomString();
 			setGetUserAllowed(authorization, user);
 

@@ -2,7 +2,7 @@ import { User, AccountType, AccountStatus } from '../../src/entities/User';
 import Profile, { Year, Course, Visibility } from '../../src/entities/Profile';
 import { DMChannel } from '../../src/entities/Channel';
 import Report from '../../src/entities/Report';
-import Note from '../../src/entities/Note';
+import Note, { NoteType } from '../../src/entities/Note';
 
 
 /*
@@ -42,6 +42,12 @@ user2Profile.avatar = false;
 user2Profile.visibility = Visibility.Public;
 user2.profile = user2Profile;
 
+const user2note = new Note();
+user2note.owner = user2;
+user2note.targetUser = user1;
+user2note.time = new Date();
+user2note.noteType = NoteType.Blocked;
+user2.notes = [user2note];
 
 /*
 	User 3
@@ -80,12 +86,6 @@ report1.reportingUser = user2;
 report1.currentTime = new Date();
 report1.description = 'this is a report';
 user3.reports = [report1];
-
-const user3note = new Note();
-user3note.owner = user3;
-user3note.targetUser = user2;
-user3note.time = new Date();
-user3.notes = [user3note];
 
 export default [
 	user1, user2, user3

@@ -5,16 +5,11 @@ import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import Note, { APINote, NoteType } from '../entities/Note';
 
-enum ReportUserError {
+enum NoteUserError {
 	UserNotFound = 'User not found',
-	InvalidEntryDetails = 'Invalid user details.'
+	InvalidEntryDetails = 'Invalid user details.',
+	NoteBadRequest = 'Bad request'
 }
-
-/* enum DeleteNoteError {
-	UserNotFound = 'User not found',
-	NoteNotFound = 'Note not found',
-	UnauthorisedUser = 'User not authorised'
-} */
 
 @singleton()
 export class NoteService {
@@ -30,12 +25,12 @@ export class NoteService {
 
 	public async createNote(userID: string, targetUserID: string, data: NoteType): Promise<APINote> {
 		return getConnection().transaction(async entityManager => {
-			if (!userID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
-			if (!targetUserID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+			if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
+			if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 			const owner = await entityManager.findOneOrFail(User, { id: userID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, NoteUserError.UserNotFound)));
 			const targetUser = await entityManager.findOneOrFail(User, { id: targetUserID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, ReportUserError.UserNotFound)));
+				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, NoteUserError.UserNotFound)));
 
 			let note: Note | undefined;
 			note = await getRepository(Note)
@@ -57,14 +52,14 @@ export class NoteService {
 			const noteType = data;
 			Object.assign(note, { time: new Date(), noteType: noteType });
 			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
-			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails)));
+			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, NoteUserError.InvalidEntryDetails)));
 			return note.toJSON();
 		});
 	}
 
 	public async deleteNote(userID: string, targetUserID: string): Promise<void> {
-		if (!userID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
-		if (!targetUserID) throw new APIError(HttpCode.NotFound, ReportUserError.UserNotFound);
+		if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
+		if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 
 		await getRepository(Note)
 			.createQueryBuilder()
