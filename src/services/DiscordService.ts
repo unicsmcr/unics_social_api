@@ -48,7 +48,7 @@ export default class DiscordService {
 	}
 
 	public get redirectURI() {
-		return `${getConfig().host}/discord_oauth2_verify`;
+		return `${getConfig().host}/discord`;
 	}
 
 	public parseOAuth2State(state: string): string {
