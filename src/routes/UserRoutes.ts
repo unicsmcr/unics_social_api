@@ -34,6 +34,8 @@ export class UserRoutes {
 
 		router.get('/users/@me/discord/authorize', getUser(TokenType.Auth), isVerified, this.discordController.getOAuth2AuthorizeURL.bind(this.discordController));
 
+		router.post('/users/@me/discord/link', getUser(TokenType.Auth), this.discordController.linkAccount.bind(this.discordController));
+
 		router.post('/users/:recipientID/channel', getUser(TokenType.Auth), isVerified, this.userController.createDMChannel.bind(this.userController));
 	}
 }

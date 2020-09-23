@@ -21,4 +21,15 @@ export class DiscordController {
 			next(error);
 		}
 	}
+
+	public async linkAccount(req: Omit<Request, 'body'> & { body: { code: string; state: string } }, res: AuthenticatedResponse, next: NextFunction): Promise<void> {
+		try {
+			const url = await this.discordService.finaliseAccountLink(req.body.state, req.body.code);
+			res.json({
+				url
+			});
+		} catch (error) {
+			next(error);
+		}
+	}
 }
