@@ -1,4 +1,5 @@
 import { UserService } from '../../../src/services/UserService';
+import { ProfileService } from '../../../src/services/ProfileService';
 import EmailService from '../../../src/services/email/EmailService';
 import { createApp } from '../../../src';
 import { mock, instance, when, anything, verify, objectContaining, reset } from 'ts-mockito';
@@ -12,6 +13,7 @@ import { AccountStatus, User } from '../../../src/entities/User';
 
 let app: Express.Application;
 let mockedUserService: UserService;
+let mockedProfileService: ProfileService;
 let mockedEmailService: EmailService;
 
 const spiedGetUserReqs = {
@@ -33,8 +35,10 @@ beforeAll(async () => {
 
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
+	mockedProfileService = mock(ProfileService);
 	container.clearInstances();
 	container.register<UserService>(UserService, { useValue: instance(mockedUserService) });
+	container.register<ProfileService>(ProfileService, { useValue: instance(mockedProfileService) });
 	container.register<EmailService>(EmailService, { useValue: instance(mockedEmailService) });
 
 	app = await createApp();
@@ -44,6 +48,7 @@ beforeEach(() => {
 	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
+	reset(mockedProfileService);
 });
 
 const randomNumber = () => Date.now() + Math.floor(Math.random() * 10e9);
@@ -407,11 +412,11 @@ describe('UserController', () => {
 			const [randomInput, randomOutput] = [randomObject(), randomObject()];
 			setGetUserAllowed(authorization, user!);
 
-			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenResolve(randomOutput);
+			when(mockedProfileService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenResolve(randomOutput);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
 				.set('Authorization', authorization)
 				.send(randomInput);
-			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), undefined)).called();
+			verify(mockedProfileService.putUserProfile(user!.id, objectContaining(randomInput), undefined)).called();
 			expect(res.status).toEqual(HttpCode.Ok);
 			expect(res.body).toEqual({ user: randomOutput });
 		});
@@ -422,11 +427,11 @@ describe('UserController', () => {
 			const randomInput = randomObject();
 			setGetUserAllowed(authorization, user!);
 
-			when(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenReject(testError400);
+			when(mockedProfileService.putUserProfile(user!.id, objectContaining(randomInput), anything())).thenReject(testError400);
 			const res = await supertest(app).put(`/api/v1/users/@me/profile`)
 				.set('Authorization', authorization)
 				.send(randomInput);
-			verify(mockedUserService.putUserProfile(user!.id, objectContaining(randomInput), undefined)).called();
+			verify(mockedProfileService.putUserProfile(user!.id, objectContaining(randomInput), undefined)).called();
 			expect(res.status).toEqual(testError400.httpCode);
 			expect(res.body).toEqual({ error: testError400.message });
 		});
