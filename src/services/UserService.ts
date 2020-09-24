@@ -15,6 +15,7 @@ const unlink = promisify(_unlink);
 
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
+export interface PasswordResetData { password: string }
 export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
 export type ReportDataToCreate = Pick<Report, 'description' >;
 
@@ -26,6 +27,17 @@ enum RegistrationError {
 enum EmailVerifyError {
 	UserNotFound = 'User not found',
 	AccountNotUnverified = 'Your account has already been verified'
+}
+
+enum ForgotPasswordError {
+	UserNotFound = 'User not found',
+	AccountUnverified = 'Your account has not been verified yet'
+}
+
+enum ResetPasswordError {
+	UserNotFound = 'User not found',
+	NewPasswordRequired = 'You should provide a new password',
+	InvalidEntryDetails = 'Invalid user details.'
 }
 
 enum AuthenticateError {
@@ -143,6 +155,34 @@ export class UserService {
 		}
 
 		return user.toJSONPrivate();
+	}
+
+	public async forgotPassword(userEmail: string): Promise<APIPrivateUser> {
+		return getConnection().transaction(async entityManager => {
+			if (!userEmail) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { email: userEmail }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
+			if (user.accountStatus === AccountStatus.Unverified) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.AccountUnverified);
+			return user.toJSONPrivate();
+		});
+	}
+
+	public async resetPassword(userID: string, data: PasswordResetData): Promise<User> {
+		return getConnection().transaction(async entityManager => {
+			if (!data.password) {
+				throw new APIError(HttpCode.BadRequest, ResetPasswordError.NewPasswordRequired);
+			}
+			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
+			const user = await entityManager.findOneOrFail(User, { id: userID }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
+			if (typeof data.password !== 'string' || data.password.length < 10) {
+				throw new APIError(HttpCode.BadRequest, 'Password must be at least 10 characters long');
+			}
+			Object.assign(user, {
+				password: await hashPassword(data.password)
+			});
+			await validateOrReject(user).catch(e => Promise.reject(formatValidationErrors(e)));
+			const savedUser = await entityManager.save(user).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, ResetPasswordError.InvalidEntryDetails)));
+			return savedUser;
+		});
 	}
 
 	public async reportUser(reportingID: string, reportedID: string, options: ReportDataToCreate) {

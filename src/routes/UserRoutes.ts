@@ -24,6 +24,10 @@ export class UserRoutes {
 
 		router.post('/authenticate', this.userController.authenticate.bind(this.userController));
 
+		router.post('/forgot_password', this.userController.forgotPassword.bind(this.userController));
+
+		router.post('/reset_password', getUser(TokenType.PasswordReset), this.userController.resetPassword.bind(this.userController));
+
 		router.get('/users', getUser(TokenType.Auth), isVerified, this.userController.getPublicUsers.bind(this.userController));
 
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
