@@ -19,7 +19,12 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		TWILIO_ACCOUNT_SID: 'ACX123',
 		TWILIO_AUTH_TOKEN: 'TESTTOKEN',
 		TWILIO_API_KEY: 'SK123',
-		TWILIO_SECRET: 'asecret123'
+		TWILIO_SECRET: 'asecret123',
+		DISCORD_CLIENT_ID: 'a',
+		DISCORD_CLIENT_SECRET: 'b',
+		DISCORD_OAUTH2_SECRET: 'c',
+		DISCORD_GUILD_ID: 'd',
+		DISCORD_BOT_TOKEN: 'e'
 	},
 	{
 		port: 8000,
@@ -43,6 +48,13 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			apiKey: 'SK123',
 			secret: 'asecret123'
 		},
+		discord: {
+			clientID: 'a',
+			clientSecret: 'b',
+			oauth2Secret: 'c',
+			guildID: 'd',
+			botToken: 'e'
+		},
 		jwtSecret: 'test123test'
 	}
 ];
@@ -65,7 +77,12 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		TWILIO_ACCOUNT_SID: 'ACX5674567234',
 		TWILIO_AUTH_TOKEN: 'token123',
 		TWILIO_API_KEY: 'SKabc123',
-		TWILIO_SECRET: 'secretabc123'
+		TWILIO_SECRET: 'secretabc123',
+		DISCORD_CLIENT_ID: 'abc',
+		DISCORD_CLIENT_SECRET: '123',
+		DISCORD_OAUTH2_SECRET: 'def',
+		DISCORD_GUILD_ID: '456',
+		DISCORD_BOT_TOKEN: 'ghi'
 	},
 	{
 		port: 25565,
@@ -88,6 +105,13 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			token: 'token123',
 			apiKey: 'SKabc123',
 			secret: 'secretabc123'
+		},
+		discord: {
+			clientID: 'abc',
+			clientSecret: '123',
+			oauth2Secret: 'def',
+			guildID: '456',
+			botToken: 'ghi'
 		},
 		jwtSecret: 'asecret'
 	}
