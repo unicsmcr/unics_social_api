@@ -71,8 +71,19 @@ describe('NoteService', () => {
 			const createdNote = await noteService.createNote(user2.id, user1.id, { noteType: NoteType.Liked });
 			const noteChange = await getRepository(Note).findOneOrFail({ where: { owner: user2, targetUser: user1, noteType: NoteType.Liked }, relations: ['owner', 'targetUser'] });
 			await expect(getRepository(Note).findOneOrFail({ noteType: NoteType.Blocked })).rejects.toThrow();
-			expect(noteChange.noteType).toEqual(createdNote.noteType);
-			expect(noteChange.time.toISOString()).toEqual(createdNote.time);
+			expect(noteChange.toJSON()).toMatchObject({
+				ownerID: user2.id,
+				targetUserID: user1.id,
+				noteType: createdNote.noteType,
+				time: createdNote.time
+			});
+		});
+
+		test('No change to noteType does not change pre-existing note', async () => {
+			await getRepository(Note).save(user2.notes!);
+			const createdNote = await noteService.createNote(user2.id, user1.id, { noteType: NoteType.Blocked });
+			const noteChange = await getRepository(Note).findOneOrFail({ owner: user2, targetUser: user1, noteType: NoteType.Blocked });
+			expect(noteChange.time.toISOString()).toStrictEqual(createdNote.time);
 		});
 
 		test('Fails with missing id\'s', async () => {
