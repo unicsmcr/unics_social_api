@@ -30,19 +30,23 @@ export class NoteService {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 			if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
-			const owner = await entityManager.findOneOrFail(User, { id: userID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, NoteUserError.UserNotFound)));
-			const targetUser = await entityManager.findOneOrFail(User, { id: targetUserID })
-				.catch(() => Promise.reject(new APIError(HttpCode.NotFound, NoteUserError.UserNotFound)));
+
+			const users = await entityManager.findByIds(User, [userID, targetUserID])
+				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, NoteUserError.NoteBadRequest)));
+			if (users.length !== 2) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
+
+			const owner = users[0].id === userID ? users[0] : users[1];
+			const targetUser = users[0] === owner ? users[1] : users[0];
 
 			let note: Note | undefined;
 			note = await getRepository(Note)
 				.createQueryBuilder('note')
-				.leftJoinAndSelect('note.owner', 'user')
+				.innerJoinAndSelect('note.owner', 'user')
 				.where('user.id = :id', { id: userID })
 				.innerJoinAndSelect('note.targetUser', 'targetUser')
 				.where('targetUser.id = :id', { id: targetUserID })
 				.getOne();
+
 			if (note) {
 				if (note.noteType === data.noteType) {
 					return note.toJSON();
