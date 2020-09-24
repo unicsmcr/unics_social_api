@@ -28,6 +28,32 @@ The UniCS Robot 🤖
 `;
 };
 
+export const PasswordEmailTemplate = (name: string, token: string) => {
+	const url = `${getConfig().host}/reset_password?token=${token}`;
+	return `<b>Hi ${name}!</b>
+
+<p>You can now update your KB password.</p>
+
+<p>
+<a href="${url}">Click here to change your current password</a>.
+If that link does not work, please follow ${url}.
+</p>
+
+<p>
+Didn't make this request? No worries, you don't need to do anything.
+</p>
+
+<p>
+Thanks,<br />
+The UniCS Robot 🤖
+</p>
+
+<br />
+<br />
+
+<img src="https://unicsmcr.com/assets/logo.png" />
+`;
+};
 export const ReportEmailTemplate = (report: APIReport) =>
 	`<p>Dear UNICS team,</p>
 

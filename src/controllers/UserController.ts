@@ -3,7 +3,7 @@ import { NoteService } from '../services/NoteService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import EmailService from '../services/email/EmailService';
-import { VerifyEmailTemplate, ReportEmailTemplate } from '../util/emails';
+import { VerifyEmailTemplate, PasswordEmailTemplate, ReportEmailTemplate } from '../util/emails';
 import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
@@ -72,6 +72,30 @@ export class UserController {
 			const user = await this.userService.authenticate(req.body.email, req.body.password);
 			const token = await generateJWT({ ...user, tokenType: TokenType.Auth });
 			res.json({ token });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const user = await this.userService.forgotPassword(req.body.email);
+			const token = await generateJWT({ ...user, tokenType: TokenType.PasswordReset });
+			await this.emailService.sendEmail({
+				to: user.email,
+				subject: 'Reset your KB password',
+				html: PasswordEmailTemplate(user.forename, token)
+			});
+			res.status(HttpCode.NoContent).end();
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			await this.userService.resetPassword(res.locals.user.id, req.body);
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}

@@ -189,6 +189,96 @@ describe('UserController', () => {
 		});
 	});
 
+	describe('forgotPassword', () => {
+		test('No content response for valid request', async () => {
+			const data = { email: randomString() };
+
+			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			when(mockedEmailService.sendEmail(anything())).thenResolve();
+
+			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
+			verify(mockedUserService.forgotPassword(data.email)).called();
+			verify(mockedEmailService.sendEmail(anything())).called();
+			expect(res.status).toEqual(HttpCode.NoContent);
+			expect(res.body).toEqual({});
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const data = { email: randomString() };
+
+			when(mockedUserService.forgotPassword(anything())).thenReject(testError400);
+			when(mockedEmailService.sendEmail(anything())).thenResolve();
+
+			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
+			verify(mockedUserService.forgotPassword(data.email)).called();
+			verify(mockedEmailService.sendEmail(anything())).never();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+
+		test('Forwards errors from EmailService', async () => {
+			const data = { email: randomString() };
+
+			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
+
+			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
+			verify(mockedUserService.forgotPassword(data.email)).called();
+			verify(mockedEmailService.sendEmail(anything())).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+
+		test('Forwards errors from generateJWT', async () => {
+			const data = { email: randomString() };
+
+			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			const spy = jest.spyOn(authUtils, 'generateJWT');
+			spy.mockImplementation(() => Promise.reject(testError400));
+
+			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
+			verify(mockedUserService.forgotPassword(data.email)).called();
+			expect(spy).toHaveBeenCalledWith(expect.objectContaining({ id: users[1].id }));
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+			spy.mockReset();
+		});
+	});
+
+	describe('resetPassword', () => {
+		test('No content response for valid request', async () => {
+			const data = randomObject();
+			const user = users[1];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.resetPassword(user.id, anything())).thenResolve(users[1]);
+
+			const res = await supertest(app).post('/api/v1/reset_password')
+				.send(data)
+				.set('Authorization', authorization);
+			verify(mockedUserService.resetPassword(user.id, objectContaining(data))).called();
+			expect(res.status).toEqual(HttpCode.NoContent);
+			expect(res.body).toEqual({});
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const data = randomObject();
+			const user = users[1];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedUserService.resetPassword(user.id, anything())).thenReject(testError400);
+
+			const res = await supertest(app).post('/api/v1/reset_password')
+				.send(data)
+				.set('Authorization', authorization);
+			verify(mockedUserService.resetPassword(user.id, objectContaining(data))).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
 	describe('getUser', () => {
 		test('Ok response for valid request (@me)', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified && user.profile);
