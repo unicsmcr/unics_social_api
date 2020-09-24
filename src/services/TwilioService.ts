@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
-import { ROOM_TIME_LIMIT_TTL, ROOM_TIME_LIMIT_MS } from '../util/config/video';
+import { ROOM_TIME_LIMIT_TTL_SECS, ROOM_TIME_LIMIT_MS } from '../util/config/video';
 
 interface GenerateAccessTokenOptions {
 	userId: string;
@@ -54,7 +54,7 @@ export class TwilioService {
 
 	public generateAccessToken(options: GenerateAccessTokenOptions): string {
 		const { twilio } = getConfig();
-		const token = new jwt.AccessToken(twilio.accountSid, twilio.apiKey, twilio.secret, { identity: options.userId, ttl: ROOM_TIME_LIMIT_TTL });
+		const token = new jwt.AccessToken(twilio.accountSid, twilio.apiKey, twilio.secret, { identity: options.userId, ttl: ROOM_TIME_LIMIT_TTL_SECS });
 		const videoGrant = new jwt.AccessToken.VideoGrant({
 			room: options.roomId
 		});
