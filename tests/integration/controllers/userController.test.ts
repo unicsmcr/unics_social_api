@@ -409,6 +409,38 @@ describe('UserController', () => {
 		});
 	});
 
+	describe('deleteNote', () => {
+		test('No Content returned for valid request', async () => {
+			const user = users[1];
+			const target = users[0];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.deleteNote(user.id, target.id)).thenResolve();
+
+			const res = await supertest(app).post(`/api/v1/users/${target.id}/deletenote`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
+			expect(res.status).toEqual(HttpCode.NoContent);
+			expect(res.body).toEqual({});
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users[1];
+			const target = users[0];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.deleteNote(user.id, target.id)).thenReject(testError400);
+
+			const res = await supertest(app).post(`/api/v1/users/${target.id}/deletenote`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
 	describe('reportUser', () => {
 		test('No content response for valid request', async () => {
 			const user = users.find(user => user.accountStatus === AccountStatus.Verified);
