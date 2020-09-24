@@ -76,7 +76,7 @@ export class UserController {
 
 	public async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.userService.forgotPassword(req.body);
+			const user = await this.userService.forgotPassword(req.body.email);
 			const token = await generateJWT({ ...user, tokenType: TokenType.PasswordReset });
 			await this.emailService.sendEmail({
 				to: user.email,

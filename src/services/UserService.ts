@@ -173,6 +173,9 @@ export class UserService {
 			}
 			if (!userID) throw new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound);
 			const user = await entityManager.findOneOrFail(User, { id: userID }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ResetPasswordError.UserNotFound)));
+			if (typeof data.password !== 'string' || data.password.length < 10) {
+				throw new APIError(HttpCode.BadRequest, 'Password must be at least 10 characters long');
+			}
 			Object.assign(user, {
 				password: await hashPassword(data.password)
 			});
