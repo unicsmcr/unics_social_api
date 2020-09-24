@@ -1,4 +1,5 @@
 import { UserService } from '../services/UserService';
+import { NoteService } from '../services/NoteService';
 import { ProfileService } from '../services/ProfileService';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
@@ -20,12 +21,18 @@ export class UserController {
 	private readonly profileService: ProfileService;
 	private readonly emailService: EmailService;
 	private readonly channelService: ChannelService;
+	private readonly noteService: NoteService;
 
-	public constructor(@inject(UserService) userService: UserService, @inject(ProfileService) profileService: ProfileService, @inject(EmailService) emailService: EmailService, @inject(ChannelService) channelService: ChannelService) {
+	public constructor(@inject(UserService) userService: UserService,
+		@inject(ProfileService) profileService: ProfileService,
+		@inject(EmailService) emailService: EmailService,
+		@inject(ChannelService) channelService: ChannelService,
+		@inject(NoteService) noteService: NoteService) {
 		this.userService = userService;
 		this.profileService = profileService;
 		this.emailService = emailService;
 		this.channelService = channelService;
+		this.noteService = noteService;
 	}
 
 	public async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -119,6 +126,33 @@ export class UserController {
 		try {
 			const users = await this.userService.findAllPublic();
 			res.json({ users });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async getNotes(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const notes = await this.noteService.getNotes(res.locals.user.id);
+			res.json({ notes });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async createNote(req: Request & { params: { id: string } }, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const note = await this.noteService.createNote(res.locals.user.id, req.params.id, req.body);
+			res.json({ note });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	public async deleteNote(req: Request & { params: { id: string } }, res: Response, next: NextFunction): Promise<void> {
+		try {
+			await this.noteService.deleteNote(res.locals.user.id, req.params.id);
+			res.status(HttpCode.NoContent).end();
 		} catch (error) {
 			next(error);
 		}

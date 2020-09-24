@@ -86,16 +86,6 @@ export class UserService {
 		});
 	}
 
-	public async findAllPublic(): Promise<APIUser[]> {
-		const users = await getRepository(User)
-			.createQueryBuilder('user')
-			.select(['user', 'profile'])
-			.leftJoin('user.profile', 'profile')
-			.where('profile.visibility = :status', { status: Visibility.Public })
-			.getMany();
-		return users.map(user => user.toJSON());
-	}
-
 	public async verifyUserEmail(userID: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, EmailVerifyError.UserNotFound);
@@ -142,6 +132,16 @@ export class UserService {
 		}
 
 		return user.toJSONPrivate();
+	}
+
+	public async findAllPublic(): Promise<APIUser[]> {
+		const users = await getRepository(User)
+			.createQueryBuilder('user')
+			.select(['user', 'profile'])
+			.leftJoin('user.profile', 'profile')
+			.where('profile.visibility = :status', { status: Visibility.Public })
+			.getMany();
+		return users.map(user => user.toJSON());
 	}
 
 	public async forgotPassword(userEmail: string): Promise<APIPrivateUser> {

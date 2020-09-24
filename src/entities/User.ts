@@ -3,6 +3,7 @@ import { IsEmail, Matches, MinLength, MaxLength, IsString } from 'class-validato
 import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
 import Report from './Report';
+import Note from './Note';
 import { DiscordLink } from './DiscordLink';
 
 export enum AccountStatus {
@@ -71,6 +72,10 @@ export class User {
 	@OneToMany(() => Report, report => report.reportedUser)
 	@JoinColumn()
 	public reports?: Report[];
+
+	@OneToMany(() => Note, note => note.owner)
+	@JoinColumn()
+	public notes?: Note[];
 
 	@OneToOne(() => DiscordLink, link => link.user)
 	public discord?: DiscordLink;

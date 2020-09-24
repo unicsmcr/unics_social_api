@@ -1,4 +1,5 @@
 import { UserService } from '../../../src/services/UserService';
+import { NoteService } from '../../../src/services/NoteService';
 import { ProfileService } from '../../../src/services/ProfileService';
 import EmailService from '../../../src/services/email/EmailService';
 import { createApp } from '../../../src';
@@ -15,6 +16,7 @@ let app: Express.Application;
 let mockedUserService: UserService;
 let mockedProfileService: ProfileService;
 let mockedEmailService: EmailService;
+let mockedNoteService: NoteService;
 
 const spiedGetUserReqs = {
 	authorization: '',
@@ -35,11 +37,14 @@ beforeAll(async () => {
 
 	mockedUserService = mock(UserService);
 	mockedEmailService = mock(EmailService);
+	mockedNoteService = mock(NoteService);
+
 	mockedProfileService = mock(ProfileService);
 	container.clearInstances();
 	container.register<UserService>(UserService, { useValue: instance(mockedUserService) });
 	container.register<ProfileService>(ProfileService, { useValue: instance(mockedProfileService) });
 	container.register<EmailService>(EmailService, { useValue: instance(mockedEmailService) });
+	container.register<NoteService>(NoteService, { useValue: instance(mockedNoteService) });
 
 	app = await createApp();
 });
@@ -48,6 +53,7 @@ beforeEach(() => {
 	Object.assign(spiedGetUserReqs, { authorization: '', user: null });
 	reset(mockedUserService);
 	reset(mockedEmailService);
+	reset(mockedNoteService);
 	reset(mockedProfileService);
 });
 
@@ -337,6 +343,106 @@ describe('UserController', () => {
 			when(mockedUserService.findOne(objectContaining({ id: randomString() }))).thenResolve(undefined);
 			const res = await supertest(app).get(`/api/v1/users/${userOther}`).set('Authorization', authorization);
 			expect(res.status).toEqual(HttpCode.NotFound);
+		});
+	});
+
+	describe('getNotes', () => {
+		test('Notes returned for valid request', async () => {
+			const user = users[1];
+			const output = [user.notes![0].toJSON()];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.getNotes(user.id)).thenResolve(output);
+
+			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.getNotes(user.id)).called();
+			expect(res.status).toEqual(HttpCode.Ok);
+			expect(res.body).toEqual({ notes: output });
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users[1];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.getNotes(user.id)).thenReject(testError400);
+
+			const res = await supertest(app).get(`/api/v1/users/@me/notes`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.getNotes(user.id)).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
+	describe('createNote', () => {
+		test('Note returned for valid request', async () => {
+			const data = randomObject();
+			const user = users[1];
+			const target = users[0];
+			const output = user.notes![0].toJSON();
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.createNote(user.id, target.id, anything())).thenResolve(output);
+
+			const res = await supertest(app).put(`/api/v1/users/@me/notes/${target.id}`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedNoteService.createNote(user.id, target.id, objectContaining(data))).called();
+			expect(res.status).toEqual(HttpCode.Ok);
+			expect(res.body).toEqual({ note: output });
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const data = randomObject();
+			const user = users[1];
+			const target = users[0];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.createNote(user.id, target.id, anything())).thenReject(testError400);
+
+			const res = await supertest(app).put(`/api/v1/users/@me/notes/${target.id}`)
+				.set('Authorization', authorization)
+				.send(data);
+			verify(mockedNoteService.createNote(user.id, target.id, objectContaining(data))).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
+		});
+	});
+
+	describe('deleteNote', () => {
+		test('No Content returned for valid request', async () => {
+			const user = users[1];
+			const target = users[0];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.deleteNote(user.id, target.id)).thenResolve();
+
+			const res = await supertest(app).delete(`/api/v1/users/@me/notes/${target.id}`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
+			expect(res.status).toEqual(HttpCode.NoContent);
+			expect(res.body).toEqual({});
+		});
+
+		test('Forwards errors from UserService', async () => {
+			const user = users[1];
+			const target = users[0];
+			const authorization = randomString();
+			setGetUserAllowed(authorization, user);
+
+			when(mockedNoteService.deleteNote(user.id, target.id)).thenReject(testError400);
+
+			const res = await supertest(app).delete(`/api/v1/users/@me/notes/${target.id}`)
+				.set('Authorization', authorization);
+			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
+			expect(res.status).toEqual(testError400.httpCode);
+			expect(res.body).toEqual({ error: testError400.message });
 		});
 	});
 
