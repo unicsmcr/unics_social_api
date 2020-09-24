@@ -69,7 +69,7 @@ describe('NoteService', () => {
 		test('Changes to noteType are reflected in pre-existing note', async () => {
 			await getRepository(Note).save(user2.notes!);
 			const createdNote = await noteService.createNote(user2.id, user1.id, NoteType.Liked);
-			const noteChange = await getRepository(Note).findOneOrFail({ owner: user2, targetUser: user1, noteType: NoteType.Liked });
+			const noteChange = await getRepository(Note).findOneOrFail({ where: { owner: user2, targetUser: user1, noteType: NoteType.Liked }, relations: ['owner', 'targetUser'] });
 			await expect(getRepository(Note).findOneOrFail({ noteType: NoteType.Blocked })).rejects.toThrow();
 			expect(noteChange.noteType).toEqual(createdNote.noteType);
 			expect(noteChange.time.toISOString()).toEqual(createdNote.time);
