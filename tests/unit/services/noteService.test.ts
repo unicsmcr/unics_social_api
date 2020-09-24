@@ -48,7 +48,7 @@ describe('NoteService', () => {
 		});
 
 		test('Creates a note with valid data', async () => {
-			const createdNote = await noteService.createNote(user1.id, user2.id, NoteType.Liked);
+			const createdNote = await noteService.createNote(user1.id, user2.id, { noteType: NoteType.Liked });
 			expect(createdNote).toMatchObject({
 				ownerID: user1.id,
 				targetUserID: user2.id,
@@ -58,7 +58,7 @@ describe('NoteService', () => {
 
 		test('Gets note if it already exists', async () => {
 			await getRepository(Note).save(user2.notes!);
-			const createdNote = await noteService.createNote(user2.id, user1.id, NoteType.Blocked);
+			const createdNote = await noteService.createNote(user2.id, user1.id, { noteType: NoteType.Blocked });
 			expect(createdNote).toMatchObject({
 				ownerID: user2.id,
 				targetUserID: user1.id,
@@ -68,7 +68,7 @@ describe('NoteService', () => {
 
 		test('Changes to noteType are reflected in pre-existing note', async () => {
 			await getRepository(Note).save(user2.notes!);
-			const createdNote = await noteService.createNote(user2.id, user1.id, NoteType.Liked);
+			const createdNote = await noteService.createNote(user2.id, user1.id, { noteType: NoteType.Liked });
 			const noteChange = await getRepository(Note).findOneOrFail({ where: { owner: user2, targetUser: user1, noteType: NoteType.Liked }, relations: ['owner', 'targetUser'] });
 			await expect(getRepository(Note).findOneOrFail({ noteType: NoteType.Blocked })).rejects.toThrow();
 			expect(noteChange.noteType).toEqual(createdNote.noteType);
@@ -76,8 +76,10 @@ describe('NoteService', () => {
 		});
 
 		test('Fails with missing id\'s', async () => {
-			await expect(noteService.createNote(user2.id, '', NoteType.Blocked)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
-			await expect(noteService.createNote('', user1.id, NoteType.Blocked)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			const data = { noteType: NoteType.Liked };
+			await expect(noteService.createNote(user2.id, '', data)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(noteService.createNote('', user1.id, data)).rejects.toMatchObject({ httpCode: HttpCode.NotFound });
+			await expect(noteService.createNote(user2.id, user1.id, { noteType: null } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 	});
 

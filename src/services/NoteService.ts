@@ -3,9 +3,12 @@ import { getConnection, getRepository } from 'typeorm';
 import { singleton } from 'tsyringe';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
-import Note, { APINote, NoteType } from '../entities/Note';
+import Note, { APINote } from '../entities/Note';
+
+export type NoteDataToCreate = Pick<Note, 'noteType' >;
 
 enum NoteUserError {
+	NoteTypeNotFound = 'Note Type not found',
 	UserNotFound = 'User not found',
 	InvalidEntryDetails = 'Invalid user details.',
 	NoteBadRequest = 'Bad request'
@@ -23,7 +26,7 @@ export class NoteService {
 		return notes.map(note => note.toJSON());
 	}
 
-	public async createNote(userID: string, targetUserID: string, data: NoteType): Promise<APINote> {
+	public async createNote(userID: string, targetUserID: string, data: NoteDataToCreate): Promise<APINote> {
 		return getConnection().transaction(async entityManager => {
 			if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 			if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
@@ -41,7 +44,7 @@ export class NoteService {
 				.where('targetUser.id = :id', { id: targetUserID })
 				.getOne();
 			if (note) {
-				if (note.noteType === data) {
+				if (note.noteType === data.noteType) {
 					return note.toJSON();
 				}
 			} else {
@@ -49,7 +52,7 @@ export class NoteService {
 				note.owner = owner;
 				note.targetUser = targetUser;
 			}
-			const noteType = data;
+			const { noteType } = data;
 			Object.assign(note, { time: new Date(), noteType: noteType });
 			await validateOrReject(note).catch(e => Promise.reject(formatValidationErrors(e)));
 			await entityManager.save(note).catch(() => Promise.reject(new APIError(HttpCode.BadRequest, NoteUserError.InvalidEntryDetails)));
