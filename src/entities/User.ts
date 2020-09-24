@@ -4,6 +4,7 @@ import Profile, { APIProfile } from './Profile';
 import { DMChannel } from './Channel';
 import Report from './Report';
 import Note from './Note';
+import { DiscordLink } from './DiscordLink';
 
 export enum AccountStatus {
 	Unverified = 0,
@@ -75,6 +76,9 @@ export class User {
 	@OneToMany(() => Note, note => note.owner)
 	@JoinColumn()
 	public notes?: Note[];
+
+	@OneToOne(() => DiscordLink, link => link.user)
+	public discord?: DiscordLink;
 
 	public toJSON(): APIUser {
 		const { id, forename, surname, accountStatus, accountType, profile } = this;
