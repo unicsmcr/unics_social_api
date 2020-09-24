@@ -1,5 +1,5 @@
 import { User } from './User';
-import { IsDate } from 'class-validator';
+import { IsDate, IsEnum } from 'class-validator';
 import { Entity, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 
 export interface APINote {
@@ -29,6 +29,7 @@ export default class Note {
 		'type': 'enum',
 		'enum': NoteType
 	})
+	@IsEnum(NoteType, { message: 'Invalid note type' })
 	public noteType!: NoteType;
 
 	@Column('timestamptz')

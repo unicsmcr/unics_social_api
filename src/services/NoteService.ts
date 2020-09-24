@@ -60,15 +60,15 @@ export class NoteService {
 		});
 	}
 
-	public async deleteNote(userID: string, targetUserID: string): Promise<void> {
-		if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
+	public async deleteNote(ownerID: string, targetUserID: string): Promise<void> {
+		if (!ownerID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 		if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 
 		await getRepository(Note)
 			.createQueryBuilder()
 			.delete()
 			.from(Note)
-			.where('owner.id = :ownerID AND targetUser.id = :targetUserID', { ownerID: userID, targetUserID })
+			.where('owner.id = :ownerID AND targetUser.id = :targetUserID', { ownerID, targetUserID })
 			.execute();
 	}
 }
