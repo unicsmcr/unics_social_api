@@ -40,7 +40,7 @@ export class NoteService {
 				.createQueryBuilder('note')
 				.leftJoinAndSelect('note.owner', 'user')
 				.where('user.id = :id', { id: userID })
-				.leftJoinAndSelect('note.targetUser', 'targetUser')
+				.innerJoinAndSelect('note.targetUser', 'targetUser')
 				.where('targetUser.id = :id', { id: targetUserID })
 				.getOne();
 			if (note) {
@@ -68,8 +68,7 @@ export class NoteService {
 			.createQueryBuilder()
 			.delete()
 			.from(Note)
-			.where('owner.id = :id', { id: userID })
-			.where('targetUser.id = :id', { id: targetUserID })
+			.where('owner.id = :ownerID AND targetUser.id = :targetUserID', { ownerID: userID, targetUserID })
 			.execute();
 	}
 }

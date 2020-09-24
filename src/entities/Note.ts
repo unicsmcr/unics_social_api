@@ -1,6 +1,6 @@
 import { User } from './User';
 import { IsDate } from 'class-validator';
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 
 export interface APINote {
 	ownerID: string;
@@ -15,6 +15,7 @@ export enum NoteType {
 }
 
 @Entity()
+@Unique(['owner', 'targetUser'])
 export default class Note {
 	@ManyToOne(() => User, { primary: true })
 	@JoinColumn()
@@ -34,7 +35,7 @@ export default class Note {
 	@IsDate()
 	public time!: Date;
 
-	public toJSON() {
+	public toJSON(): APINote {
 		return {
 			ownerID: this.owner.id,
 			targetUserID: this.targetUser.id,

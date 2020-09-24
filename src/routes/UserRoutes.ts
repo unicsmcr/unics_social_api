@@ -36,7 +36,7 @@ export class UserRoutes {
 
 		router.post('/users/:id/note', getUser(TokenType.Auth), isVerified, this.userController.createNote.bind(this.userController));
 
-		router.post('/users/:id/deletenote', getUser(TokenType.Auth), isVerified, this.userController.deleteNote.bind(this.userController));
+		router.delete('/users/:id/note', getUser(TokenType.Auth), isVerified, this.userController.deleteNote.bind(this.userController));
 
 		router.post('/users/:id/report', getUser(TokenType.Auth), isVerified, this.userController.reportUser.bind(this.userController));
 

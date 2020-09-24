@@ -418,7 +418,7 @@ describe('UserController', () => {
 
 			when(mockedNoteService.deleteNote(user.id, target.id)).thenResolve();
 
-			const res = await supertest(app).post(`/api/v1/users/${target.id}/deletenote`)
+			const res = await supertest(app).delete(`/api/v1/users/${target.id}/note`)
 				.set('Authorization', authorization);
 			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
 			expect(res.status).toEqual(HttpCode.NoContent);
@@ -433,7 +433,7 @@ describe('UserController', () => {
 
 			when(mockedNoteService.deleteNote(user.id, target.id)).thenReject(testError400);
 
-			const res = await supertest(app).post(`/api/v1/users/${target.id}/deletenote`)
+			const res = await supertest(app).delete(`/api/v1/users/${target.id}/note`)
 				.set('Authorization', authorization);
 			verify(mockedNoteService.deleteNote(user.id, target.id)).called();
 			expect(res.status).toEqual(testError400.httpCode);
