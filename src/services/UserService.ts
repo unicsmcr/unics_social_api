@@ -9,8 +9,8 @@ import Report from '../entities/Report';
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export interface PasswordResetData { password: string }
-export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string|boolean };
-export type ReportDataToCreate = Pick<Report, 'description' >;
+export type ProfileDataToCreate = Omit<Profile, 'id' | 'user' | 'toJSON' | 'avatar'> & { avatar: string | boolean };
+export type ReportDataToCreate = Pick<Report, 'description'>;
 
 enum RegistrationError {
 	EmailAlreadyExists = 'Email address already registered.',
@@ -34,7 +34,8 @@ enum ResetPasswordError {
 }
 
 enum AuthenticateError {
-	InvalidCredentials = 'Invalid Credentials'
+	InvalidCredentials = 'Invalid Credentials',
+	AccountUnverified = 'Your account has not been verified yet'
 }
 
 enum ReportUserError {
@@ -125,6 +126,10 @@ export class UserService {
 
 		if (!user) {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+
+		if (user.accountStatus === AccountStatus.Unverified) {
+			throw new APIError(HttpCode.Unauthorized, AuthenticateError.AccountUnverified);
 		}
 
 		if (!verifyPassword(password, user.password)) {
