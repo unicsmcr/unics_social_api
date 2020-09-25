@@ -17,7 +17,7 @@ export default class EmailService {
 		await this.transport.sendMail({
 			to: data.to,
 			subject: data.subject,
-			text: 'Hi',
+			text: data.subject,
 			html: data.html
 		});
 	}

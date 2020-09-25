@@ -81,7 +81,6 @@
   ]
  },
  "dependencies": {
-  "@sendgrid/mail": "^7.2.1",
   "@spectacles/rest": "^0.8.3",
   "@types/axios": "^0.14.0",
   "@types/express": "^4.17.7",
