@@ -17,9 +17,9 @@ export interface EnvConfig {
 		password: string;
 		database: string;
 	};
-	sendgrid: {
+	email: {
 		fromEmail: string;
-		token: string;
+		config: string;
 		mock: boolean;
 	};
 	twilio: {
@@ -50,9 +50,9 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			password: getEnv(source, 'DB_PASSWORD'),
 			database: getEnv(source, 'DB_DATABASE')
 		},
-		sendgrid: {
-			fromEmail: getEnv(source, 'SENDGRID_FROM_EMAIL'),
-			token: getEnv(source, 'SENDGRID_TOKEN'),
+		email: {
+			fromEmail: getEnv(source, 'EMAIL_FROM_EMAIL'),
+			config: getEnv(source, 'EMAIL_CONFIG'),
 			mock: intoBoolean(getEnv(source, 'MOCK_EMAIL_SERVICE'))
 		},
 		twilio: {

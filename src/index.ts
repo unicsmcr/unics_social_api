@@ -23,7 +23,7 @@ import { logger } from './util/logger';
 export function createExpress() {
 	const app = express();
 	app.use(cors({
-		origin: getConfig().host
+		origin: '*'
 	}));
 	app.use(express.json());
 
@@ -35,7 +35,7 @@ export function createExpress() {
 	// The only time the EmailService is already registered is during tests, so we shouldn't interfere in that case.
 	if (!container.isRegistered(EmailService)) {
 		container.register<EmailService>(EmailService, {
-			useClass: getConfig().sendgrid.mock ? MockEmailService : EmailService
+			useClass: getConfig().email.mock ? MockEmailService as any : EmailService
 		});
 	}
 

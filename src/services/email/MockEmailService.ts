@@ -1,5 +1,4 @@
 import { injectable } from 'tsyringe';
-import EmailService from './EmailService';
 import { getConfig } from '../../util/config';
 import { writeFile as _writeFile, exists as _exists, mkdir as _mkdir } from 'fs';
 import { promisify } from 'util';
@@ -11,7 +10,7 @@ interface EmailData { to: string; html: string; subject: string }
 
 const emailToRaw = (data: EmailData) =>
 	`Time: ${new Date().toLocaleString()}
-From: ${getConfig().sendgrid.fromEmail}
+From: ${getConfig().email.fromEmail}
 To: ${data.to}
 
 Subject: ${data.subject}
@@ -24,7 +23,7 @@ END OF MESSAGE
 `;
 
 @injectable()
-export default class MockEmailService implements EmailService {
+export default class MockEmailService {
 	public async sendEmail(data: { to: string; html: string; subject: string }) {
 		const fileToWrite = emailToRaw(data);
 		if (!await exists('./emails')) {
