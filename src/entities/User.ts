@@ -28,6 +28,8 @@ export interface APIUser {
 
 export interface APIPrivateUser extends APIUser {
 	email: string;
+	notes?: Note[];
+	discord?: boolean;
 }
 
 @Entity()
@@ -86,6 +88,12 @@ export class User {
 	}
 
 	public toJSONPrivate(): APIPrivateUser {
-		return { ...this.toJSON(), email: this.email };
+		const { email, notes, discord } = this;
+		return {
+			...this.toJSON(),
+			email: email,
+			notes: notes,
+			discord: discord ? true : false
+		};
 	}
 }
