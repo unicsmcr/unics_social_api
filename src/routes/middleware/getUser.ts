@@ -8,7 +8,7 @@ import { APIError, HttpCode } from '../../util/errors';
 enum GetUserError {
 	AuthorizationMissing = 'Missing authorization header',
 	InvalidToken = 'Authorization token is invalid',
-	UserNotFound = 'User not found',
+	UserNotFound = 'User given by token not found',
 	TokenMismatch = 'Given token not privileged for this request'
 }
 
