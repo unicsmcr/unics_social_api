@@ -1,7 +1,7 @@
 import { singleton } from 'tsyringe';
 import { createHmac } from 'crypto';
 import { getConfig } from '../util/config';
-import { APIError } from '../util/errors';
+import { APIError, HttpCode } from '../util/errors';
 import qs from 'querystring';
 import axios, { AxiosResponse } from 'axios';
 import { getConnection } from 'typeorm';
@@ -17,6 +17,7 @@ enum OAuth2StateError {
 
 enum LinkError {
 	DiscordLinked = 'This discord account is linked to another user.',
+	FailedToKick = 'Failed to remove the previous Discord account you had from the UniCS server.',
 	FailedToAdd = 'Something went wrong when adding you to the Discord server.'
 }
 
@@ -55,7 +56,7 @@ export default class DiscordService {
 		const parts = state.split(':');
 		if (parts.length !== 2) throw new APIError(400, OAuth2StateError.BadState);
 		const userID = parts[0];
-		if (this.generateOAuth2State(userID) !== state) throw new APIError(400, OAuth2StateError.NotGenuine);
+		if (this.generateOAuth2State(userID) !== state) throw new APIError(HttpCode.BadRequest, OAuth2StateError.NotGenuine);
 		return userID;
 	}
 
@@ -67,7 +68,7 @@ export default class DiscordService {
 			scope: 'identify guilds.join',
 			state,
 			redirect_uri: this.redirectURI,
-			prompt: 'none'
+			prompt: 'consent'
 		})}`;
 	}
 
@@ -95,27 +96,59 @@ export default class DiscordService {
 		const { id: discordID } = await client.get('/users/@me') as { id: string };
 
 		return getConnection().transaction(async entityManager => {
-			// Link the accounts
-			await entityManager.createQueryBuilder()
-				.insert()
-				.into(DiscordLink)
-				.values({
-					discordID,
-					user: { id: userID }
-				})
-				.onConflict(`("userId") DO UPDATE SET "discordID" = :discordID`)
-				.setParameter('discordID', discordID)
-				.execute()
-				.catch(() => Promise.reject(new APIError(400, LinkError.DiscordLinked)));
+			// Find any existing link for the KB user or for the Discord account
+			const links = await entityManager.find(DiscordLink, {
+				where: [
+					{ discordID },
+					{ user: { id: userID } }
+				],
+				relations: [
+					'user'
+				]
+			});
+
+			const existingUserLink = links.find(link => link.user.id === userID);
+			const existingDiscordLink = links.find(link => link.discordID === discordID);
+
+			if (existingDiscordLink && existingDiscordLink.user.id !== userID) {
+				// The discord account already exists in the database, but it is linked to another user so we can't link this.
+				throw new APIError(HttpCode.BadRequest, LinkError.DiscordLinked);
+			}
+
+			if (existingUserLink && existingUserLink.discordID !== discordID) {
+				// The user already has a linked Discord account, but it is different to the new one. We can remove the old account.
+				await this.client.delete(`/guilds/${getConfig().discord.guildID}/members/${existingUserLink.discordID}`).catch(error => {
+					if (error.response?.status === HttpCode.NotFound) {
+						// Failed because old user wasn't in server anyway - that's fine
+						return Promise.resolve();
+					}
+					// Failed for some other reason - can't continue
+					logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
+					return Promise.reject(new APIError(HttpCode.InternalError, LinkError.FailedToKick));
+				});
+				await entityManager.update(DiscordLink, { id: existingUserLink.id }, { discordID });
+			} else if (!existingUserLink) {
+				// The user does not have any discord account linked, so make a new link!
+				await entityManager.save(DiscordLink, { discordID, user: { id: userID } });
+			}
 
 			// Add the user to the Discord server
-			await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
-				access_token: token
+			const res = await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
+				access_token: token,
+				roles: [getConfig().discord.verifiedRole]
 			}).catch(error => {
-				logger.warn('Discord error:');
-				logger.warn(error);
+				logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
 				return Promise.reject(new APIError(500, LinkError.FailedToAdd));
 			});
+
+			// If there isn't a user, that means the user is already in the guild. Make sure to add the role to them.
+			if (!res.user) {
+				const { guildID, verifiedRole } = getConfig().discord;
+				await this.client.put(`/guilds/${guildID}/members/${discordID}/roles/${verifiedRole}`, undefined).catch(error => {
+					logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
+					return Promise.reject(new APIError(500, LinkError.FailedToAdd));
+				});
+			}
 		});
 	}
 }
