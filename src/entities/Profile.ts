@@ -19,7 +19,8 @@ export enum Course {
 	COMPUTER_SCIENCE = 'Computer Science',
 	HUMAN_COMPUTER_INTERACTION = 'Human Computer Interaction',
 	COMPUTER_SYSTEMS_ENGINEERING = 'Computer Systems Engineering',
-	SOFTWARE_ENGINEERING = 'Software Engineering'
+	SOFTWARE_ENGINEERING = 'Software Engineering',
+	OTHER = 'Other'
 }
 
 export enum Year {
@@ -29,7 +30,8 @@ export enum Year {
 	FOUNDATION = 'Foundation Year',
 	MASTERS = 'Masters Year',
 	INDUSTRIAL = 'Industrial Year',
-	PHD = 'PhD Student'
+	PHD = 'PhD Student',
+	OTHER = 'Other'
 }
 
 export enum Visibility {
