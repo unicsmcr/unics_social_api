@@ -134,12 +134,21 @@ export default class DiscordService {
 
 			// Add the user to the Discord server
 			const res = await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
-				access_token: token
+				access_token: token,
+				roles: [getConfig().discord.verifiedRole]
 			}).catch(error => {
 				logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
 				return Promise.reject(new APIError(500, LinkError.FailedToAdd));
 			});
-			console.log(res);
+
+			// If there isn't a user, that means the user is already in the guild. Make sure to add the role to them.
+			if (!res.user) {
+				const { guildID, verifiedRole } = getConfig().discord;
+				await this.client.put(`/guilds/${guildID}/members/${discordID}/roles/${verifiedRole}`, undefined).catch(error => {
+					logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
+					return Promise.reject(new APIError(500, LinkError.FailedToAdd));
+				});
+			}
 		});
 	}
 }
