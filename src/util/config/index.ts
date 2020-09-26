@@ -34,6 +34,7 @@ export interface EnvConfig {
 		clientSecret: string;
 		guildID: string;
 		botToken: string;
+		verifiedRole: string;
 	};
 }
 
@@ -66,7 +67,8 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			clientSecret: getEnv(source, 'DISCORD_CLIENT_SECRET'),
 			oauth2Secret: getEnv(source, 'DISCORD_OAUTH2_SECRET'),
 			guildID: getEnv(source, 'DISCORD_GUILD_ID'),
-			botToken: getEnv(source, 'DISCORD_BOT_TOKEN')
+			botToken: getEnv(source, 'DISCORD_BOT_TOKEN'),
+			verifiedRole: getEnv(source, 'DISCORD_VERIFIED_ROLE_ID')
 		}
 	};
 }
