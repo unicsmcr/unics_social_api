@@ -46,8 +46,9 @@ export class NoteService {
 			let note: Note | undefined;
 			note = await getRepository(Note)
 				.createQueryBuilder('note')
-				.leftJoinAndSelect('note.owner', 'user', 'user.id = :id', { id: userID })
-				.leftJoinAndSelect('note.targetUser', 'targetUser', 'targetUser.id = :id', { id: targetUserID })
+				.leftJoinAndSelect('note.owner', 'user')
+				.leftJoinAndSelect('note.targetUser', 'targetUser')
+				.where('user.id = :userID AND targetUser.id = :targetUserID', { userID, targetUserID })
 				.getOne();
 
 			if (note) {
