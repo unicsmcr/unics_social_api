@@ -117,13 +117,13 @@ export default class DiscordService {
 
 			if (existingUserLink && existingUserLink.discordID !== discordID) {
 				// The user already has a linked Discord account, but it is different to the new one. We can remove the old account.
-				await this.client.delete(`/guilds/${getConfig().discord.guildID}/members/${existingUserLink.discordID}`).catch(err => {
-					if (err.response?.status === HttpCode.NotFound) {
+				await this.client.delete(`/guilds/${getConfig().discord.guildID}/members/${existingUserLink.discordID}`).catch(error => {
+					if (error.response?.status === HttpCode.NotFound) {
 						// Failed because old user wasn't in server anyway - that's fine
 						return Promise.resolve();
 					}
 					// Failed for some other reason - can't continue
-					logger.error(err);
+					logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
 					return Promise.reject(new APIError(HttpCode.InternalError, LinkError.FailedToKick));
 				});
 				await entityManager.update(DiscordLink, { id: existingUserLink.id }, { discordID });
@@ -133,12 +133,13 @@ export default class DiscordService {
 			}
 
 			// Add the user to the Discord server
-			await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
+			const res = await this.client.put(`/guilds/${getConfig().discord.guildID}/members/${discordID}`, {
 				access_token: token
 			}).catch(error => {
 				logger.warn(`Discord error: ${error.message as string|undefined ?? 'no message attached to error'}`);
 				return Promise.reject(new APIError(500, LinkError.FailedToAdd));
 			});
+			console.log(res);
 		});
 	}
 }
