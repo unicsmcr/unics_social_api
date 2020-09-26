@@ -1,14 +1,6 @@
 import 'reflect-metadata';
 
-import sendgrid from '@sendgrid/mail';
-import EmailService from '../../../src/services/email/EmailService';
-import { getConfig } from '../../../src/util/config';
-
-const mockedSend = jest.spyOn(sendgrid, 'send');
-
-beforeEach(() => {
-	mockedSend.mockReset();
-});
+import MockEmailService from '../../../src/services/email/MockEmailService';
 
 describe('EmailService', () => {
 	test('Succeeds when send succeeds', async () => {
@@ -18,24 +10,7 @@ describe('EmailService', () => {
 			to: 'hi@gmail.com'
 		};
 
-		mockedSend.mockResolvedValueOnce({} as any);
-
-		const emailService = new EmailService();
+		const emailService = new MockEmailService();
 		await emailService.sendEmail(fixture);
-		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: getConfig().sendgrid.fromEmail });
-	});
-
-	test('Fails when send fails', async () => {
-		const fixture = {
-			html: '<b>Hi!</b>',
-			subject: 'Verify your account',
-			to: 'user@gmail.com'
-		};
-
-		mockedSend.mockRejectedValueOnce(new Error('Failed!'));
-
-		const emailService = new EmailService();
-		await expect(emailService.sendEmail(fixture)).rejects.toThrow();
-		expect(mockedSend).toHaveBeenCalledWith({ ...fixture, from: getConfig().sendgrid.fromEmail });
 	});
 });
