@@ -128,12 +128,13 @@ export class UserService {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
 		}
 
-		if (user.accountStatus === AccountStatus.Unverified) {
-			throw new APIError(HttpCode.Unauthorized, AuthenticateError.AccountUnverified);
-		}
 
 		if (!verifyPassword(password, user.password)) {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
+		}
+
+		if (user.accountStatus === AccountStatus.Unverified) {
+			throw new APIError(HttpCode.Unauthorized, AuthenticateError.AccountUnverified);
 		}
 
 		return user.toJSONPrivate();
