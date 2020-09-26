@@ -31,7 +31,12 @@ export class NoteService {
 			if (!userID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 			if (!targetUserID) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 
-			const users = await entityManager.findByIds(User, [userID, targetUserID])
+			const users = await entityManager.find(User, {
+				where: [
+					{ id: userID },
+					{ id: targetUserID }
+				]
+			})
 				.catch(() => Promise.reject(new APIError(HttpCode.BadRequest, NoteUserError.NoteBadRequest)));
 			if (users.length !== 2) throw new APIError(HttpCode.NotFound, NoteUserError.UserNotFound);
 
@@ -41,10 +46,8 @@ export class NoteService {
 			let note: Note | undefined;
 			note = await getRepository(Note)
 				.createQueryBuilder('note')
-				.innerJoinAndSelect('note.owner', 'user')
-				.where('user.id = :id', { id: userID })
-				.innerJoinAndSelect('note.targetUser', 'targetUser')
-				.where('targetUser.id = :id', { id: targetUserID })
+				.leftJoinAndSelect('note.owner', 'user', 'user.id = :id', { id: userID })
+				.leftJoinAndSelect('note.targetUser', 'targetUser', 'targetUser.id = :id', { id: targetUserID })
 				.getOne();
 
 			if (note) {
