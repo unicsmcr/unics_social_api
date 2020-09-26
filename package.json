@@ -81,11 +81,11 @@
   ]
  },
  "dependencies": {
-  "@sendgrid/mail": "^7.2.1",
   "@spectacles/rest": "^0.8.3",
   "@types/axios": "^0.14.0",
   "@types/express": "^4.17.7",
   "@types/jsonwebtoken": "^8.5.0",
+  "@types/nodemailer": "^6.4.0",
   "@types/pino": "^6.3.0",
   "@types/ws": "^7.2.6",
   "axios": "^0.20.0",
@@ -95,6 +95,7 @@
   "express": "^4.17.1",
   "jsonwebtoken": "^8.5.1",
   "multer": "^1.4.2",
+  "nodemailer": "^6.4.11",
   "pg": "^8.3.0",
   "pino": "^6.5.1",
   "reflect-metadata": "^0.1.13",

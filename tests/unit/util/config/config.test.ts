@@ -12,8 +12,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_USER: 'root',
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
-		SENDGRID_TOKEN: 'abc123',
-		SENDGRID_FROM_EMAIL: 'noreply@unicsmcr.com',
+		EMAIL_FROM_EMAIL: 'noreply@unicsmcr.com',
+		EMAIL_CONFIG: 'x',
 		MOCK_EMAIL_SERVICE: 'false',
 		JWT_SECRET: 'test123test',
 		TWILIO_ACCOUNT_SID: 'ACX123',
@@ -37,10 +37,10 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgrid: {
-			token: 'abc123',
+		email: {
 			fromEmail: 'noreply@unicsmcr.com',
-			mock: false
+			mock: false,
+			config: 'x'
 		},
 		twilio: {
 			accountSid: 'ACX123',
@@ -70,8 +70,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_USER: 'unics_social',
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
-		SENDGRID_TOKEN: 'token!!!',
-		SENDGRID_FROM_EMAIL: 'test@gmail.com',
+		EMAIL_FROM_EMAIL: 'test@gmail.com',
+		EMAIL_CONFIG: 'a',
 		MOCK_EMAIL_SERVICE: 'true',
 		JWT_SECRET: 'asecret',
 		TWILIO_ACCOUNT_SID: 'ACX5674567234',
@@ -95,10 +95,10 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			password: 'password',
 			database: 'unics_social'
 		},
-		sendgrid: {
-			token: 'token!!!',
+		email: {
 			fromEmail: 'test@gmail.com',
-			mock: true
+			mock: true,
+			config: 'a'
 		},
 		twilio: {
 			accountSid: 'ACX5674567234',
