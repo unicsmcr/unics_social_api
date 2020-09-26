@@ -134,8 +134,9 @@ describe('UserService', () => {
 		});
 
 		test('Authenticates a user with the correct password', async () => {
+			await getRepository(User).update(user.id, { accountStatus: AccountStatus.Verified });
 			const resolvedUser = await userService.authenticate(user.email, 'thunderbolt');
-			expect(resolvedUser).toMatchObject(user.toJSONPrivate());
+			expect(resolvedUser).toMatchObject({ ...user.toJSONPrivate(), accountStatus: AccountStatus.Verified });
 		});
 
 		test('Authenticate fails with empty/invalid email', async () => {
