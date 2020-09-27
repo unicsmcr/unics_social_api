@@ -19,6 +19,7 @@ export interface EnvConfig {
 	};
 	email: {
 		fromEmail: string;
+		reportsEmail: string;
 		config: string;
 		mock: boolean;
 	};
@@ -53,6 +54,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		},
 		email: {
 			fromEmail: getEnv(source, 'EMAIL_FROM_EMAIL'),
+			reportsEmail: getEnv(source, 'EMAIL_REPORTS_EMAIL'),
 			config: getEnv(source, 'EMAIL_CONFIG'),
 			mock: intoBoolean(getEnv(source, 'MOCK_EMAIL_SERVICE'))
 		},
