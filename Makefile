@@ -8,6 +8,7 @@ test: export DB_PASSWORD=password123
 test: export DB_DATABASE=unics_social
 test: export EMAIL_CONFIG=x
 test: export EMAIL_FROM_EMAIL=noreply@unicsmcr.com
+test: export EMAIL_REPORTS_EMAIL=reports@unicsmcr.com
 test: export MOCK_EMAIL_SERVICE=true
 test: export JWT_SECRET=thisisasecret
 test: export TWILIO_ACCOUNT_SID=AC123
