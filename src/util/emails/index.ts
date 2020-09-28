@@ -9,6 +9,9 @@ export const VerifyEmailTemplate = (name: string, token: string) => {
 
 <p>
 <a href="${url}">Click here to confirm your email address</a>.
+</p>
+
+<p>
 If that link does not work, please follow ${url}.
 </p>
 
@@ -36,6 +39,9 @@ export const PasswordEmailTemplate = (name: string, token: string) => {
 
 <p>
 <a href="${url}">Click here to change your current password</a>.
+</p>
+
+<p>
 If that link does not work, please follow ${url}.
 </p>
 
