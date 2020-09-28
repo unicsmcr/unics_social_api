@@ -188,6 +188,7 @@ export class UserService {
 
 			const report = new Report();
 			const { description } = options;
+			if (!description || typeof description !== 'string') throw new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails);
 			Object.assign(report, { currentTime: new Date(), description: sanitiseHTML(description) });
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
