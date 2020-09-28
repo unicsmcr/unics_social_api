@@ -87,7 +87,7 @@ export default class Profile {
 	@Column({
 		'type': 'enum',
 		'enum': Visibility,
-		'default': Visibility.Public
+		'default': Visibility.Private
 	})
 	public visibility!: Visibility;
 
