@@ -22,8 +22,9 @@ import { logger } from './util/logger';
 
 export function createExpress() {
 	const app = express();
+
 	app.use(cors({
-		origin: '*'
+		origin: getConfig().host
 	}));
 	app.use(express.json());
 

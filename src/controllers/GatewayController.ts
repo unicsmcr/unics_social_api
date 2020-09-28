@@ -74,6 +74,7 @@ export default class GatewayController {
 					this.discoveryQueue.removeFromQueue(userConfig.id);
 					this.authenticatedClients.delete(ws);
 				}
+				logger.info(`gateway: ${this.authenticatedClients.size} connected`);
 			});
 		});
 	}
@@ -120,6 +121,7 @@ export default class GatewayController {
 		const user = await this.userService.findOne({ id });
 		if (!user) throw new GatewayError('User not found');
 		this.authenticatedClients.set(ws, { id: user.id, lastPong: new Date().getTime() });
+		logger.info(`gateway: ${this.authenticatedClients.size} connected`);
 		await this.gatewayService.send([ws], {
 			type: GatewayPacketType.Hello
 		} as HelloGatewayPacket);

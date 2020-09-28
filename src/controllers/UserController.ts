@@ -9,6 +9,7 @@ import { generateJWT, TokenType } from '../util/auth';
 import { AuthenticatedResponse } from '../routes/middleware/getUser';
 import { APIError, HttpCode } from '../util/errors';
 import ChannelService from '../services/ChannelService';
+import { getConfig } from '../util/config';
 
 enum GetUserError {
 	UserNotFound = 'User not found',
@@ -162,7 +163,7 @@ export class UserController {
 		try {
 			const report = await this.userService.reportUser(res.locals.user.id, req.params.id, req.body);
 			await this.emailService.sendEmail({
-				to: 'team@unicsmcr.com',
+				to: getConfig().email.reportsEmail,
 				subject: 'A Reported User',
 				html: ReportEmailTemplate(report)
 			});

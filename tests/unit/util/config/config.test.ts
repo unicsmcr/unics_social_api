@@ -13,6 +13,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
 		EMAIL_FROM_EMAIL: 'noreply@unicsmcr.com',
+		EMAIL_REPORTS_EMAIL: 'reports@unicsmcr.com',
 		EMAIL_CONFIG: 'x',
 		MOCK_EMAIL_SERVICE: 'false',
 		JWT_SECRET: 'test123test',
@@ -40,6 +41,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		},
 		email: {
 			fromEmail: 'noreply@unicsmcr.com',
+			reportsEmail: 'reports@unicsmcr.com',
 			mock: false,
 			config: 'x'
 		},
@@ -73,6 +75,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DB_PASSWORD: 'password',
 		DB_DATABASE: 'unics_social',
 		EMAIL_FROM_EMAIL: 'test@gmail.com',
+		EMAIL_REPORTS_EMAIL: 'abc@gmail.com',
 		EMAIL_CONFIG: 'a',
 		MOCK_EMAIL_SERVICE: 'true',
 		JWT_SECRET: 'asecret',
@@ -100,6 +103,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		},
 		email: {
 			fromEmail: 'test@gmail.com',
+			reportsEmail: 'abc@gmail.com',
 			mock: true,
 			config: 'a'
 		},
