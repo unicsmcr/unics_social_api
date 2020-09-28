@@ -9,10 +9,7 @@ const message: any = {
 	error: 'You are being ratelimited! Try again in a few minutes.'
 };
 
-const keyGenerator = (req: Request) => {
-	console.log(req.ip, req.headers);
-	return req.ip;
-};
+const keyGenerator = (req: Request) => req.headers['cf-connecting-ip'] as string|undefined ?? req.ip;
 
 export const registerRateLimit = rateLimit({
 	windowMs: HOUR,
