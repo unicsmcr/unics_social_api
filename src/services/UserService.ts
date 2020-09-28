@@ -6,6 +6,7 @@ import Profile, { Visibility } from '../entities/Profile';
 import { APIError, formatValidationErrors, HttpCode } from '../util/errors';
 import { validateOrReject } from 'class-validator';
 import Report from '../entities/Report';
+import { sanitiseHTML } from '../util/sanitise';
 
 export type UserDataToCreate = Pick<User, 'forename' | 'surname' | 'email' | 'password'>;
 export interface PasswordResetData { password: string }
@@ -187,7 +188,8 @@ export class UserService {
 
 			const report = new Report();
 			const { description } = options;
-			Object.assign(report, { currentTime: new Date(), description });
+			if (!description || typeof description !== 'string') throw new APIError(HttpCode.BadRequest, ReportUserError.InvalidEntryDetails);
+			Object.assign(report, { currentTime: new Date(), description: sanitiseHTML(description) });
 			report.reportedUser = user;
 			report.reportingUser = await entityManager.findOneOrFail(User, { id: reportingID });
 			await validateOrReject(report).catch(e => Promise.reject(formatValidationErrors(e)));
