@@ -21,6 +21,11 @@ export interface QueueMatchData {
 	channel: DMChannel;
 }
 
+const WALDO_ID = process.env.WALDO_ID as string;
+if (!WALDO_ID) {
+	throw new Error('Missing WALDO_ID from env');
+}
+
 @singleton()
 export class DiscoveryQueue {
 	private readonly userService: UserService;
@@ -76,8 +81,10 @@ export class DiscoveryQueue {
 				continue;
 			}
 
+			const isWaldo = queueUser.user.id === WALDO_ID || userId === WALDO_ID;
+
 			// If either of the users require someone to be in the same year
-			if (queueUser.options.sameYear || options.sameYear) {
+			if (!isWaldo && (queueUser.options.sameYear || options.sameYear)) {
 				// Check that both users have the same year
 				if (queueUser.user.yearOfStudy === user.profile.yearOfStudy) {
 					return this.matchUsers(user.id, queueUser.user.id);
