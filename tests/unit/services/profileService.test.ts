@@ -8,9 +8,9 @@ import { APIProfile, Year, Visibility } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
 
 enum Course {
-	COMPUTER_SCIENCE = 'BSc Computer Science',
-	ARTIFICIAL_INTELLIGENCE = 'BSc Artificial Intelligence',
-	SOFTWARE_ENGINEERING = 'MEng Software Engineering'
+	COMPUTER_SCIENCE = 'Computer Science',
+	ARTIFICIAL_INTELLIGENCE = 'Artificial Intelligence',
+	SOFTWARE_ENGINEERING = 'Software Engineering'
 }
 
 beforeAll(async () => {
@@ -77,7 +77,7 @@ describe('ProfileService', () => {
 
 		test('Fails to create user profile with invalid details', async () => {
 			await expect(profileService.putUserProfile(userWithoutProfile.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'History', yearOfStudy: Year.ONE } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'FakeNews', yearOfStudy: Year.ONE } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'Software Engineering', yearOfStudy: 'Tenth Year' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'Computer Science', yearOfStudy: 3 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
