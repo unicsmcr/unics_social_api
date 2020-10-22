@@ -7,4 +7,8 @@ interface Course {
 
 const courses: Course[] = _courses;
 
+export function getDepartmentFromCourse(course: string): string {
+	return courses.find(entry => entry.name === course)?.school ?? 'Other';
+}
+
 export default courses;
