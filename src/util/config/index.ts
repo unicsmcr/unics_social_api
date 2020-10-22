@@ -10,6 +10,7 @@ export interface EnvConfig {
 	logErrors: boolean;
 	host: string;
 	jwtSecret: string;
+	rateLimiting: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -45,6 +46,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
 		host: getEnv(source, 'HOST'),
 		jwtSecret: getEnv(source, 'JWT_SECRET'),
+		rateLimiting: intoBoolean(getEnv(source, 'RATE_LIMITING')),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),
