@@ -1,6 +1,7 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Matches, IsOptional, IsEnum } from 'class-validator';
+import { Matches, IsOptional, IsEnum, IsIn } from 'class-validator';
 import { User } from './User';
+import courses from '../util/config/courses/courses';
 
 export interface APIProfile {
 	id: string;
@@ -13,15 +14,7 @@ export interface APIProfile {
 	linkedin?: string;
 }
 
-export enum Course {
-	ARTIFICIAL_INTELLIGENCE = 'Artificial Intelligence',
-	COMPUTER_SCIENCE_AND_MATHEMATICS = 'Computer Science and Mathematics',
-	COMPUTER_SCIENCE = 'Computer Science',
-	HUMAN_COMPUTER_INTERACTION = 'Human Computer Interaction',
-	COMPUTER_SYSTEMS_ENGINEERING = 'Computer Systems Engineering',
-	SOFTWARE_ENGINEERING = 'Software Engineering',
-	OTHER = 'Other'
-}
+type Course = string;
 
 export enum Year {
 	ONE = 'First Year',
@@ -47,11 +40,10 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@IsEnum(Course)
 	@Column({
-		'type': 'enum',
-		'enum': Course
+		type: 'text'
 	})
+	@IsIn(courses.map(course => course.name), { message: 'Invalid course selection' })
 	public course!: Course;
 
 	@IsEnum(Year)
