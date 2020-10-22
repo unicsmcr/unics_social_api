@@ -1,8 +1,8 @@
 import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
-import { getConfig } from '../util/config';
-import { logger } from '../util/logger';
-import { ROOM_TIME_LIMIT_TTL_SECS, ROOM_TIME_LIMIT_MS } from '../util/config/video';
+import { getConfig } from '../../util/config';
+import { logger } from '../../util/logger';
+import { ROOM_TIME_LIMIT_TTL_SECS, ROOM_TIME_LIMIT_MS } from '../../util/config/video';
 
 interface GenerateAccessTokenOptions {
 	userId: string;
