@@ -4,8 +4,14 @@ import { User } from '../../../src/entities/User';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
-import { APIProfile, Year, Course, Visibility } from '../../../src/entities/Profile';
+import { APIProfile, Year, Visibility } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
+
+enum Course {
+	COMPUTER_SCIENCE = 'BSc Computer Science',
+	ARTIFICIAL_INTELLIGENCE = 'BSc Artificial Intelligence',
+	SOFTWARE_ENGINEERING = 'MEng Software Engineering'
+}
 
 beforeAll(async () => {
 	await createDBConnection();
