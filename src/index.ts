@@ -19,6 +19,8 @@ import GatewayController from './controllers/GatewayController';
 import { EventRoutes } from './routes/EventRoutes';
 import { ChannelRoutes } from './routes/ChannelRoutes';
 import { logger } from './util/logger';
+import { TwilioService } from './services/twilio/TwilioService';
+import { MockTwilioService } from './services/twilio/MockTwilioService';
 
 export function createExpress() {
 	const app = express();
@@ -39,6 +41,10 @@ export function createExpress() {
 			useClass: getConfig().email.mock ? MockEmailService as any : EmailService
 		});
 	}
+
+	container.register<TwilioService>(TwilioService, {
+		useClass: getConfig().twilio.mock ? MockTwilioService as any : TwilioService
+	});
 
 	container.resolve(UserRoutes).routes(router);
 	container.resolve(EventRoutes).routes(router);

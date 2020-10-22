@@ -9,8 +9,15 @@ interface GenerateAccessTokenOptions {
 	roomId: string;
 }
 
+export interface ITwilioService {
+	teardown(): void;
+	createRoom(roomId: string): Promise<string>;
+	completeRoom(roomId: string): Promise<void>;
+	generateAccessToken(options: GenerateAccessTokenOptions): string;
+}
+
 @singleton()
-export class TwilioService {
+export class TwilioService implements ITwilioService {
 	private readonly twilioClient: Twilio;
 	private timeouts: NodeJS.Timeout[];
 
