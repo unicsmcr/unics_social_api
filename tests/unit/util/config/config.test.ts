@@ -21,6 +21,7 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		TWILIO_AUTH_TOKEN: 'TESTTOKEN',
 		TWILIO_API_KEY: 'SK123',
 		TWILIO_SECRET: 'asecret123',
+		MOCK_TWILIO_SERVICE: 'false',
 		DISCORD_CLIENT_ID: 'a',
 		DISCORD_CLIENT_SECRET: 'b',
 		DISCORD_OAUTH2_SECRET: 'c',
@@ -49,7 +50,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			accountSid: 'ACX123',
 			token: 'TESTTOKEN',
 			apiKey: 'SK123',
-			secret: 'asecret123'
+			secret: 'asecret123',
+			mock: false
 		},
 		discord: {
 			clientID: 'a',
@@ -83,6 +85,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		TWILIO_AUTH_TOKEN: 'token123',
 		TWILIO_API_KEY: 'SKabc123',
 		TWILIO_SECRET: 'secretabc123',
+		MOCK_TWILIO_SERVICE: 'true',
 		DISCORD_CLIENT_ID: 'abc',
 		DISCORD_CLIENT_SECRET: '123',
 		DISCORD_OAUTH2_SECRET: 'def',
@@ -111,7 +114,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 			accountSid: 'ACX5674567234',
 			token: 'token123',
 			apiKey: 'SKabc123',
-			secret: 'secretabc123'
+			secret: 'secretabc123',
+			mock: true
 		},
 		discord: {
 			clientID: 'abc',
