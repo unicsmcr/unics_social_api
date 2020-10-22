@@ -26,12 +26,14 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DISCORD_OAUTH2_SECRET: 'c',
 		DISCORD_GUILD_ID: 'd',
 		DISCORD_BOT_TOKEN: 'e',
-		DISCORD_VERIFIED_ROLE_ID: 'f'
+		DISCORD_VERIFIED_ROLE_ID: 'f',
+		RATE_LIMITING: 'true'
 	},
 	{
 		port: 8000,
 		logErrors: true,
 		host: 'https://kb.unicsmcr.com',
+		rateLimiting: true,
 		db: {
 			host: 'localhost',
 			username: 'root',
@@ -88,11 +90,13 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DISCORD_OAUTH2_SECRET: 'def',
 		DISCORD_GUILD_ID: '456',
 		DISCORD_BOT_TOKEN: 'ghi',
-		DISCORD_VERIFIED_ROLE_ID: '789'
+		DISCORD_VERIFIED_ROLE_ID: '789',
+		RATE_LIMITING: 'false'
 	},
 	{
 		port: 25565,
 		logErrors: false,
+		rateLimiting: false,
 		host: 'http://localhost:3000',
 		db: {
 			host: 'db',
