@@ -40,11 +40,9 @@ export default class Profile {
 	@OneToOne(() => User, user => user.profile)
 	public user!: User;
 
-	@Column({
-		type: 'text'
-	})
+	@Column({ length: 100 })
 	@IsIn(courses.map(course => course.name), { message: 'Invalid course selection' })
-	public course!: Course;
+	public course!: string;
 
 	@IsEnum(Year)
 	@Column({
