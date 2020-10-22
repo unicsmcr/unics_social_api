@@ -1,7 +1,7 @@
 import { Entity, Column, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Matches, IsOptional, IsEnum, IsIn } from 'class-validator';
 import { User } from './User';
-import courses from '../util/config/courses/courses';
+import { courses } from '../util/config/courses';
 
 export interface APIProfile {
 	id: string;

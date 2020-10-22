@@ -11,4 +11,4 @@ export function getDepartmentFromCourse(course: string): string {
 	return courses.find(entry => entry.name === course)?.school ?? 'Other';
 }
 
-export default courses;
+export { courses };

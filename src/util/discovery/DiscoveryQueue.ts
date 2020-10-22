@@ -3,7 +3,7 @@ import ChannelService from '../../services/ChannelService';
 import { inject, singleton } from 'tsyringe';
 import { DMChannel } from '../../entities/Channel';
 import { Year } from '../../entities/Profile';
-import { getDepartmentFromCourse } from '../config/courses/courses';
+import { getDepartmentFromCourse } from '../config/courses';
 
 interface QueueUser {
 	user: {
