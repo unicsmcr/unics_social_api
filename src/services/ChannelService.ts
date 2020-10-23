@@ -3,7 +3,7 @@ import { getRepository, FindOneOptions, FindConditions, getConnection } from 'ty
 import { Channel, DMChannel, APIDMChannel, APIChannel, EventChannel } from '../entities/Channel';
 import { User, AccountStatus } from '../entities/User';
 import { APIError } from '../util/errors';
-import { TwilioService } from './TwilioService';
+import { TwilioService } from './twilio/TwilioService';
 import { VideoIntegration } from '../entities/VideoIntegration';
 import { VideoUser } from '../entities/VideoUser';
 import { ROOM_TIME_LIMIT_MS } from '../util/config/video';

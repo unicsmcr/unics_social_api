@@ -29,6 +29,7 @@ export interface EnvConfig {
 		token: string;
 		secret: string;
 		apiKey: string;
+		mock: boolean;
 	};
 	discord: {
 		oauth2Secret: string;
@@ -64,7 +65,8 @@ export function load(source: Record<string, string | undefined> = process.env): 
 			accountSid: getEnv(source, 'TWILIO_ACCOUNT_SID'),
 			token: getEnv(source, 'TWILIO_AUTH_TOKEN'),
 			apiKey: getEnv(source, 'TWILIO_API_KEY'),
-			secret: getEnv(source, 'TWILIO_SECRET')
+			secret: getEnv(source, 'TWILIO_SECRET'),
+			mock: intoBoolean(getEnv(source, 'MOCK_TWILIO_SERVICE'))
 		},
 		discord: {
 			clientID: getEnv(source, 'DISCORD_CLIENT_ID'),
