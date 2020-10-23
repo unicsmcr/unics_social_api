@@ -1,7 +1,7 @@
 import { getConnection } from 'typeorm';
 import { container } from 'tsyringe';
 import GatewayController from '../../src/controllers/GatewayController';
-import { TwilioService } from '../../src/services/TwilioService';
+import { TwilioService } from '../../src/services/twilio/TwilioService';
 
 afterAll(async () => {
 	try {

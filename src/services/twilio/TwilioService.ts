@@ -1,16 +1,23 @@
 import { singleton } from 'tsyringe';
 import buildClient, { Twilio, jwt } from 'twilio';
-import { getConfig } from '../util/config';
-import { logger } from '../util/logger';
-import { ROOM_TIME_LIMIT_TTL_SECS, ROOM_TIME_LIMIT_MS } from '../util/config/video';
+import { getConfig } from '../../util/config';
+import { logger } from '../../util/logger';
+import { ROOM_TIME_LIMIT_TTL_SECS, ROOM_TIME_LIMIT_MS } from '../../util/config/video';
 
 interface GenerateAccessTokenOptions {
 	userId: string;
 	roomId: string;
 }
 
+export interface ITwilioService {
+	teardown(): void;
+	createRoom(roomId: string): Promise<string>;
+	completeRoom(roomId: string): Promise<void>;
+	generateAccessToken(options: GenerateAccessTokenOptions): string;
+}
+
 @singleton()
-export class TwilioService {
+export class TwilioService implements ITwilioService {
 	private readonly twilioClient: Twilio;
 	private timeouts: NodeJS.Timeout[];
 
