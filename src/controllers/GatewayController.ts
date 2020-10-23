@@ -181,7 +181,7 @@ export default class GatewayController {
 			await this.broadcast<GatewayTypingPacket>(gatewayTypingPacket);
 		} else if (channel instanceof DMChannel) {
 			// Send packet to the users in the dm channel
-			await this.sendMessage(channel.users.map(user => user.id), gatewayTypingPacket);
+			await this.sendMessage(channel.users.map(user => user.id).filter(id => id !== gatewayTypingPacket.data.userID), gatewayTypingPacket);
 		}
 	}
 }
