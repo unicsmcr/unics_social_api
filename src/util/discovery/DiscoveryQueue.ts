@@ -3,17 +3,20 @@ import ChannelService from '../../services/ChannelService';
 import { inject, singleton } from 'tsyringe';
 import { DMChannel } from '../../entities/Channel';
 import { Year } from '../../entities/Profile';
+import { getDepartmentFromCourse } from '../config/courses';
 
 interface QueueUser {
 	user: {
 		id: string;
 		yearOfStudy: Year;
+		department: string;
 	};
 	options: QueueOptions;
 }
 
 export interface QueueOptions {
 	sameYear: boolean;
+	sameDepartment: boolean;
 }
 
 export interface QueueMatchData {
@@ -51,6 +54,25 @@ export class DiscoveryQueue {
 	}
 
 	/**
+	 * Returns true if the users are able to match based on their preferences
+	 * @param user1 The first user
+	 * @param user2 The second user
+	 */
+	private usersCanMatch(user1: QueueUser, user2: QueueUser): boolean {
+		if (user1.options.sameYear || user2.options.sameYear) {
+			if (user1.user.yearOfStudy !== user2.user.yearOfStudy) {
+				return false;
+			}
+		}
+		if (user1.options.sameDepartment || user2.options.sameDepartment) {
+			if (user1.user.department !== user2.user.department) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Adds a new user to the discovery queue and tries to pair them to someone
 	 * @param userId The user to add
 	 * @param options The options for matching
@@ -70,32 +92,30 @@ export class DiscoveryQueue {
 		// A list of DM channels that the user already has
 		const ineligibleIDs = user.dmChannels.map(channel => channel.users.map(user => user.id)).flat();
 
+		const newUser = {
+			user: {
+				id: user.id,
+				yearOfStudy: user.profile.yearOfStudy,
+				department: getDepartmentFromCourse(user.profile.course)
+			},
+			options: {
+				sameYear: options.sameYear,
+				sameDepartment: options.sameDepartment
+			}
+		};
+
 		for (const queueUser of this.queue.values()) {
 			// If the potential user already has a dm channel with the new user, skip
 			if (ineligibleIDs.includes(queueUser.user.id)) {
 				continue;
 			}
 
-			// If either of the users require someone to be in the same year
-			if (queueUser.options.sameYear || options.sameYear) {
-				// Check that both users have the same year
-				if (queueUser.user.yearOfStudy === user.profile.yearOfStudy) {
-					return this.matchUsers(user.id, queueUser.user.id);
-				}
-			// If neither user requires the same year, then match
-			} else {
+			if (this.usersCanMatch(newUser, queueUser)) {
 				return this.matchUsers(user.id, queueUser.user.id);
 			}
 		}
-		this.queue.add({
-			user: {
-				id: user.id,
-				yearOfStudy: user.profile.yearOfStudy
-			},
-			options: {
-				sameYear: options.sameYear
-			}
-		});
+		// No match :(
+		this.queue.add(newUser);
 	}
 
 	public removeFromQueue(userId: string): void {

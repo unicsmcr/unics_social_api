@@ -4,8 +4,14 @@ import { User } from '../../../src/entities/User';
 import users from '../../fixtures/users';
 import * as passwordUtils from '../../../src/util/password';
 import { getConnection, getRepository } from 'typeorm';
-import { APIProfile, Year, Course, Visibility } from '../../../src/entities/Profile';
+import { APIProfile, Year, Visibility } from '../../../src/entities/Profile';
 import { HttpCode } from '../../../src/util/errors';
+
+enum Course {
+	COMPUTER_SCIENCE = 'Computer Science',
+	ARTIFICIAL_INTELLIGENCE = 'Artificial Intelligence',
+	SOFTWARE_ENGINEERING = 'Software Engineering'
+}
 
 beforeAll(async () => {
 	await createDBConnection();
@@ -71,7 +77,7 @@ describe('ProfileService', () => {
 
 		test('Fails to create user profile with invalid details', async () => {
 			await expect(profileService.putUserProfile(userWithoutProfile.id, {} as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
-			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'History', yearOfStudy: Year.ONE } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'FakeNews', yearOfStudy: Year.ONE } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'Software Engineering', yearOfStudy: 'Tenth Year' } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 			await expect(profileService.putUserProfile(userWithoutProfile.id, { course: 'Computer Science', yearOfStudy: 3 } as any)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
