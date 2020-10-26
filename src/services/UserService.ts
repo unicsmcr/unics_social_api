@@ -104,7 +104,7 @@ export class UserService {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
 		}
 		const user = await getRepository(User)
-			.createQueryBuilder('user').where('user.email= :email', { email })
+			.createQueryBuilder('user').where('LOWER(user.email) = LOWER(:email)', { email })
 			.getOne();
 
 		if (!user) {
