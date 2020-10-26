@@ -121,7 +121,7 @@ export class UserService {
 		}
 
 		const user = await getRepository(User)
-			.createQueryBuilder('user').where('user.email= :email', { email })
+			.createQueryBuilder('user').where('LOWER(user.email) = LOWER(:email)', { email })
 			.addSelect('user.password')
 			.getOne();
 
