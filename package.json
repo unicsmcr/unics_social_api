@@ -81,6 +81,7 @@
   ]
  },
  "dependencies": {
+  "@pm2/io": "^4.3.5",
   "@spectacles/rest": "^0.8.3",
   "@types/axios": "^0.14.0",
   "@types/express": "^4.17.7",
