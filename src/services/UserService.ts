@@ -65,6 +65,7 @@ export class UserService {
 
 			Object.assign(user, {
 				...data,
+				email: data.email.toLowerCase(),
 				accountStatus: AccountStatus.Unverified,
 				accountType: AccountType.User,
 				password: await hashPassword(data.password)
