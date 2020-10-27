@@ -105,7 +105,7 @@ export class UserService {
 			throw new APIError(HttpCode.Forbidden, AuthenticateError.InvalidCredentials);
 		}
 		const user = await getRepository(User)
-			.createQueryBuilder('user').where('LOWER(user.email) = LOWER(:email)', { email })
+			.createQueryBuilder('user').where('user.email = LOWER(:email)', { email })
 			.getOne();
 
 		if (!user) {
@@ -122,7 +122,7 @@ export class UserService {
 		}
 
 		const user = await getRepository(User)
-			.createQueryBuilder('user').where('LOWER(user.email) = LOWER(:email)', { email })
+			.createQueryBuilder('user').where('user.email = LOWER(:email)', { email })
 			.addSelect('user.password')
 			.getOne();
 
@@ -155,7 +155,7 @@ export class UserService {
 	public async forgotPassword(userEmail: string): Promise<APIPrivateUser> {
 		return getConnection().transaction(async entityManager => {
 			if (!userEmail) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.UserNotFound);
-			const user = await entityManager.findOneOrFail(User, { email: userEmail }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
+			const user = await entityManager.findOneOrFail(User, { email: userEmail.toLowerCase() }).catch(() => Promise.reject(new APIError(HttpCode.NotFound, ForgotPasswordError.UserNotFound)));
 			if (user.accountStatus === AccountStatus.Unverified) throw new APIError(HttpCode.Forbidden, ForgotPasswordError.AccountUnverified);
 			return user.toJSONPrivate();
 		});
