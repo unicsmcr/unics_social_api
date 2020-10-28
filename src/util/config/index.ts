@@ -1,7 +1,7 @@
 import { getEnv, intoNumber, intoBoolean, getEnvOrDefault } from './util';
 
 export enum Environment {
-	Dev = 'dev',
+	Dev = 'development',
 	Production = 'production'
 }
 
@@ -12,6 +12,7 @@ export interface EnvConfig {
 	jwtSecret: string;
 	rateLimiting: boolean;
 	eventUsers: string[];
+	env: Environment;
 	db: {
 		host: string;
 		port: number;
@@ -43,6 +44,11 @@ export interface EnvConfig {
 }
 
 export function load(source: Record<string, string | undefined> = process.env): EnvConfig {
+	const env = getEnv(source, 'NODE_ENV') as Environment;
+	if (![Environment.Dev, Environment.Production].includes(env)) {
+		throw new Error(`Invalid NODE_ENV variable, must be 'development' or 'production'`);
+	}
+
 	return {
 		port: intoNumber(getEnv(source, 'PORT')),
 		logErrors: intoBoolean(getEnv(source, 'LOG_ERRORS')),
@@ -51,6 +57,7 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		rateLimiting: intoBoolean(getEnv(source, 'RATE_LIMITING')),
 		eventUsers: getEnvOrDefault(source, 'EVENT_USERS', '').split(',').map(s => s.trim())
 			.filter(Boolean),
+		env,
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),

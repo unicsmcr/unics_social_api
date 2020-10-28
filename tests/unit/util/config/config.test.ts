@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-dynamic-delete */
-import { load, EnvConfig, getConfig } from '../../../../src/util/config';
+import { load, EnvConfig, getConfig, Environment } from '../../../../src/util/config';
 
 // Valid fixture
 const fixture1: [Record<string, string>, EnvConfig] = [
@@ -29,13 +29,15 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DISCORD_BOT_TOKEN: 'e',
 		DISCORD_VERIFIED_ROLE_ID: 'f',
 		RATE_LIMITING: 'true',
-		EVENT_USERS: 'a,b'
+		EVENT_USERS: 'a,b',
+		NODE_ENV: 'development'
 	},
 	{
 		port: 8000,
 		logErrors: true,
 		host: 'https://kb.unicsmcr.com',
 		rateLimiting: true,
+		env: Environment.Dev,
 		db: {
 			host: 'localhost',
 			username: 'root',
@@ -97,7 +99,8 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DISCORD_BOT_TOKEN: 'ghi',
 		DISCORD_VERIFIED_ROLE_ID: '789',
 		RATE_LIMITING: 'false',
-		EVENT_USERS: '1, 2,3'
+		EVENT_USERS: '1, 2,3',
+		NODE_ENV: 'production'
 	},
 	{
 		port: 25565,
@@ -105,6 +108,7 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		rateLimiting: false,
 		host: 'http://localhost:3000',
 		eventUsers: ['1', '2', '3'],
+		env: Environment.Production,
 		db: {
 			host: 'db',
 			username: 'unics_social',
