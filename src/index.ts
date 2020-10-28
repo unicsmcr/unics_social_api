@@ -8,7 +8,7 @@ import express, { Router, Response, Request, NextFunction } from 'express';
 import cors from 'cors';
 
 import { createConnection } from 'typeorm';
-import { getConfig } from './util/config';
+import { getConfig, Environment } from './util/config';
 import { UserRoutes } from './routes/UserRoutes';
 import { container } from 'tsyringe';
 import EmailService from './services/email/EmailService';
@@ -77,7 +77,7 @@ export async function createDBConnection() {
 		entities: [
 			`${__dirname}/entities/**/*{.js,.ts}`
 		],
-		synchronize: true,
+		synchronize: getConfig().env === Environment.Dev,
 		logging: false
 	});
 }
