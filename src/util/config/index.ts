@@ -49,7 +49,8 @@ export function load(source: Record<string, string | undefined> = process.env): 
 		host: getEnv(source, 'HOST'),
 		jwtSecret: getEnv(source, 'JWT_SECRET'),
 		rateLimiting: intoBoolean(getEnv(source, 'RATE_LIMITING')),
-		eventUsers: getEnvOrDefault(source, 'EVENT_USERS', '').split(',').map(s => s.trim()),
+		eventUsers: getEnvOrDefault(source, 'EVENT_USERS', '').split(',').map(s => s.trim())
+			.filter(Boolean),
 		db: {
 			host: getEnv(source, 'DB_HOST'),
 			port: intoNumber(getEnv(source, 'DB_PORT')),

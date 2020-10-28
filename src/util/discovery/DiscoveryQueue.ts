@@ -4,6 +4,8 @@ import { inject, singleton } from 'tsyringe';
 import { DMChannel } from '../../entities/Channel';
 import { Year } from '../../entities/Profile';
 import { getDepartmentFromCourse } from '../config/courses';
+import { getConfig } from '../config';
+import { logger } from '../logger';
 
 interface QueueUser {
 	user: {
@@ -29,11 +31,19 @@ export class DiscoveryQueue {
 	private readonly userService: UserService;
 	private readonly channelService: ChannelService;
 	public readonly queue: Set<QueueUser>;
+	private readonly eventUsers: Set<string>;
 
 	public constructor(@inject(UserService) userService: UserService, @inject(ChannelService) channelService: ChannelService) {
 		this.userService = userService;
 		this.channelService = channelService;
 		this.queue = new Set();
+		const eventUsers = getConfig().eventUsers;
+		if (eventUsers.length > 0) {
+			logger.info(`Configured event users (${eventUsers.length}): ${eventUsers.join(', ')}`);
+		} else {
+			logger.info(`No event users configured for networking`);
+		}
+		this.eventUsers = new Set(eventUsers);
 	}
 
 	private async matchUsers(user1: string, user2: string): Promise<QueueMatchData> {
@@ -110,7 +120,8 @@ export class DiscoveryQueue {
 				continue;
 			}
 
-			if (this.usersCanMatch(newUser, queueUser)) {
+			// If the users can match based on their preferences, do so. Otherwise, match them if either is an event user.
+			if (this.usersCanMatch(newUser, queueUser) || this.eventUsers.has(user.id) || this.eventUsers.has(queueUser.user.id)) {
 				return this.matchUsers(user.id, queueUser.user.id);
 			}
 		}
