@@ -9,6 +9,9 @@ import { DiscoveryQueue, QueueMatchData } from '../util/discovery/DiscoveryQueue
 import { logger } from '../util/logger';
 import ChannelService from '../services/ChannelService';
 import { EventChannel, DMChannel } from '../entities/Channel';
+import io from '@pm2/io';
+import Gauge from '@pm2/io/build/main/utils/metrics/gauge';
+import { Metric } from '../util/metrics';
 
 const HEARTBEAT_INTERVAL = 20_000;
 const HEARTBEAT_TOLERANCE = HEARTBEAT_INTERVAL * 3;
@@ -23,6 +26,10 @@ export default class GatewayController {
 	private readonly _heartbeatInterval: NodeJS.Timeout;
 	private readonly channelService: ChannelService;
 
+	// Metrics
+	private readonly gatewaySessionsMetric: Gauge;
+	private readonly connectedUsersMetric: Gauge;
+
 	public constructor(@inject(GatewayService) gatewayService: GatewayService, @inject(ChannelService) channelService: ChannelService, @inject(UserService) userService: UserService, @inject(DiscoveryQueue) discoveryQueue: DiscoveryQueue) {
 		this.authenticatedClients = new Map();
 		this.gatewayService = gatewayService;
@@ -34,6 +41,10 @@ export default class GatewayController {
 			this.checkHeartbeats()
 				.catch(err => logger.error(err));
 		}, HEARTBEAT_INTERVAL);
+
+		// Metrics
+		this.gatewaySessionsMetric = io.metric({ name: Metric.GatewaySessions });
+		this.connectedUsersMetric = io.metric({ name: Metric.ConnectedUsers });
 	}
 
 	public teardown() {
@@ -49,7 +60,12 @@ export default class GatewayController {
 			}
 		};
 
-		logger.info(`gateway: heartbeating to ${new Set([...this.authenticatedClients.values()].map(n => n.id)).size} users`);
+		const connectedUsersSize = new Set([...this.authenticatedClients.values()].map(n => n.id)).size;
+
+		this.gatewaySessionsMetric.set(this.authenticatedClients.size);
+		this.connectedUsersMetric.set(connectedUsersSize);
+
+		logger.info(`gateway: heartbeating to ${connectedUsersSize} users`);
 
 		/* sendMessage could fail if even one of the messages to the clients fails to send
 			We do not want this to happen in heartbeating, so we send the packet individually and then
