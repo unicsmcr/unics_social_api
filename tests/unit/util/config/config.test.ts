@@ -28,7 +28,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 		DISCORD_GUILD_ID: 'd',
 		DISCORD_BOT_TOKEN: 'e',
 		DISCORD_VERIFIED_ROLE_ID: 'f',
-		RATE_LIMITING: 'true'
+		RATE_LIMITING: 'true',
+		EVENT_USERS: 'a,b'
 	},
 	{
 		port: 8000,
@@ -63,7 +64,8 @@ const fixture1: [Record<string, string>, EnvConfig] = [
 			botToken: 'e',
 			verifiedRole: 'f'
 		},
-		jwtSecret: 'test123test'
+		jwtSecret: 'test123test',
+		eventUsers: ['a', 'b']
 	}
 ];
 
@@ -94,13 +96,15 @@ const fixture2: [Record<string, string>, EnvConfig] = [
 		DISCORD_GUILD_ID: '456',
 		DISCORD_BOT_TOKEN: 'ghi',
 		DISCORD_VERIFIED_ROLE_ID: '789',
-		RATE_LIMITING: 'false'
+		RATE_LIMITING: 'false',
+		EVENT_USERS: '1, 2,3'
 	},
 	{
 		port: 25565,
 		logErrors: false,
 		rateLimiting: false,
 		host: 'http://localhost:3000',
+		eventUsers: ['1', '2', '3'],
 		db: {
 			host: 'db',
 			username: 'unics_social',
@@ -144,6 +148,7 @@ describe('load config', () => {
 
 	test('Throws for missing values', () => {
 		for (const envKey of Object.keys(fixture1[0])) {
+			if (envKey === 'EVENT_USERS') continue;
 			const fixture = { ...fixture1[0] };
 			delete fixture[envKey];
 			expect(() => load(fixture)).toThrow();

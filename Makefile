@@ -23,6 +23,7 @@ test: export DISCORD_GUILD_ID=abc
 test: export DISCORD_BOT_TOKEN=abc
 test: export DISCORD_VERIFIED_ROLE_ID=abc
 test: export RATE_LIMITING=false
+test: export EVENT_USERS=
 test:
 	docker-compose -f tests/docker-compose.yml up -d db
 	@node scripts/waitForPort $(DB_PORT)
