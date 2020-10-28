@@ -36,6 +36,11 @@ describe('UserService', () => {
 			expect(user.password).toStrictEqual('tlobrednuht');
 			// 2nd registration should fail
 			await expect(userService.registerUser(details)).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
+			// Should be case-insensitive
+			await expect(userService.registerUser({
+				...details,
+				email: details.email.toUpperCase()
+			})).rejects.toMatchObject({ httpCode: HttpCode.BadRequest });
 		});
 
 		test('Accepts Postgrad Email', async () => {
@@ -139,6 +144,13 @@ describe('UserService', () => {
 			expect(resolvedUser).toMatchObject({ ...user.toJSONPrivate(), accountStatus: AccountStatus.Verified });
 		});
 
+		test('Authenticates a user with case-insensitive email', async () => {
+			const email = user.email;
+			await getRepository(User).update(user.id, { accountStatus: AccountStatus.Verified });
+			const resolvedUser = await userService.authenticate(email.toUpperCase(), 'thunderbolt');
+			expect(resolvedUser).toMatchObject({ ...user.toJSONPrivate(), accountStatus: AccountStatus.Verified });
+		});
+
 		test('Authenticate fails with empty/invalid email', async () => {
 			await expect(userService.authenticate('', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
 			await expect(userService.authenticate('random@student.manchester.ac.uk', 'thunderbolt')).rejects.toMatchObject({ httpCode: HttpCode.Forbidden });
@@ -161,6 +173,11 @@ describe('UserService', () => {
 
 		test('foget password for a verified exisiting user', async () => {
 			const resolvedUser = await userService.forgotPassword(verifiedUser.email);
+			expect(resolvedUser).toMatchObject(verifiedUser.toJSONPrivate());
+		});
+
+		test('foget password treats email as case-insensitive', async () => {
+			const resolvedUser = await userService.forgotPassword(verifiedUser.email.toLowerCase());
 			expect(resolvedUser).toMatchObject(verifiedUser.toJSONPrivate());
 		});
 
