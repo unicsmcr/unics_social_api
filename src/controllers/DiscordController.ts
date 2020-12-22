@@ -22,7 +22,7 @@ export class DiscordController {
 			const link = await this.discordService.fetch(req.params.id);
 			if (!link) throw new APIError(HttpCode.NotFound, GetUserError.UserNotFound);
 			res.json(link);
-		} catch(error) {
+		} catch (error) {
 			next(error);
 		}
 	}
