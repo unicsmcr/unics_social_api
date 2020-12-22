@@ -29,6 +29,8 @@ export class UserRoutes {
 
 		router.post('/reset_password', getUser(TokenType.PasswordReset), this.userController.resetPassword.bind(this.userController));
 
+		router.get('/discord/:id', this.discordController.getDiscordUser.bind(this.discordController));
+
 		router.get('/users', getUser(TokenType.Auth), isVerified, this.userController.getPublicUsers.bind(this.userController));
 
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
