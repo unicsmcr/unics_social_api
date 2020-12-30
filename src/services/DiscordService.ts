@@ -41,6 +41,20 @@ export default class DiscordService {
 		});
 	}
 
+	public async fetch(discordID: string) {
+		return getConnection().transaction(async entityManager => {
+			const link = await entityManager.findOne(DiscordLink, {
+				where: [
+					{ discordID }
+				],
+				relations: [
+					'user'
+				]
+			});
+			return link;
+		});
+	}
+
 	public generateOAuth2State(userID: string) {
 		const hmac = createHmac('sha256', getConfig().discord.oauth2Secret)
 			.update(userID)
