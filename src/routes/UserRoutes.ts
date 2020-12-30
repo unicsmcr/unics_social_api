@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { inject, injectable } from 'tsyringe';
-import { getUser, isVerified, uploadImg } from './middleware';
+import { getUser, isAdmin, isVerified, uploadImg } from './middleware';
 import { TokenType } from '../util/auth';
 import { DiscordController } from '../controllers/DiscordController';
 import { getRatelimiter, RateLimiter } from '../util/ratelimits';
@@ -29,11 +29,11 @@ export class UserRoutes {
 
 		router.post('/reset_password', getUser(TokenType.PasswordReset), this.userController.resetPassword.bind(this.userController));
 
-		router.get('/discord/:id', this.discordController.getDiscordUser.bind(this.discordController));
-
 		router.get('/users', getUser(TokenType.Auth), isVerified, this.userController.getPublicUsers.bind(this.userController));
 
 		router.get('/users/:id', getUser(TokenType.Auth), isVerified, this.userController.getUser.bind(this.userController));
+
+		router.get('/users/discord/:id', getUser(TokenType.Auth), isAdmin, this.discordController.getDiscordUser.bind(this.discordController));
 
 		router.get('/users/@me/notes', getUser(TokenType.Auth), isVerified, this.userController.getNotes.bind(this.userController));
 
