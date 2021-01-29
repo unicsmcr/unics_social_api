@@ -125,7 +125,7 @@ describe('UserController', () => {
 			const user = users[1];
 			setGetUserAllowed(token, user);
 
-			when(mockedUserService.verifyUserEmail(user.id)).thenResolve({ ...users[1] });
+			when(mockedUserService.verifyUserEmail(user.id)).thenResolve({ ...users[1], discord: false });
 
 			const res = await supertest(app).get(`/api/v1/verify`).set('Authorization', token);
 			verify(mockedUserService.verifyUserEmail(user.id)).called();
@@ -151,7 +151,7 @@ describe('UserController', () => {
 		test('No content response for valid request', async () => {
 			const [email, password, token] = [randomString(), randomString(), randomString()];
 
-			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1] });
+			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1], discord: false });
 			const spy = jest.spyOn(authUtils, 'generateJWT');
 			spy.mockImplementation(() => Promise.resolve(token));
 
@@ -181,7 +181,7 @@ describe('UserController', () => {
 		test('Forwards errors from generateJWT', async () => {
 			const [email, password] = [randomString(), randomString()];
 
-			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1] });
+			when(mockedUserService.authenticate(email, password)).thenResolve({ ...users[1], discord: false });
 			const spy = jest.spyOn(authUtils, 'generateJWT');
 			spy.mockImplementation(() => Promise.reject(testError400));
 
@@ -198,7 +198,7 @@ describe('UserController', () => {
 		test('No content response for valid request', async () => {
 			const data = { email: randomString() };
 
-			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			when(mockedUserService.forgotPassword(anything())).thenResolve({ ...users[1], discord: false });
 			when(mockedEmailService.sendEmail(anything())).thenResolve();
 
 			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
@@ -224,7 +224,7 @@ describe('UserController', () => {
 		test('Forwards errors from EmailService', async () => {
 			const data = { email: randomString() };
 
-			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			when(mockedUserService.forgotPassword(anything())).thenResolve({ ...users[1], discord: false });
 			when(mockedEmailService.sendEmail(anything())).thenReject(testError400);
 
 			const res = await supertest(app).post('/api/v1/forgot_password').send(data);
@@ -237,7 +237,7 @@ describe('UserController', () => {
 		test('Forwards errors from generateJWT', async () => {
 			const data = { email: randomString() };
 
-			when(mockedUserService.forgotPassword(anything())).thenResolve(users[1]);
+			when(mockedUserService.forgotPassword(anything())).thenResolve({ ...users[1], discord: false });
 			const spy = jest.spyOn(authUtils, 'generateJWT');
 			spy.mockImplementation(() => Promise.reject(testError400));
 
